@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style media="print">
+  .no-print { display: none !important; }
+  .invoice-print { margin: 0; }
+  .invoice-print header { margin-bottom: 1em; }
+  .invoice-print table { width: 100%%; border-collapse: collapse; }
+  .invoice-print th, .invoice-print td { border: 1px solid #333; padding: 4px 8px; text-align: left; }
+  .invoice-print .total { margin-top: 1em; font-size: 1.2em; }
+</style>
+<div class="invoice-detail">
+  <p class="no-print"><a href="{% url 'invoice_list' %}">← Invoices</a> | <a href="{% url 'invoice_add_lines' invoice.pk %}">Edit line items</a> | <a href="{% url 'invoice_line_item_add' invoice.pk %}">Add one line item</a></p>
+
+  <div class="invoice-print" id="invoice-print">
+    <header>
+      <h1>Fila Trucking</h1>
+      <p>Invoice #{{ invoice.pk }}</p>
+    </header>
+
+    <section class="bill-to">
+      <h2>Bill To</h2>
+      <p><strong>{{ invoice.customer.name }}</strong></p>
+      <p>{{ invoice.customer.street }}<br>{{ invoice.customer.address1 }}<br>{{ invoice.customer.address2 }}</p>
+      <p>{{ invoice.customer.email }}</p>
+    </section>
+
+    <p><strong>Invoice date:</strong> {{ invoice.invoice_date }} &nbsp; <strong>Status:</strong> {{ invoice.get_status_display }}</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Description</th>
+          <th>Container</th>
+          <th>Seal</th>
+          <th>Location</th>
+          <th>Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in invoice.line_items.all %}
+        <tr>
+          <td>{{ item.date_incurred }}</td>
+          <td>{{ item.description }}</td>
+          <td>{{ item.container_no|default:"—" }}</td>
+          <td>{{ item.seal_no|default:"—" }}</td>
+          <td>{{ item.location }}</td>
+          <td>${{ item.amount }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6">No line items.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <p class="total"><strong>Total: ${{ invoice.total_amount }}</strong></p>
+  </div>
+
+  <p class="no-print"><button type="button" onclick="window.print();">Print</button></p>
+</div>
+{% endblock %}
