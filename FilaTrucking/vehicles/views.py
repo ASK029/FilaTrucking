@@ -1,10 +1,48 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Sum
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import render
 from django.urls import reverse_lazy
-from django.views.generic import CreateView, ListView
+from django.views.generic import (
+    CreateView,
+    DeleteView,
+    DetailView,
+    ListView,
+    UpdateView,
+)
 
 from .models import IFTAMileageLog, Vehicle
+
+
+class VehicleListView(LoginRequiredMixin, ListView):
+    model = Vehicle
+    template_name = "vehicles/vehicle_list.html"
+    context_object_name = "vehicles"
+
+
+class VehicleDetailView(LoginRequiredMixin, DetailView):
+    model = Vehicle
+    template_name = "vehicles/vehicle_detail.html"
+    context_object_name = "vehicle"
+
+
+class VehicleCreateView(LoginRequiredMixin, CreateView):
+    model = Vehicle
+    template_name = "vehicles/vehicle_form.html"
+    fields = "__all__"
+    success_url = reverse_lazy("vehicle_list")
+
+
+class VehicleUpdateView(LoginRequiredMixin, UpdateView):
+    model = Vehicle
+    template_name = "vehicles/vehicle_form.html"
+    fields = "__all__"
+    success_url = reverse_lazy("vehicle_list")
+
+
+class VehicleDeleteView(LoginRequiredMixin, DeleteView):
+    model = Vehicle
+    template_name = "vehicles/vehicle_confirm_delete.html"
+    success_url = reverse_lazy("vehicle_list")
 
 
 class IFTALogCreateView(LoginRequiredMixin, CreateView):

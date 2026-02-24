@@ -1,10 +1,48 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
-from django.views.generic import CreateView, DetailView, ListView
+from django.views.generic import (
+    CreateView,
+    DeleteView,
+    DetailView,
+    ListView,
+    UpdateView,
+)
 
 from .forms import InvoiceForm, InvoiceLineItemForm, InvoiceLineItemFormSet
-from .models import Invoice, InvoiceLineItem
+from .models import Invoice, InvoiceLineItem, Shipment
+
+
+class ShipmentListView(LoginRequiredMixin, ListView):
+    model = Shipment
+    template_name = "shipments/shipment_list.html"
+    context_object_name = "shipments"
+
+
+class ShipmentDetailView(LoginRequiredMixin, DetailView):
+    model = Shipment
+    template_name = "shipments/shipment_detail.html"
+    context_object_name = "shipment"
+
+
+class ShipmentCreateView(LoginRequiredMixin, CreateView):
+    model = Shipment
+    template_name = "shipments/shipment_form.html"
+    fields = "__all__"
+    success_url = reverse_lazy("shipment_list")
+
+
+class ShipmentUpdateView(LoginRequiredMixin, UpdateView):
+    model = Shipment
+    template_name = "shipments/shipment_form.html"
+    fields = "__all__"
+    success_url = reverse_lazy("shipment_list")
+
+
+class ShipmentDeleteView(LoginRequiredMixin, DeleteView):
+    model = Shipment
+    template_name = "shipments/shipment_confirm_delete.html"
+    success_url = reverse_lazy("shipment_list")
 
 
 class InvoiceListView(LoginRequiredMixin, ListView):
