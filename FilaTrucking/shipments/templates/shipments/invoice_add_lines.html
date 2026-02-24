@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Add line items – Invoice #{{ invoice.pk }} ({{ invoice.customer.name }})</h1>
+<form method="post">
+  {% csrf_token %}
+  {{ formset.management_form }}
+  <table>
+    <thead>
+      <tr>
+        <th>Shipment</th>
+        <th>Date</th>
+        <th>Description</th>
+        <th>Container</th>
+        <th>Seal</th>
+        <th>Location</th>
+        <th>Amount</th>
+        <th>Delete</th>
+      </tr>
+    </thead>
+    {% for f in formset %}
+    <tr>
+      {% for field in f.hidden_fields %}{{ field }}{% endfor %}
+      <td>{{ f.shipment }}</td>
+      <td>{{ f.date_incurred }}</td>
+      <td>{{ f.description }}</td>
+      <td>{{ f.container_no }}</td>
+      <td>{{ f.seal_no }}</td>
+      <td>{{ f.location }}</td>
+      <td>{{ f.amount }}</td>
+      <td>{% if f.DELETE %}{{ f.DELETE }}{% endif %}</td>
+    </tr>
+    {% if f.non_field_errors or f.errors %}
+    <tr><td colspan="8">{{ f.non_field_errors }}{{ f.errors }}</td></tr>
+    {% endif %}
+    {% endfor %}
+  </table>
+  <button type="submit">Save line items</button>
+</form>
+<p><a href="{% url 'invoice_detail' invoice.pk %}">Skip / View invoice</a> | <a href="{% url 'invoice_list' %}">Invoices</a></p>
+{% endblock %}

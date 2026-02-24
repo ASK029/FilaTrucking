@@ -25,7 +25,6 @@ class Vehicle(models.Model):
     year = models.IntegerField(max_length=4)
     chassis_number = models.CharField(max_length=30)
     engine_number = models.CharField(max_length=30)
-    fuel_efficiency = models.DecimalField(max_digits=10, decimal_places=2)  # mil/L
     average_mpg = models.DecimalField(
         max_digits=6, decimal_places=2, null=True, blank=True,
         verbose_name="Average MPG (for IFTA)"
@@ -43,7 +42,7 @@ class IFTAMileageLog(models.Model):
     """Monthly mileage per state for quarterly IFTA reporting."""
     truck = models.ForeignKey(Vehicle, on_delete=models.CASCADE, verbose_name="Truck")
     month = models.IntegerField(choices=[(i, str(i)) for i in range(1, 13)])
-    year = models.IntegerField()
+    year = models.IntegerField(choices=[(i, str(i)) for i in range(2000, 2100)])
     state_code = models.CharField(max_length=2)
     miles_driven = models.DecimalField(max_digits=12, decimal_places=2)
     calculated_gallons = models.DecimalField(
