@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Add line item – Invoice #{{ invoice.pk }}</h1>
+<form method="post">
+  {% csrf_token %}
+  <table>
+    {{ form.as_table }}
+  </table>
+  <button type="submit">Add</button>
+</form>
+<p><a href="{% url 'invoice_detail' invoice.pk %}">Back to invoice</a></p>
+{% endblock %}

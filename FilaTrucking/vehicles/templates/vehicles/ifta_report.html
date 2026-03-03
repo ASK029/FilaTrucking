@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>IFTA Report (by Quarter)</h1>
+<form method="get">
+  <label>Year: <input type="number" name="year" value="{{ year }}" min="2020" max="2030" /></label>
+  <label>Quarter: <select name="quarter">
+    <option value="">--</option>
+    <option value="1" {% if quarter == "1" %}selected{% endif %}>Q1 (Jan–Mar)</option>
+    <option value="2" {% if quarter == "2" %}selected{% endif %}>Q2 (Apr–Jun)</option>
+    <option value="3" {% if quarter == "3" %}selected{% endif %}>Q3 (Jul–Sep)</option>
+    <option value="4" {% if quarter == "4" %}selected{% endif %}>Q4 (Oct–Dec)</option>
+  </select></label>
+  <button type="submit">Show</button>
+</form>
+{% if summary %}
+<h2>{{ year }} {{ quarter_label }}</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Truck</th>
+      <th>State</th>
+      <th>Total Miles</th>
+      <th>Total Gallons</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in summary %}
+    <tr>
+      <td>{{ row.truck__name }}</td>
+      <td>{{ row.state_code }}</td>
+      <td>{{ row.total_miles }}</td>
+      <td>{{ row.total_gallons|default:"—" }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% elif year and quarter %}
+<p>No data for this period.</p>
+{% endif %}
+<p><a href="{% url 'ifta_log_create' %}">Add log entry</a> | <a href="{% url 'ifta_log_list' %}">View all logs</a></p>
+{% endblock %}

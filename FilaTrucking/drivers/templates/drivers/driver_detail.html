@@ -1,0 +1,38 @@
+{% extends "base.html" %} {% block content %}
+<h1>Driver: {{ object.name }}</h1>
+
+<ul>
+  <li><strong>Phone:</strong> {{ object.phone_number }}</li>
+  <li><strong>License #:</strong> {{ object.license_number }}</li>
+  <li><strong>License expiry:</strong> {{ object.license_expiry }}</li>
+  <li><strong>Joined at:</strong> {{ object.joined_at }}</li>
+</ul>
+
+<h2>Documents</h2>
+{% if object.driverdocument_set.exists %}
+<ul>
+  {% for doc in object.driverdocument_set.all %}
+  <li>
+    {{ doc.name }} -
+    <a
+      href="{{ doc.document.url }}"
+      download
+      >Download</a
+    >
+    |
+    <a href="{% url 'driver_document_delete' doc.pk %}">Delete</a>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p>No documents uploaded for this driver.</p>
+{% endif %}
+
+<hr />
+
+<p>
+  <a href="{% url 'driver_update' object.pk %}">Edit</a> |
+  <a href="{% url 'driver_delete' object.pk %}">Delete</a> |
+  <a href="{% url 'driver_list' %}">Back to list</a>
+</p>
+{% endblock %}

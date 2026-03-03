@@ -1,0 +1,48 @@
+{% extends "base.html" %} {% block content %} {% load static %}
+
+<script src="{% static 'js/drivers.js' %}"></script>
+
+<h1>{% if form.instance.pk %}Edit Driver{% else %}Add Driver{% endif %}</h1>
+
+<form
+  method="post"
+  enctype="multipart/form-data">
+  {% csrf_token %}
+
+  <h3>Driver Details</h3>
+  {{ form.as_p }}
+
+  <hr />
+  <h3>Documents</h3>
+  {{ document_formset.management_form }}
+
+  <div id="document-form-container">
+    {% for doc_form in document_formset %}
+    <div class="document-form">
+      {{ doc_form.as_p }}
+      <hr />
+    </div>
+    {% endfor %}
+  </div>
+
+  <button
+    type="button"
+    id="add_doc_button">
+    Add Another Document
+  </button>
+
+  <hr />
+  <button type="submit">Save All</button>
+</form>
+
+<div
+  id="empty-form"
+  style="display: none">
+  <div class="document-form">
+    {{ document_formset.empty_form.as_p }}
+    <hr />
+  </div>
+</div>
+
+<p><a href="{% url 'driver_list' %}">Back to list</a></p>
+{% endblock %}

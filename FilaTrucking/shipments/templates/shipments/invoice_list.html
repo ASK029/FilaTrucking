@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Invoices</h1>
+<p><a href="{% url 'invoice_create' %}">Create invoice</a></p>
+<table>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Customer</th>
+      <th>Date</th>
+      <th>Status</th>
+      <th>Total</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for invoice in invoices %}
+    <tr>
+      <td>{{ invoice.pk }}</td>
+      <td>{{ invoice.customer.name }}</td>
+      <td>{{ invoice.invoice_date }}</td>
+      <td>{{ invoice.get_status_display }}</td>
+      <td>${{ invoice.total_amount }}</td>
+      <td><a href="{% url 'invoice_detail' invoice.pk %}">View</a></td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="6">No invoices yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% if page_obj %}<p>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</p>{% endif %}
+{% endblock %}

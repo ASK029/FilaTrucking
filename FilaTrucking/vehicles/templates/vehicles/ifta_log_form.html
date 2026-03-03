@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>IFTA Mileage Log Entry</h1>
+<form method="post">
+  {% csrf_token %}
+  <table>
+    {{ form.as_table }}
+  </table>
+  <button type="submit">Save</button>
+</form>
+<p><a href="{% url 'ifta_log_list' %}">View all logs</a> | <a href="{% url 'ifta_report' %}">IFTA Report</a></p>
+{% endblock %}

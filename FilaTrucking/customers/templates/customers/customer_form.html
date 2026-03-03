@@ -1,0 +1,13 @@
+{% extends "base.html" %} {% block content %}
+<h1>{% if form.instance.pk %}Edit Customer{% else %}Add Customer{% endif %}</h1>
+
+<form method="post">
+  {% csrf_token %}
+  <table>
+    {{ form.as_table }}
+  </table>
+  <button type="submit">Save</button>
+</form>
+
+<p><a href="{% url 'customer_list' %}">Back to list</a></p>
+{% endblock %}

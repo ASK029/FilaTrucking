@@ -1,24 +1,26 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
+  <head>
     <title>TMS</title>
-</head>
-<body>
-
-{% if user.is_authenticated %}
+  </head>
+  <body>
+    {% if user.is_authenticated %}
     <p>
-        Welcome, {{ user.username }} |
-        <a href="{% url 'dashboard' %}">Dashboard</a> |
-        <a href="{% url 'ifta_log_create' %}">IFTA Log</a> |
-        <a href="{% url 'ifta_report' %}">IFTA Report</a> |
-        <a href="{% url 'invoice_list' %}">Invoices</a> |
-        <a href="{% url 'logout' %}">Logout</a>
+      Welcome, {{ user.username }} |
+      <a href="{% url 'dashboard' %}">Dashboard</a> |
+      <a href="{% url 'ifta_log_create' %}">IFTA Log</a> |
+      <a href="{% url 'ifta_report' %}">IFTA Report</a> |
+      <a href="{% url 'invoice_list' %}">Invoices</a> |
+      <a href="{% url 'customer_list' %}">Customers</a> |
+      <a href="{% url 'driver_list' %}">Drivers</a> |
+      <a href="{% url 'vehicle_list' %}">Vehicles</a> |
+      <a href="{% url 'shipment_list' %}">Shipments</a> |
+      <a href="{% url 'logout' %}">Logout</a>
     </p>
-{% endif %}
+    {% endif %}
 
-<hr>
+    <hr />
 
-{% block content %}{% endblock %}
-
-</body>
+    {% block content %}{% endblock %}
+  </body>
 </html>

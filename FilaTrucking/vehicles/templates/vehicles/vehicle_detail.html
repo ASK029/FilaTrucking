@@ -1,0 +1,27 @@
+{% extends "base.html" %} {% block content %}
+<h1>Vehicle {{ object.registration_number }}</h1>
+
+<ul>
+  <li><strong>Name:</strong> {{ object.name }}</li>
+  <li><strong>Driver:</strong> {{ object.driver.name }}</li>
+  <li><strong>Manufacturer:</strong> {{ object.Manufacturer }}</li>
+  <li><strong>Model:</strong> {{ object.model }}</li>
+  <li><strong>Year:</strong> {{ object.year }}</li>
+  <li><strong>Chassis #:</strong> {{ object.chassis_number }}</li>
+  <li><strong>Engine #:</strong> {{ object.engine_number }}</li>
+  <li><strong>Status:</strong> {{ object.get_status_display }}</li>
+  <li><strong>Ownership:</strong> {{ object.get_ownership_type_display }}</li>
+  <li><strong>Average MPG (IFTA):</strong> {{ object.average_mpg }}</li>
+  <li>
+    <strong>Image:</strong> {% if object.image %}<img
+      src="{{ object.image.url }}"
+      alt="{{ object.name }}"
+      style="max-width: 200px" />{% else %}N/A{% endif %}
+  </li>
+</ul>
+<p>
+  <a href="{% url 'vehicle_update' object.pk %}">Edit</a> |
+  <a href="{% url 'vehicle_delete' object.pk %}">Delete</a> |
+  <a href="{% url 'vehicle_list' %}">Back to list</a>
+</p>
+{% endblock %}

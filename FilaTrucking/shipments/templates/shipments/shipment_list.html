@@ -1,0 +1,40 @@
+{% extends "base.html" %} {% block content %}
+<h1>Shipments</h1>
+
+<p><a href="{% url 'shipment_create' %}">Add shipment</a></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Booking</th>
+      <th>Customer</th>
+      <th>Driver</th>
+      <th>Vehicle</th>
+      <th>Amount</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for shipment in object_list %}
+    <tr>
+      <td>{{ shipment.date }}</td>
+      <td>{{ shipment.booking }}</td>
+      <td>{{ shipment.customer.name }}</td>
+      <td>{{ shipment.driver.name }}</td>
+      <td>{{ shipment.vehicle.registration_number }}</td>
+      <td>{{ shipment.amount }}</td>
+      <td>
+        <a href="{% url 'shipment_detail' shipment.pk %}">View</a> |
+        <a href="{% url 'shipment_update' shipment.pk %}">Edit</a> |
+        <a href="{% url 'shipment_delete' shipment.pk %}">Delete</a>
+      </td>
+    </tr>
+    {% empty %}
+    <tr>
+      <td colspan="7">No shipments yet.</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

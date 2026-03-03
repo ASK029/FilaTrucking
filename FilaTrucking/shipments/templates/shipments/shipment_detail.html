@@ -1,0 +1,20 @@
+{% extends "base.html" %} {% block content %}
+<h1>Shipment {{ object.booking }}</h1>
+
+<ul>
+  <li><strong>Date:</strong> {{ object.date }}</li>
+  <li><strong>Customer:</strong> {{ object.customer.name }}</li>
+  <li><strong>Driver:</strong> {{ object.driver.name }}</li>
+  <li><strong>Vehicle:</strong> {{ object.vehicle.registration_number }}</li>
+  <li><strong>Container:</strong> {{ object.container }}</li>
+  <li><strong>Seal:</strong> {{ object.seal }}</li>
+  <li><strong>Location:</strong> {{ object.location }}</li>
+  <li><strong>Amount:</strong> {{ object.amount }}</li>
+</ul>
+
+<p>
+  <a href="{% url 'shipment_update' object.pk %}">Edit</a> |
+  <a href="{% url 'shipment_delete' object.pk %}">Delete</a> |
+  <a href="{% url 'shipment_list' %}">Back to list</a>
+</p>
+{% endblock %}

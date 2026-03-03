@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Create Invoice</h1>
+<form method="post">
+  {% csrf_token %}
+  <table>
+    {{ form.as_table }}
+  </table>
+  <button type="submit">Create invoice</button>
+</form>
+<p>After creating, you can add line items (shipments or manual entries like Yard Rent) on the invoice page.</p>
+<p><a href="{% url 'invoice_list' %}">Back to invoices</a></p>
+{% endblock %}

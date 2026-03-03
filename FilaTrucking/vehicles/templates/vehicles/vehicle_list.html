@@ -1,0 +1,38 @@
+{% extends "base.html" %} {% block content %}
+<h1>Vehicles</h1>
+
+<p><a href="{% url 'vehicle_create' %}">Add vehicle</a></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Reg #</th>
+      <th>Name</th>
+      <th>Driver</th>
+      <th>Status</th>
+      <th>Ownership</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for vehicle in object_list %}
+    <tr>
+      <td>{{ vehicle.registration_number }}</td>
+      <td>{{ vehicle.name }}</td>
+      <td>{{ vehicle.driver.name }}</td>
+      <td>{{ vehicle.get_status_display }}</td>
+      <td>{{ vehicle.get_ownership_type_display }}</td>
+      <td>
+        <a href="{% url 'vehicle_detail' vehicle.pk %}">View</a> |
+        <a href="{% url 'vehicle_update' vehicle.pk %}">Edit</a> |
+        <a href="{% url 'vehicle_delete' vehicle.pk %}">Delete</a>
+      </td>
+    </tr>
+    {% empty %}
+    <tr>
+      <td colspan="6">No vehicles yet.</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
