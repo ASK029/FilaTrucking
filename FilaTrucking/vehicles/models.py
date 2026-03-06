@@ -22,7 +22,7 @@ class Vehicle(models.Model):
     name = models.CharField(max_length=30)
     Manufacturer = models.CharField(max_length=20)
     model = models.CharField(max_length=30)
-    year = models.IntegerField(max_length=4)
+    year = models.IntegerField(verbose_name="Year")
     chassis_number = models.CharField(max_length=30)
     engine_number = models.CharField(max_length=30)
     average_mpg = models.DecimalField(

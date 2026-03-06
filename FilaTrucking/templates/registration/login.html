@@ -1,23 +1,72 @@
 {% extends "base.html" %}
 
+{% block title %}Admin Login — FilaTrucking TMS{% endblock %}
+
 {% block content %}
-<h2>Admin Login</h2>
+<div class="min-h-[calc(100vh-3.5rem)] flex items-center justify-center">
+    <div class="w-full max-w-sm">
 
-<form method="post">
-    {% csrf_token %}
+        {# Card #}
+        <div class="bg-surface-card rounded-2xl border border-slate-700/50 shadow-2xl p-8">
 
-    {{ form.non_field_errors }}
+            {# Header #}
+            <div class="text-center mb-8">
+                <div
+                    class="w-14 h-14 rounded-2xl bg-brand-light flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand/30">
+                    <svg class="text-accent" fill="currentColor" viewBox="0 0 24 24" style="width:28px;height:28px;">
+                        <path
+                            d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" />
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-bold tracking-tight text-slate-100">Welcome back</h1>
+                <p class="text-sm text-muted mt-1">Sign in to your dispatcher dashboard</p>
+            </div>
 
-    <div>
-        <label>Username</label><br>
-        {{ form.username }}
+            {# Non-field errors #}
+            {% if form.non_field_errors %}
+            <div
+                class="mb-5 px-4 py-3 rounded-xl bg-red-500/15 border border-red-500/40 text-red-300 text-sm flex items-start gap-2">
+                <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>{{ form.non_field_errors|striptags }}</span>
+            </div>
+            {% endif %}
+
+            <form method="post" id="login-form" novalidate>
+                {% csrf_token %}
+
+                {# Username #}
+                <div class="mb-4">
+                    <label for="id_username" class="block text-sm text-muted mb-1.5 font-medium">Username</label>
+                    <input type="text" name="username" id="id_username" autocomplete="username" autofocus required
+                        class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3.5 py-2.5 text-slate-100 placeholder-slate-500
+                   focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-shadow text-sm"
+                        placeholder="your username" />
+                </div>
+
+                {# Password #}
+                <div class="mb-6">
+                    <label for="id_password" class="block text-sm text-muted mb-1.5 font-medium">Password</label>
+                    <input type="password" name="password" id="id_password" autocomplete="current-password" required
+                        class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3.5 py-2.5 text-slate-100 placeholder-slate-500
+                   focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-shadow text-sm"
+                        placeholder="••••••••" />
+                </div>
+
+                <button type="submit" id="login-submit"
+                    class="w-full bg-accent hover:bg-accent-dark text-surface font-semibold px-4 py-2.5 rounded-xl transition-colors text-sm min-h-[44px]">
+                    Sign in
+                </button>
+            </form>
+
+        </div>
+
+        <p class="text-center text-xs text-slate-600 mt-6">
+            FilaTrucking TMS &mdash; Dispatch &amp; Fleet Management
+        </p>
     </div>
-
-    <div>
-        <label>Password</label><br>
-        {{ form.password }}
-    </div>
-
-    <button type="submit">Login</button>
-</form>
+</div>
 {% endblock %}

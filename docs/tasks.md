@@ -4,11 +4,11 @@
 - [X] Initialize Django 6.0.1+ project and application structure (apps: `customers`, `drivers`, `shipments`, `vehicles`).
 - [X] Create Python virtual environment and `requirements.txt`.
 - [X] Set up MySQL database, configure `settings.py`.
-- [ ] Extend existing database schema for Drivers, Customers, Vehicles, Shipments, Expenses, IFTA.
-- [ ] Run `makemigrations` and `migrate`.
-- [ ] Build `base.html` with sidebar nav (following order in AGENTS.md §7.6), top bar, mobile drawer.
-- [ ] Add Tailwind CDN, design tokens (brand, accent, surface, muted), and fonts (DM Sans, JetBrains Mono) to `base.html` (§7.2).
-- [ ] Implement Django flash messages block with styling for success, error, warning, info (§7.9).
+- [X] Extend existing database schema for Drivers, Customers, Vehicles, Shipments, Expenses, IFTA.
+- [X] Run `makemigrations` and `migrate`.
+- [X] Build `base.html` with sidebar nav (following order in AGENTS.md §7.6), top bar, mobile drawer.
+- [X] Add Tailwind CDN, design tokens (brand, accent, surface, muted), and fonts (DM Sans, JetBrains Mono) to `base.html` (§7.2).
+- [X] Implement Django flash messages block with styling for success, error, warning, info (§7.9).
 
 ## Milestone 2: Core Management Modules
 - [ ] Implement CRUD ModelForms and Class-Based Views (CBVs) for Drivers.

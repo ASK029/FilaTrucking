@@ -1,26 +1,226 @@
+{% load static %}
 <!doctype html>
-<html>
+<html lang="en" class="h-full">
   <head>
-    <title>TMS</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Fila Trucking — Dispatch & Fleet Management System" />
+    <title>{% block title %}FilaTrucking TMS{% endblock %}</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Design tokens -->
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand:   { DEFAULT: '#1B3A6B', light: '#2A5298' },
+              accent:  { DEFAULT: '#F59E0B', dark: '#D97706' },
+              surface: { DEFAULT: '#0F172A', card: '#1E293B' },
+              muted:   '#64748B',
+            },
+            fontFamily: {
+              sans: ['DM Sans', 'sans-serif'],
+              mono: ['JetBrains Mono', 'monospace'],
+            },
+          }
+        }
+      }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+    <!-- Alpine.js for lightweight interactivity -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    {% block extra_head %}{% endblock %}
+
+    <style>
+      /* Smooth scrollbar */
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-track { background: #0F172A; }
+      ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+      ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    </style>
   </head>
-  <body>
-    {% if user.is_authenticated %}
-    <p>
-      Welcome, {{ user.username }} |
-      <a href="{% url 'dashboard' %}">Dashboard</a> |
-      <a href="{% url 'ifta_log_create' %}">IFTA Log</a> |
-      <a href="{% url 'ifta_report' %}">IFTA Report</a> |
-      <a href="{% url 'invoice_list' %}">Invoices</a> |
-      <a href="{% url 'customer_list' %}">Customers</a> |
-      <a href="{% url 'driver_list' %}">Drivers</a> |
-      <a href="{% url 'vehicle_list' %}">Vehicles</a> |
-      <a href="{% url 'shipment_list' %}">Shipments</a> |
-      <a href="{% url 'logout' %}">Logout</a>
-    </p>
-    {% endif %}
 
-    <hr />
+  <body class="bg-surface text-slate-100 min-h-screen font-sans antialiased"
+        x-data="{ sidebarOpen: false }">
 
-    {% block content %}{% endblock %}
+    {# ===================================================================== #}
+    {# TOP BAR                                                               #}
+    {# ===================================================================== #}
+    <header class="fixed top-0 inset-x-0 z-40 bg-surface/90 backdrop-blur border-b border-slate-800/60 h-14 flex items-center px-4 md:px-6 gap-4">
+
+      {# Hamburger – mobile only #}
+      <button id="sidebar-toggle"
+              class="md:hidden flex items-center justify-center w-10 h-10 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-slate-100 transition-colors flex-shrink-0"
+              @click="sidebarOpen = true"
+              aria-label="Open navigation menu">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      </button>
+
+      {# Logo / Brand #}
+      <a href="{% url 'dashboard' %}" class="flex items-center gap-2.5 flex-shrink-0 select-none">
+        <div class="w-8 h-8 rounded-lg bg-brand-light flex items-center justify-center shadow-md shadow-brand/30">
+          <svg class="w-4.5 h-4.5 text-accent" fill="currentColor" viewBox="0 0 24 24" style="width:18px;height:18px;">
+            <path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
+          </svg>
+        </div>
+        <span class="font-bold text-slate-100 tracking-tight leading-none hidden sm:block">
+          Fila<span class="text-accent">Trucking</span>
+        </span>
+      </a>
+
+      {# Spacer #}
+      <div class="flex-1"></div>
+
+      {# Right side: user info + logout #}
+      {% if user.is_authenticated %}
+      <div class="flex items-center gap-3">
+        <span class="hidden md:block text-sm text-muted">{{ user.username }}</span>
+        <a href="{% url 'logout' %}"
+           class="flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-100 hover:bg-slate-800 px-3 py-2 rounded-xl transition-colors min-h-[44px]"
+           title="Logout">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+          </svg>
+          <span class="hidden sm:block">Logout</span>
+        </a>
+      </div>
+      {% endif %}
+    </header>
+
+    {# ===================================================================== #}
+    {# MOBILE DRAWER OVERLAY                                                 #}
+    {# ===================================================================== #}
+    <div x-show="sidebarOpen"
+         x-transition:enter="transition-opacity duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition-opacity duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm md:hidden"
+         @click="sidebarOpen = false"
+         style="display:none;">
+    </div>
+
+    <div x-show="sidebarOpen"
+         x-transition:enter="transition-transform duration-250 ease-out"
+         x-transition:enter-start="-translate-x-full"
+         x-transition:enter-end="translate-x-0"
+         x-transition:leave="transition-transform duration-200 ease-in"
+         x-transition:leave-start="translate-x-0"
+         x-transition:leave-end="-translate-x-full"
+         class="fixed inset-y-0 left-0 z-50 w-72 bg-surface-card border-r border-slate-700/50 flex flex-col md:hidden shadow-2xl"
+         style="display:none;">
+
+      {# Drawer header #}
+      <div class="flex items-center justify-between h-14 px-4 border-b border-slate-700/50 flex-shrink-0">
+        <span class="font-bold text-slate-100 tracking-tight">
+          Fila<span class="text-accent">Trucking</span>
+        </span>
+        <button @click="sidebarOpen = false"
+                class="w-9 h-9 rounded-xl text-slate-400 hover:bg-slate-700 hover:text-slate-100 transition-colors flex items-center justify-center"
+                aria-label="Close menu">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      {% if user.is_authenticated %}
+      <nav class="flex-1 overflow-y-auto py-4 px-3">
+        {% include "partials/sidebar_links.html" %}
+      </nav>
+      <div class="border-t border-slate-700/50 px-4 py-4 flex items-center gap-3 flex-shrink-0">
+        <div class="w-8 h-8 rounded-full bg-brand-light flex items-center justify-center text-xs font-bold text-accent uppercase">
+          {{ user.username|first }}
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-slate-200 truncate">{{ user.username }}</p>
+          <p class="text-xs text-muted">Administrator</p>
+        </div>
+        <a href="{% url 'logout' %}" class="text-muted hover:text-slate-100 transition-colors" title="Logout">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+          </svg>
+        </a>
+      </div>
+      {% endif %}
+    </div>
+
+    {# ===================================================================== #}
+    {# LAYOUT WRAPPER (sidebar + main)                                       #}
+    {# ===================================================================== #}
+    <div class="flex h-full pt-14">
+
+      {# Desktop sidebar #}
+      {% if user.is_authenticated %}
+      <aside class="hidden md:flex flex-col w-60 fixed top-14 bottom-0 left-0 bg-surface-card border-r border-slate-700/50 z-30 overflow-y-auto">
+        <nav class="flex-1 py-4 px-3">
+          {% include "partials/sidebar_links.html" %}
+        </nav>
+        <div class="border-t border-slate-700/50 px-4 py-4 flex items-center gap-3 flex-shrink-0">
+          <div class="w-8 h-8 rounded-full bg-brand-light flex items-center justify-center text-xs font-bold text-accent uppercase">
+            {{ user.username|first }}
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-slate-200 truncate">{{ user.username }}</p>
+            <p class="text-xs text-muted">Administrator</p>
+          </div>
+        </div>
+      </aside>
+      {% endif %}
+
+      {# ================================================================== #}
+      {# MAIN CONTENT                                                        #}
+      {# ================================================================== #}
+      <main class="flex-1 min-w-0 {% if user.is_authenticated %}md:ml-60{% endif %}">
+
+        {# Flash messages #}
+        {% if messages %}
+        <div class="px-4 md:px-8 pt-4 space-y-2" id="flash-messages">
+          {% for message in messages %}
+          <div class="flex items-start gap-3 px-4 py-3 rounded-xl border text-sm font-medium
+            {% if message.tags == 'success' %}bg-green-500/15 border-green-500/40 text-green-300
+            {% elif message.tags == 'error' %}bg-red-500/15 border-red-500/40 text-red-300
+            {% elif message.tags == 'warning' %}bg-yellow-500/15 border-yellow-500/40 text-yellow-300
+            {% else %}bg-blue-500/15 border-blue-500/40 text-blue-300{% endif %}"
+               role="alert">
+            {# Icon #}
+            <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              {% if message.tags == 'success' %}
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              {% elif message.tags == 'error' %}
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              {% elif message.tags == 'warning' %}
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+              {% else %}
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              {% endif %}
+            </svg>
+            <span>{{ message }}</span>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        {# Page content #}
+        <div class="p-4 md:p-8">
+          {% block content %}{% endblock %}
+        </div>
+      </main>
+    </div>
+
+    {% block extra_scripts %}{% endblock %}
   </body>
 </html>
