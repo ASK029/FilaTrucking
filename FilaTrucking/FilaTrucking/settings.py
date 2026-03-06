@@ -85,9 +85,9 @@ WSGI_APPLICATION = 'FilaTrucking.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'FilaTrucking',  # The database name you created
+        'NAME': 'filatrucking',  # The database name you created
         'USER': 'root',  # The username you created
-        'PASSWORD': 'Anas-hh-2002',  # The password you set
+        'PASSWORD': 'ASK-hh-029',  # The password you set
         'HOST': 'localhost',   # Or the IP address of your MySQL server
         'PORT': '3306',        # The default MySQL port
         'OPTIONS': {
