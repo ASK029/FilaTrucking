@@ -10,7 +10,7 @@ from django.views.generic import (
 )
 
 from .models import Driver, DriverDocument
-from .form import DriverDocumentFormSet, DriverForm
+from .forms import DriverDocumentFormSet, DriverForm
 
 
 class DriverListView(LoginRequiredMixin, ListView):

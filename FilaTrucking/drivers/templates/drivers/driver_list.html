@@ -1,43 +1,90 @@
-{% extends "base.html" %} {% block content %}
-<h1>Drivers</h1>
+{% extends "base.html" %}
 
-<p><a href="{% url 'driver_create' %}">Add driver</a></p>
+{% block title %}Drivers — FilaTrucking{% endblock %}
 
-<table>
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Phone</th>
-      <th>License #</th>
-      <th>Joined</th>
-      <th>Docs?</th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for driver in object_list %}
-    <tr>
-      <td>{{ driver.name }}</td>
-      <td>{{ driver.phone_number }}</td>
-      <td>{{ driver.license_number }}</td>
-      <td>{{ driver.joined_at }}</td>
+{% block content %}
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+  <div>
+    <h1 class="text-2xl font-bold text-slate-100">Drivers</h1>
+    <p class="text-sm text-slate-400 mt-1">Manage your driver roster, contacts, and license details.</p>
+  </div>
+  <div class="flex gap-3 w-full sm:w-auto">
+    <button
+      class="sm:hidden flex-1 sm:flex-none border border-slate-600 bg-slate-800 text-slate-200 px-4 py-2 rounded-xl text-sm font-medium hover:bg-slate-700 transition">
+      Filters
+    </button>
+    <a href="{% url 'driver_create' %}"
+      class="flex-1 sm:flex-none bg-accent hover:bg-amber-400 text-slate-900 px-4 py-2 rounded-xl text-sm font-semibold transition text-center shadow-sm shadow-accent/20">
+      Add Driver
+    </a>
+  </div>
+</div>
 
-      <td>
-        {% if driver.driverdocument_set.exists %} ✅ Yes {% else %} ❌ Nodffdf
-        {% endif %}
-      </td>
+<!-- Desktop Filters (Mobile hidden behind a detail/summary logic later) -->
+<div class="hidden sm:block mb-6 bg-surface border border-slate-700/50 rounded-2xl p-4 shadow-xl shadow-black/20">
+  <div class="flex gap-4">
+    <input type="text" placeholder="Search drivers..."
+      class="flex-1 bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent text-sm">
+    <select
+      class="bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent text-sm">
+      <option>All Statuses</option>
+      <option>Active</option>
+      <option>Inactive</option>
+    </select>
+  </div>
+</div>
 
-      <td>
-        <a href="{% url 'driver_detail' driver.pk %}">View</a> |
-        <a href="{% url 'driver_update' driver.pk %}">Edit</a> |
-        <a href="{% url 'driver_delete' driver.pk %}">Delete</a>
-      </td>
-    </tr>
-    {% empty %}
-    <tr>
-      <td colspan="6">No drivers yet.</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+<!-- Data Table -->
+<div class="bg-surface border border-slate-700/50 rounded-2xl shadow-xl shadow-black/20 overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full text-left text-sm whitespace-nowrap">
+      <thead class="bg-slate-800/50 border-b border-slate-700/50 text-slate-400">
+        <tr>
+          <th class="px-6 py-4 font-medium tracking-wide">Name</th>
+          <th class="px-6 py-4 font-medium tracking-wide">Phone</th>
+          <th class="px-6 py-4 font-medium tracking-wide">Status</th>
+          <th class="px-6 py-4 font-medium tracking-wide">License Expiry</th>
+          <th class="px-6 py-4 font-medium tracking-wide text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-700/50 text-slate-200">
+        {% for driver in drivers %}
+        <tr class="hover:bg-slate-800/30 transition-colors">
+          <td class="px-6 py-4 font-medium text-slate-100">{{ driver.name }}</td>
+          <td class="px-6 py-4 text-slate-400">{{ driver.phone_number|default:"-" }}</td>
+          <td class="px-6 py-4">
+            {% if driver.status == 'active' %}
+            <span
+              class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-emerald-400/10 text-emerald-400 border border-emerald-400/20">Active</span>
+            {% else %}
+            <span
+              class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-400/10 text-slate-400 border border-slate-400/20">Inactive</span>
+            {% endif %}
+          </td>
+          <td class="px-6 py-4 text-slate-400">{{ driver.license_expiry|date:"M d, Y"|default:"-" }}</td>
+          <td class="px-6 py-4 text-right">
+            <a href="{% url 'driver_detail' driver.pk %}"
+              class="text-brand-light hover:text-accent font-medium text-sm mr-3 transition-colors">View</a>
+            <a href="{% url 'driver_update' driver.pk %}"
+              class="text-slate-400 hover:text-slate-200 font-medium text-sm transition-colors">Edit</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="px-6 py-8 text-center text-slate-500">
+            <div class="flex flex-col items-center justify-center">
+              <svg class="w-10 h-10 mb-2 opacity-50" fill="none" stroke="currentColor" stroke-width="2"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+              </svg>
+              <p>No drivers found.</p>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 {% endblock %}

@@ -11,7 +11,7 @@ from django.views.generic import (
 )
 
 from .models import IFTAMileageLog, Vehicle
-
+from .forms import VehicleForm, IFTAMileageLogForm
 
 class VehicleListView(LoginRequiredMixin, ListView):
     model = Vehicle
@@ -28,14 +28,14 @@ class VehicleDetailView(LoginRequiredMixin, DetailView):
 class VehicleCreateView(LoginRequiredMixin, CreateView):
     model = Vehicle
     template_name = "vehicles/vehicle_form.html"
-    fields = "__all__"
+    form_class = VehicleForm
     success_url = reverse_lazy("vehicle_list")
 
 
 class VehicleUpdateView(LoginRequiredMixin, UpdateView):
     model = Vehicle
     template_name = "vehicles/vehicle_form.html"
-    fields = "__all__"
+    form_class = VehicleForm
     success_url = reverse_lazy("vehicle_list")
 
 
@@ -48,7 +48,7 @@ class VehicleDeleteView(LoginRequiredMixin, DeleteView):
 class IFTALogCreateView(LoginRequiredMixin, CreateView):
     model = IFTAMileageLog
     template_name = "vehicles/ifta_log_form.html"
-    fields = ["truck", "month", "year", "state_code", "miles_driven"]
+    form_class = IFTAMileageLogForm
     success_url = reverse_lazy("ifta_log_list")
 
 

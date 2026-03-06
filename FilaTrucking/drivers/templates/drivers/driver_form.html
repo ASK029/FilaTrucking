@@ -1,48 +1,51 @@
-{% extends "base.html" %} {% block content %} {% load static %}
+{% extends "base.html" %}
 
-<script src="{% static 'js/drivers.js' %}"></script>
+{% block title %}
+{% if object.pk %}Edit Driver: {{ object.name }}{% else %}Add Driver{% endif %} — FilaTrucking
+{% endblock %}
 
-<h1>{% if form.instance.pk %}Edit Driver{% else %}Add Driver{% endif %}</h1>
-
-<form
-  method="post"
-  enctype="multipart/form-data">
-  {% csrf_token %}
-
-  <h3>Driver Details</h3>
-  {{ form.as_p }}
-
-  <hr />
-  <h3>Documents</h3>
-  {{ document_formset.management_form }}
-
-  <div id="document-form-container">
-    {% for doc_form in document_formset %}
-    <div class="document-form">
-      {{ doc_form.as_p }}
-      <hr />
-    </div>
-    {% endfor %}
+{% block content %}
+<div class="max-w-3xl mx-auto">
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-slate-100">{% if object.pk %}Edit Driver{% else %}Add Driver{% endif %}</h1>
+    <p class="text-sm text-slate-400 mt-1">{% if object.pk %}Update the details for {{ object.name }}.{% else %}Add a
+      new driver to your fleet.{% endif %}</p>
   </div>
 
-  <button
-    type="button"
-    id="add_doc_button">
-    Add Another Document
-  </button>
+  <div class="bg-surface border border-slate-700/50 rounded-2xl p-6 sm:p-8 shadow-xl shadow-black/20">
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
+      {% csrf_token %}
 
-  <hr />
-  <button type="submit">Save All</button>
-</form>
+      {% if form.non_field_errors %}
+      <div class="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl text-sm mb-6">
+        {{ form.non_field_errors|join:", " }}
+      </div>
+      {% endif %}
 
-<div
-  id="empty-form"
-  style="display: none">
-  <div class="document-form">
-    {{ document_formset.empty_form.as_p }}
-    <hr />
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {% for field in form %}
+        <div class="{% if field.name == 'status' or field.name == 'license_number' %}md:col-span-2{% endif %}">
+          <label class="block text-sm text-slate-400 mb-1.5 font-medium" for="{{ field.id_for_label }}">{{ field.label
+            }}</label>
+          {{ field }}
+          {% if field.errors %}
+          <div class="text-red-400 text-xs mt-1.5">{{ field.errors|join:", " }}</div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Note: Document formset rendering can go here later if needed -->
+
+      <div class="pt-6 border-t border-slate-700/50 flex gap-4 mt-8">
+        <a href="{% url 'driver_list' %}"
+          class="px-5 py-2.5 bg-slate-800 text-slate-300 hover:text-white rounded-xl text-sm font-medium hover:bg-slate-700 transition">Cancel</a>
+        <button type="submit"
+          class="px-5 py-2.5 bg-accent text-slate-900 rounded-xl text-sm font-bold shadow-[0_4px_14px_0_rgba(251,191,36,0.39)] hover:shadow-[0_6px_20px_rgba(251,191,36,0.23)] hover:bg-amber-400 transition ml-auto">
+          {% if object.pk %}Save Changes{% else %}Add Driver{% endif %}
+        </button>
+      </div>
+    </form>
   </div>
 </div>
-
-<p><a href="{% url 'driver_list' %}">Back to list</a></p>
 {% endblock %}

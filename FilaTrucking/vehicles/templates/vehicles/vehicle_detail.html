@@ -1,27 +1,108 @@
-{% extends "base.html" %} {% block content %}
-<h1>Vehicle {{ object.registration_number }}</h1>
+{% extends "base.html" %}
 
-<ul>
-  <li><strong>Name:</strong> {{ object.name }}</li>
-  <li><strong>Driver:</strong> {{ object.driver.name }}</li>
-  <li><strong>Manufacturer:</strong> {{ object.Manufacturer }}</li>
-  <li><strong>Model:</strong> {{ object.model }}</li>
-  <li><strong>Year:</strong> {{ object.year }}</li>
-  <li><strong>Chassis #:</strong> {{ object.chassis_number }}</li>
-  <li><strong>Engine #:</strong> {{ object.engine_number }}</li>
-  <li><strong>Status:</strong> {{ object.get_status_display }}</li>
-  <li><strong>Ownership:</strong> {{ object.get_ownership_type_display }}</li>
-  <li><strong>Average MPG (IFTA):</strong> {{ object.average_mpg }}</li>
-  <li>
-    <strong>Image:</strong> {% if object.image %}<img
-      src="{{ object.image.url }}"
-      alt="{{ object.name }}"
-      style="max-width: 200px" />{% else %}N/A{% endif %}
-  </li>
-</ul>
-<p>
-  <a href="{% url 'vehicle_update' object.pk %}">Edit</a> |
-  <a href="{% url 'vehicle_delete' object.pk %}">Delete</a> |
-  <a href="{% url 'vehicle_list' %}">Back to list</a>
-</p>
+{% block title %}Vehicle: {{ vehicle.name }} — FilaTrucking{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex justify-between items-start">
+  <div>
+    <div class="flex items-center gap-3">
+      <h1 class="text-2xl font-bold text-slate-100">{{ vehicle.name }}</h1>
+      {% if vehicle.status == 'active' %}
+      <span
+        class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-emerald-400/10 text-emerald-400 border border-emerald-400/20">Active</span>
+      {% elif vehicle.status == 'maintenance' %}
+      <span
+        class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-amber-400/10 text-amber-400 border border-amber-400/20">Maintenance</span>
+      {% else %}
+      <span
+        class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-400/10 text-slate-400 border border-slate-400/20">Retired</span>
+      {% endif %}
+    </div>
+    <p class="text-sm text-slate-400 mt-1">{{ vehicle.year }} {{ vehicle.Manufacturer }} {{ vehicle.model }}</p>
+  </div>
+  <div class="flex gap-3">
+    <a href="{% url 'vehicle_update' vehicle.pk %}"
+      class="bg-slate-800 text-slate-200 hover:text-white px-4 py-2 border border-slate-600 rounded-xl text-sm font-medium transition">Edit
+      Vehicle</a>
+    <a href="{% url 'vehicle_list' %}"
+      class="bg-surface text-brand-light px-4 py-2 border border-brand-light/20 rounded-xl text-sm font-medium hover:bg-brand-light/10 transition">Back
+      to List</a>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+  <!-- Quick Specs Card -->
+  <div class="bg-surface border border-slate-700/50 rounded-2xl p-6 shadow-xl shadow-black/20 lg:col-span-2">
+    <h2 class="text-lg font-bold text-slate-200 border-b border-slate-700/50 pb-3 mb-4 flex items-center gap-2">
+      <svg class="w-5 h-5 text-accent" fill="currentColor" viewBox="0 0 24 24">
+        <path
+          d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.08 3.11H5.77L6.85 7zM19 17H5v-5h14v5z">
+        </path>
+        <circle cx="7.5" cy="14.5" r="1.5"></circle>
+        <circle cx="16.5" cy="14.5" r="1.5"></circle>
+      </svg>
+      Vehicle Information
+    </h2>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Registration #</dt>
+        <dd class="text-base text-slate-200 font-mono">{{ vehicle.registration_number }}</dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Chassis / VIN #</dt>
+        <dd class="text-base text-slate-200 font-mono">{{ vehicle.chassis_number|default:"-" }}</dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Engine Number</dt>
+        <dd class="text-base text-slate-200 font-mono">{{ vehicle.engine_number|default:"-" }}</dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Ownership</dt>
+        <dd class="text-base text-slate-200">{{ vehicle.get_ownership_type_display }}</dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Assigned Driver</dt>
+        <dd class="text-base text-slate-200">
+          {% if vehicle.driver %}
+          <a href="{% url 'driver_detail' vehicle.driver.pk %}" class="text-brand-light hover:underline">{{
+            vehicle.driver.name }}</a>
+          {% else %}
+          <span class="text-slate-500 italic">Unassigned</span>
+          {% endif %}
+        </dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Avg MPG</dt>
+        <dd class="text-base text-slate-200">{{ vehicle.average_mpg|default:"-" }}</dd>
+      </div>
+    </div>
+  </div>
+
+  <!-- Image / Maintenance Overview -->
+  <div class="bg-surface border border-slate-700/50 rounded-2xl p-6 shadow-xl shadow-black/20">
+    <h2 class="text-lg font-bold text-slate-200 border-b border-slate-700/50 pb-3 mb-4 flex items-center gap-2">
+      <svg class="w-5 h-5 text-brand-light" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+        </path>
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+      </svg>
+      Status
+    </h2>
+
+    {% if vehicle.image %}
+    <div class="mb-4 rounded-xl overflow-hidden border border-slate-700">
+      <img src="{{ vehicle.image.url }}" alt="{{ vehicle.name }}" class="w-full h-auto object-cover">
+    </div>
+    {% endif %}
+
+    <a href="{% url 'ifta_log_list' %}"
+      class="block w-full text-center px-4 py-2 bg-slate-800 text-slate-300 hover:text-white border border-slate-600 rounded-xl text-sm font-medium transition mb-2">View
+      IFTA Logs</a>
+    <button
+      class="block w-full text-center px-4 py-2 bg-slate-800 text-slate-300 hover:text-white border border-slate-600 rounded-xl text-sm font-medium transition">View
+      Maintenance</button>
+  </div>
+</div>
 {% endblock %}

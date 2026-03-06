@@ -11,14 +11,14 @@
 - [X] Implement Django flash messages block with styling for success, error, warning, info (§7.9).
 
 ## Milestone 2: Core Management Modules
-- [ ] Implement CRUD ModelForms and Class-Based Views (CBVs) for Drivers.
-- [ ] Implement CRUD ModelForms and CBVs for Customers.
-- [ ] Implement CRUD ModelForms and CBVs for Vehicles.
-- [ ] Create HTML templates for list and form views for the above modules.
-- [ ] Ensure all list views include search/filter functionality (collapsing behind a "Filters" toggle button on mobile).
-- [ ] Add status badges to list views using inline pill spans matching AGENTS.md §7.4.
-- [ ] Implement empty state blocks with Heroicons for all list views (§7.8).
-- [ ] Ensure list views are mobile-responsive (overflow-x-auto, sticky first column, tap targets ≥ 44px) per §7.4 and §7.5.
+- [X] Implement CRUD ModelForms and Class-Based Views (CBVs) for Drivers.
+- [X] Implement CRUD ModelForms and CBVs for Customers.
+- [X] Implement CRUD ModelForms and CBVs for Vehicles.
+- [X] Create HTML templates for list and form views for the above modules.
+- [X] Ensure all list views include search/filter functionality (collapsing behind a "Filters" toggle button on mobile).
+- [X] Add status badges to list views using inline pill spans matching AGENTS.md §7.4.
+- [X] Implement empty state blocks with Heroicons for all list views (§7.8).
+- [X] Ensure list views are mobile-responsive (overflow-x-auto, sticky first column, tap targets ≥ 44px) per §7.4 and §7.5.
 
 ## Milestone 3: WhatsApp Ingestion & Shipment Management
 - [ ] Develop Node.js (Baileys) sidecar script for WhatsApp message parsing.

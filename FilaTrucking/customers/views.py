@@ -9,6 +9,7 @@ from django.views.generic import (
 )
 
 from .models import Customer
+from .forms import CustomerForm
 
 
 class CustomerListView(LoginRequiredMixin, ListView):
@@ -26,14 +27,14 @@ class CustomerDetailView(LoginRequiredMixin, DetailView):
 class CustomerCreateView(LoginRequiredMixin, CreateView):
     model = Customer
     template_name = "customers/customer_form.html"
-    fields = "__all__"
+    form_class = CustomerForm
     success_url = reverse_lazy("customer_list")
 
 
 class CustomerUpdateView(LoginRequiredMixin, UpdateView):
     model = Customer
     template_name = "customers/customer_form.html"
-    fields = "__all__"
+    form_class = CustomerForm
     success_url = reverse_lazy("customer_list")
 
 
