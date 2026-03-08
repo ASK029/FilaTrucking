@@ -1,20 +1,140 @@
-{% extends "base.html" %} {% block content %}
-<h1>Shipment {{ object.booking }}</h1>
+{% extends "base.html" %}
 
-<ul>
-  <li><strong>Date:</strong> {{ object.date }}</li>
-  <li><strong>Customer:</strong> {{ object.customer.name }}</li>
-  <li><strong>Driver:</strong> {{ object.driver.name }}</li>
-  <li><strong>Vehicle:</strong> {{ object.vehicle.registration_number }}</li>
-  <li><strong>Container:</strong> {{ object.container }}</li>
-  <li><strong>Seal:</strong> {{ object.seal }}</li>
-  <li><strong>Location:</strong> {{ object.location }}</li>
-  <li><strong>Amount:</strong> {{ object.amount }}</li>
-</ul>
+{% block title %}Shipment #{{ shipment.pk }} — FilaTrucking{% endblock %}
 
-<p>
-  <a href="{% url 'shipment_update' object.pk %}">Edit</a> |
-  <a href="{% url 'shipment_delete' object.pk %}">Delete</a> |
-  <a href="{% url 'shipment_list' %}">Back to list</a>
-</p>
+{% block content %}
+<div class="mb-6 flex justify-between items-start">
+  <div>
+    <div class="flex items-center gap-3">
+      <h1 class="text-2xl font-bold text-slate-100">Shipment #{{ shipment.pk }}</h1>
+      {% if shipment.status == 'pending_review' %}
+      <span
+        class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-amber-400/10 text-amber-400 border border-amber-400/20">Pending
+        Review</span>
+      {% elif shipment.status == 'confirmed' %}
+      <span
+        class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-emerald-400/10 text-emerald-400 border border-emerald-400/20">Confirmed</span>
+      {% elif shipment.status == 'invoiced' %}
+      <span
+        class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-400/10 text-slate-400 border border-slate-400/20">Invoiced</span>
+      {% else %}
+      <span
+        class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-400/10 text-slate-400 border border-slate-400/20">{{
+        shipment.get_status_display }}</span>
+      {% endif %}
+
+      {% if shipment.is_flagged %}
+      <span
+        class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-red-400/10 text-red-500 border border-red-500/20">Flagged
+        Issue</span>
+      {% endif %}
+    </div>
+    <p class="text-sm text-slate-400 mt-1">Date: {{ shipment.date|date:"F j, Y" }}</p>
+  </div>
+  <div class="flex gap-3">
+    <a href="{% url 'shipment_update' shipment.pk %}"
+      class="bg-slate-800 text-slate-200 hover:text-white px-4 py-2 border border-slate-600 rounded-xl text-sm font-medium transition">Edit
+      Shipment</a>
+    <a href="{% url 'shipment_list' %}"
+      class="bg-surface text-brand-light px-4 py-2 border border-brand-light/20 rounded-xl text-sm font-medium hover:bg-brand-light/10 transition">Back
+      to List</a>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <!-- Main Shipment Details -->
+  <div class="bg-surface border border-slate-700/50 rounded-2xl p-6 shadow-xl shadow-black/20 lg:col-span-2">
+    <h2 class="text-lg font-bold text-slate-200 border-b border-slate-700/50 pb-3 mb-4 flex items-center gap-2">
+      <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+      </svg>
+      Cargo & Routing Information
+    </h2>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div>
+        <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Container</dt>
+        <dd class="text-base text-slate-200 font-mono">{{ shipment.container }}</dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Booking</dt>
+        <dd class="text-base text-slate-200 font-mono">{{ shipment.booking }}</dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Seal</dt>
+        <dd class="text-base text-slate-200 font-mono">{{ shipment.seal }}</dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Location</dt>
+        <dd class="text-base text-slate-200">{{ shipment.location|default:"-" }}</dd>
+      </div>
+    </div>
+
+    <div class="mt-6 pt-6 border-t border-slate-700/50">
+      <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-2">Notes</dt>
+      <dd class="text-sm text-slate-300 p-4 bg-slate-800/50 rounded-xl border border-slate-700 whitespace-pre-wrap">{{
+        shipment.notes|default:"No notes added." }}</dd>
+    </div>
+  </div>
+
+  <!-- Assignments & Billing -->
+  <div class="space-y-6">
+    <div class="bg-surface border border-slate-700/50 rounded-2xl p-6 shadow-xl shadow-black/20">
+      <h2 class="text-lg font-bold text-slate-200 border-b border-slate-700/50 pb-3 mb-4 flex items-center gap-2">
+        <svg class="w-5 h-5 text-brand-light" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
+          </path>
+        </svg>
+        Assignments
+      </h2>
+
+      <dl class="space-y-4">
+        <div>
+          <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Customer</dt>
+          <dd class="text-base text-slate-200"><a href="{% url 'customer_detail' shipment.customer.pk %}"
+              class="text-brand-light hover:underline">{{ shipment.customer.name }}</a></dd>
+        </div>
+        <div>
+          <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Driver</dt>
+          <dd class="text-base text-slate-200"><a href="{% url 'driver_detail' shipment.driver.pk %}"
+              class="text-brand-light hover:underline">{{ shipment.driver.name }}</a></dd>
+        </div>
+        <div>
+          <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Vehicle</dt>
+          <dd class="text-base text-slate-200"><a href="{% url 'vehicle_detail' shipment.vehicle.pk %}"
+              class="text-brand-light hover:underline">{{ shipment.vehicle.name }}</a></dd>
+        </div>
+      </dl>
+    </div>
+
+    <div class="bg-surface border border-slate-700/50 rounded-2xl p-6 shadow-xl shadow-black/20">
+      <h2 class="text-lg font-bold text-slate-200 border-b border-slate-700/50 pb-3 mb-4 flex items-center gap-2">
+        <svg class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+          </path>
+        </svg>
+        Billing
+      </h2>
+
+      <dl>
+        <div>
+          <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Rate / Amount</dt>
+          <dd class="text-2xl font-bold text-slate-100">${{ shipment.amount }}</dd>
+        </div>
+      </dl>
+
+      {% if shipment.status == 'pending_review' %}
+      <form method="post" action="{% url 'shipment_update' shipment.pk %}" class="mt-6">
+        {% csrf_token %}
+        <!-- Hacky confirm submit by bypassing full form (views would need specific method for this, leaving as edit link for now) -->
+        <a href="{% url 'shipment_update' shipment.pk %}"
+          class="block w-full text-center px-4 py-2 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/30 rounded-xl text-sm font-bold transition">Review
+          & Confirm</a>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+</div>
 {% endblock %}

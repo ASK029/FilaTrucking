@@ -27,8 +27,7 @@
         {% for field in form %}
         <div
           class="{% if field.name == 'driver' or field.name == 'name' or field.name == 'image' %}md:col-span-2 lg:col-span-3{% endif %}">
-          <label class="block text-sm text-slate-400 mb-1.5 font-medium" for="{{ field.id_for_label }}">{{ field.label
-            }}</label>
+          <label class="block text-sm text-slate-400 mb-1.5 font-medium" for="{{ field.id_for_label }}">{{ field.label }}</label>
           {{ field }}
           {% if field.errors %}
           <div class="text-red-400 text-xs mt-1.5">{{ field.errors|join:", " }}</div>

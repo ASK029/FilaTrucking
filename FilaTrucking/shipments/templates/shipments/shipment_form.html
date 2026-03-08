@@ -1,13 +1,56 @@
-{% extends "base.html" %} {% block content %}
-<h1>{% if form.instance.pk %}Edit Shipment{% else %}Add Shipment{% endif %}</h1>
+{% extends "base.html" %}
 
-<form method="post">
-  {% csrf_token %}
-  <table>
-    {{ form.as_table }}
-  </table>
-  <button type="submit">Save</button>
-</form>
+{% block title %}
+{% if object.pk %}Edit Shipment {{ object.pk }}{% else %}Add Shipment{% endif %} — FilaTrucking
+{% endblock %}
 
-<p><a href="{% url 'shipment_list' %}">Back to list</a></p>
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-slate-100">{% if object.pk %}Edit Shipment{% else %}Add Shipment{% endif %}</h1>
+    <p class="text-sm text-slate-400 mt-1">{% if object.pk %}Update container and booking information for Shipment #{{
+      object.pk }}.{% else %}Manually log a new shipment.{% endif %}</p>
+  </div>
+
+  <div class="bg-surface border border-slate-700/50 rounded-2xl p-6 sm:p-8 shadow-xl shadow-black/20">
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+      <div class="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl text-sm mb-6">
+        {{ form.non_field_errors|join:", " }}
+      </div>
+      {% endif %}
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Most fields span 1 column -->
+        {% for field in form %}
+        <div
+          class="{% if field.name == 'notes' or field.name == 'location' %}md:col-span-2 lg:col-span-3{% elif field.name == 'is_flagged' %}md:col-span-2 lg:col-span-3 flex items-center gap-2{% endif %}">
+          {% if field.name == 'is_flagged' %}
+          {{ field }}
+          <label class="text-sm text-slate-400 font-medium" for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {% else %}
+          <label class="block text-sm text-slate-400 mb-1.5 font-medium" for="{{ field.id_for_label }}">{{ field.label
+            }}</label>
+          {{ field }}
+          {% endif %}
+          {% if field.errors %}
+          <div class="text-red-400 text-xs mt-1.5">{{ field.errors|join:", " }}</div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="pt-6 border-t border-slate-700/50 flex gap-4 mt-8">
+        <a href="{% url 'shipment_list' %}"
+          class="px-5 py-2.5 bg-slate-800 text-slate-300 hover:text-white rounded-xl text-sm font-medium hover:bg-slate-700 transition">Cancel</a>
+        <button type="submit"
+          class="px-5 py-2.5 bg-accent text-slate-900 rounded-xl text-sm font-bold shadow-[0_4px_14px_0_rgba(251,191,36,0.39)] hover:shadow-[0_6px_20px_rgba(251,191,36,0.23)] hover:bg-amber-400 transition ml-auto">
+          {% if object.pk %}Save Changes{% else %}Add Shipment{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
 {% endblock %}

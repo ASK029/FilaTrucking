@@ -1,14 +1,10 @@
 {% extends "base.html" %}
-
 {% block title %}Admin Login — FilaTrucking TMS{% endblock %}
-
 {% block content %}
 <div class="min-h-[calc(100vh-3.5rem)] flex items-center justify-center">
     <div class="w-full max-w-sm">
-
         {# Card #}
         <div class="bg-surface-card rounded-2xl border border-slate-700/50 shadow-2xl p-8">
-
             {# Header #}
             <div class="text-center mb-8">
                 <div
@@ -21,7 +17,6 @@
                 <h1 class="text-2xl font-bold tracking-tight text-slate-100">Welcome back</h1>
                 <p class="text-sm text-muted mt-1">Sign in to your dispatcher dashboard</p>
             </div>
-
             {# Non-field errors #}
             {% if form.non_field_errors %}
             <div
@@ -34,10 +29,8 @@
                 <span>{{ form.non_field_errors|striptags }}</span>
             </div>
             {% endif %}
-
             <form method="post" id="login-form" novalidate>
                 {% csrf_token %}
-
                 {# Username #}
                 <div class="mb-4">
                     <label for="id_username" class="block text-sm text-muted mb-1.5 font-medium">Username</label>
@@ -46,7 +39,6 @@
                    focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-shadow text-sm"
                         placeholder="your username" />
                 </div>
-
                 {# Password #}
                 <div class="mb-6">
                     <label for="id_password" class="block text-sm text-muted mb-1.5 font-medium">Password</label>
@@ -55,15 +47,12 @@
                    focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-shadow text-sm"
                         placeholder="••••••••" />
                 </div>
-
                 <button type="submit" id="login-submit"
                     class="w-full bg-accent hover:bg-accent-dark text-surface font-semibold px-4 py-2.5 rounded-xl transition-colors text-sm min-h-[44px]">
                     Sign in
                 </button>
             </form>
-
         </div>
-
         <p class="text-center text-xs text-slate-600 mt-6">
             FilaTrucking TMS &mdash; Dispatch &amp; Fleet Management
         </p>

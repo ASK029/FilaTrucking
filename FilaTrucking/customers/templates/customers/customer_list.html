@@ -51,10 +51,10 @@
             <div class="text-xs text-slate-500 mt-0.5">{{ customer.abbreviation }}</div>
           </td>
           <td class="px-6 py-4 text-slate-400">
-            <div class="flex items-center gap-1"><span class="text-xs font-semibold mr-1">Phone:</span> {{
-              customer.phone_number }}</div>
-            <div class="flex items-center gap-1 mt-0.5"><span class="text-xs font-semibold mr-1">Email:</span> {{
-              customer.email }}</div>
+            <div class="flex items-center gap-1"><span class="text-xs font-semibold mr-1">Phone:</span> 
+              {{ customer.phone_number }}</div>
+            <div class="flex items-center gap-1 mt-0.5"><span class="text-xs font-semibold mr-1">Email:</span> 
+              {{ customer.email }}</div>
           </td>
           <td class="px-6 py-4 text-slate-400">
             {% if customer.default_rate %}${{ customer.default_rate }} / mile{% else %}-{% endif %}

@@ -1,7 +1,5 @@
 {% extends "base.html" %}
-
 {% block title %}Dashboard — FilaTrucking TMS{% endblock %}
-
 {% block content %}
 {# Page header #}
 <div class="flex items-center justify-between mb-6">
@@ -10,36 +8,29 @@
         <p class="text-sm text-muted mt-0.5">Welcome back, {{ user.username }}. Here's your fleet overview.</p>
     </div>
 </div>
-
 {# Stat cards row #}
 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
-
     <div class="bg-surface-card rounded-2xl p-5 border border-slate-700/50 shadow-lg">
         <p class="text-muted text-xs uppercase tracking-widest font-medium">Gross Revenue</p>
         <p class="text-3xl font-bold text-slate-100 mt-1 font-mono">$0.00</p>
         <p class="text-slate-500 text-sm mt-1">This month</p>
     </div>
-
     <div class="bg-surface-card rounded-2xl p-5 border border-slate-700/50 shadow-lg">
         <p class="text-muted text-xs uppercase tracking-widest font-medium">Active Shipments</p>
         <p class="text-3xl font-bold text-slate-100 mt-1 font-mono">0</p>
         <p class="text-slate-500 text-sm mt-1">Confirmed, not yet invoiced</p>
     </div>
-
     <div class="bg-surface-card rounded-2xl p-5 border border-slate-700/50 shadow-lg">
         <p class="text-muted text-xs uppercase tracking-widest font-medium">Pending Review</p>
         <p class="text-3xl font-bold text-yellow-400 mt-1 font-mono">0</p>
         <p class="text-slate-500 text-sm mt-1">Shipments awaiting confirmation</p>
     </div>
-
     <div class="bg-surface-card rounded-2xl p-5 border border-slate-700/50 shadow-lg">
         <p class="text-muted text-xs uppercase tracking-widest font-medium">Open Invoices</p>
         <p class="text-3xl font-bold text-slate-100 mt-1 font-mono">0</p>
         <p class="text-slate-500 text-sm mt-1">Drafts &amp; sent, awaiting payment</p>
     </div>
-
 </div>
-
 {# Quick links #}
 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
     <a href="{% url 'shipment_list' %}"
@@ -55,7 +46,6 @@
         </div>
         <p class="text-sm text-muted">View, confirm, and manage all shipments.</p>
     </a>
-
     <a href="{% url 'invoice_list' %}"
         class="bg-surface-card rounded-2xl p-5 border border-slate-700/50 hover:border-brand-light/50 hover:bg-slate-800/60 transition-all group">
         <div class="flex items-center gap-3 mb-3">
@@ -69,7 +59,6 @@
         </div>
         <p class="text-sm text-muted">Generate and send PDF invoices by customer.</p>
     </a>
-
     <a href="{% url 'driver_list' %}"
         class="bg-surface-card rounded-2xl p-5 border border-slate-700/50 hover:border-brand-light/50 hover:bg-slate-800/60 transition-all group">
         <div class="flex items-center gap-3 mb-3">
@@ -84,5 +73,4 @@
         <p class="text-sm text-muted">Manage your driver roster and documents.</p>
     </a>
 </div>
-
 {% endblock %}

@@ -9,7 +9,7 @@ from django.views.generic import (
     UpdateView,
 )
 
-from .forms import InvoiceForm, InvoiceLineItemForm, InvoiceLineItemFormSet
+from .forms import InvoiceForm, InvoiceLineItemForm, InvoiceLineItemFormSet, ShipmentForm
 from .models import Invoice, InvoiceLineItem, Shipment
 
 
@@ -27,15 +27,15 @@ class ShipmentDetailView(LoginRequiredMixin, DetailView):
 
 class ShipmentCreateView(LoginRequiredMixin, CreateView):
     model = Shipment
+    form_class = ShipmentForm
     template_name = "shipments/shipment_form.html"
-    fields = "__all__"
     success_url = reverse_lazy("shipment_list")
 
 
 class ShipmentUpdateView(LoginRequiredMixin, UpdateView):
     model = Shipment
+    form_class = ShipmentForm
     template_name = "shipments/shipment_form.html"
-    fields = "__all__"
     success_url = reverse_lazy("shipment_list")
 
 

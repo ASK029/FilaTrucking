@@ -36,6 +36,7 @@ class Shipment(models.Model):
         default=ShipmentStatus.PENDING_REVIEW,
         verbose_name="Status",
     )
+    is_flagged = models.BooleanField(default=False, verbose_name="Flagged (Issue)")
     notes = models.TextField(blank=True, verbose_name="Notes")
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -44,6 +45,28 @@ class Shipment(models.Model):
 
     def __str__(self) -> str:
         return f"Shipment #{self.pk} – {self.container} ({self.customer})"
+
+
+# ---------------------------------------------------------------------------
+# WhatsApp Ingestion Log
+# ---------------------------------------------------------------------------
+
+class WhatsAppMessage(models.Model):
+    raw_text = models.TextField(verbose_name="Raw Message Text")
+    sender_phone = models.CharField(max_length=50, blank=True, verbose_name="Sender Phone")
+    received_at = models.DateTimeField(auto_now_add=True)
+    is_processed = models.BooleanField(default=False)
+    is_flagged = models.BooleanField(default=False)
+    error_message = models.TextField(blank=True)
+    shipment = models.ForeignKey(
+        Shipment, null=True, blank=True, on_delete=models.SET_NULL, related_name="whatsapp_messages"
+    )
+
+    class Meta:
+        ordering = ["-received_at"]
+
+    def __str__(self) -> str:
+        return f"Message from {self.sender_phone} at {self.received_at}"
 
 
 # ---------------------------------------------------------------------------

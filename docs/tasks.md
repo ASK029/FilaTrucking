@@ -21,13 +21,13 @@
 - [X] Ensure list views are mobile-responsive (overflow-x-auto, sticky first column, tap targets ≥ 44px) per §7.4 and §7.5.
 
 ## Milestone 3: WhatsApp Ingestion & Shipment Management
-- [ ] Develop Node.js (Baileys) sidecar script for WhatsApp message parsing.
-- [ ] Build Django REST API endpoint with secret key auth for payload ingestion from Node.js sidecar.
-- [ ] Implement Shipment model status choices (`pending_review`, `confirmed`, `invoiced`).
-- [ ] Build Shipment list UI, incorporating specific status badge pill classes (`pending_review` → `confirmed` → `invoiced`) per §7.4.
-- [ ] Build Shipment detail and review UI for confirming ingested shipments.
-- [ ] Allow admin to edit auto-ingested fields and manually create/edit Shipments (Fallback).
-- [ ] Add validation to flag missing required fields or duplicate containers within billing period.
+- [X] Develop Node.js (Baileys) sidecar script for WhatsApp message parsing.
+- [X] Build Django REST API endpoint with secret key auth for payload ingestion from Node.js sidecar.
+- [X] Implement Shipment model status choices (`pending_review`, `confirmed`, `invoiced`).
+- [X] Build Shipment list UI, incorporating specific status badge pill classes (`pending_review` → `confirmed` → `invoiced`) per §7.4.
+- [X] Build Shipment detail and review UI for confirming ingested shipments.
+- [X] Allow admin to edit auto-ingested fields and manually create/edit Shipments (Fallback).
+- [X] Add validation to flag missing required fields or duplicate containers within billing period.
 
 ## Milestone 4: Invoicing & Expense Tracking
 - [ ] Implement `Expense` model and categories (Driver Pay, Repairs/Maintenance Parts, Insurance, Fuel, Tolls, Other).

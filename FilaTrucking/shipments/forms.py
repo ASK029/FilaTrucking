@@ -1,8 +1,22 @@
 from django import forms
 from django.forms import inlineformset_factory
 
-from .models import Invoice, InvoiceLineItem
+from FilaTrucking.utils import TailwindFormMixin
+from .models import Invoice, InvoiceLineItem, Shipment
 
+
+class ShipmentForm(TailwindFormMixin, forms.ModelForm):
+    class Meta:
+        model = Shipment
+        fields = [
+            'date', 'booking', 'container', 'seal', 'location', 
+            'customer', 'driver', 'vehicle', 'amount', 'status', 'is_flagged', 'notes'
+        ]
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date'}),
+            'notes': forms.Textarea(attrs={'rows': 3}),
+            'is_flagged': forms.CheckboxInput(attrs={'class': 'w-4 h-4 text-accent border-slate-600 rounded bg-slate-800 focus:ring-accent focus:ring-1 border-gray-300 dark:border-slate-600 focus:ring-accent focus:ring-1'})
+        }
 
 class InvoiceForm(forms.ModelForm):
     class Meta:

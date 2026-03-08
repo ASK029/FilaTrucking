@@ -1,13 +1,11 @@
 {% with request.resolver_match.url_name as url_name %}
-
 {% url 'dashboard' as url_dashboard %}
+{% url 'customer_list' as url_customers %}
 {% url 'shipment_list' as url_shipments %}
 {% url 'invoice_list' as url_invoices %}
 {% url 'driver_list' as url_drivers %}
 {% url 'vehicle_list' as url_vehicles %}
-
 <ul class="space-y-0.5">
-
     {# 1. Dashboard #}
     <li>
         <a href="{{ url_dashboard }}" id="nav-dashboard"
@@ -21,8 +19,19 @@
             Dashboard
         </a>
     </li>
-
-    {# 2. Shipments #}
+    {# 2. Customers #}
+    <li>
+        <a href="{{ url_customers }}" id="nav-customers"
+            class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
+              {% if 'customer' in url_name %}bg-brand-light/20 text-accent border border-brand-light/30{% else %}text-slate-400 hover:bg-slate-800 hover:text-slate-100{% endif %}">
+            <svg class="w-4 h-4 flex-shrink-0 {% if 'customer' in url_name %}text-accent{% else %}text-slate-500 group-hover:text-slate-300{% endif %}"
+                xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10 12h4"/><path d="M10 8h4"/><path d="M14 21v-3a2 2 0 0 0-4 0v3"/><path d="M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2"/><path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/>
+            </svg>
+            Customers
+        </a>
+    </li>
+    {# 3. Shipments #}
     <li>
         <a href="{{ url_shipments }}" id="nav-shipments"
             class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
@@ -35,8 +44,7 @@
             Shipments
         </a>
     </li>
-
-    {# 3. Invoices #}
+    {# 4. Invoices #}
     <li>
         <a href="{{ url_invoices }}" id="nav-invoices"
             class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
@@ -49,8 +57,7 @@
             Invoices
         </a>
     </li>
-
-    {# 4. Drivers #}
+    {# 5. Drivers #}
     <li>
         <a href="{{ url_drivers }}" id="nav-drivers"
             class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
@@ -63,8 +70,7 @@
             Drivers
         </a>
     </li>
-
-    {# 5. Vehicles #}
+    {# 6. Vehicles #}
     <li>
         <a href="{{ url_vehicles }}" id="nav-vehicles"
             class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
@@ -79,8 +85,7 @@
             Vehicles
         </a>
     </li>
-
-    {# 6. Expenses #}
+    {# 7. Expenses #}
     <li>
         <a href="#" id="nav-expenses"
             class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
@@ -94,8 +99,7 @@
             <span class="ml-auto text-xs bg-slate-700 text-slate-400 px-1.5 py-0.5 rounded-md">Soon</span>
         </a>
     </li>
-
-    {# 7. Reports (IFTA, Statements) #}
+    {# 8. Reports (IFTA, Statements) #}
     <li>
         <a href="#" id="nav-reports"
             class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
@@ -109,8 +113,7 @@
             <span class="ml-auto text-xs bg-slate-700 text-slate-400 px-1.5 py-0.5 rounded-md">Soon</span>
         </a>
     </li>
-
-    {# 8. Settings #}
+    {# 9. Settings #}
     <li>
         <a href="#" id="nav-settings"
             class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
@@ -124,6 +127,5 @@
             Settings
         </a>
     </li>
-
 </ul>
 {% endwith %}

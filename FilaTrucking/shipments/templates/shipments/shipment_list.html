@@ -1,40 +1,114 @@
-{% extends "base.html" %} {% block content %}
-<h1>Shipments</h1>
+{% extends "base.html" %}
 
-<p><a href="{% url 'shipment_create' %}">Add shipment</a></p>
+{% block title %}Shipments — FilaTrucking{% endblock %}
 
-<table>
-  <thead>
-    <tr>
-      <th>Date</th>
-      <th>Booking</th>
-      <th>Customer</th>
-      <th>Driver</th>
-      <th>Vehicle</th>
-      <th>Amount</th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for shipment in object_list %}
-    <tr>
-      <td>{{ shipment.date }}</td>
-      <td>{{ shipment.booking }}</td>
-      <td>{{ shipment.customer.name }}</td>
-      <td>{{ shipment.driver.name }}</td>
-      <td>{{ shipment.vehicle.registration_number }}</td>
-      <td>{{ shipment.amount }}</td>
-      <td>
-        <a href="{% url 'shipment_detail' shipment.pk %}">View</a> |
-        <a href="{% url 'shipment_update' shipment.pk %}">Edit</a> |
-        <a href="{% url 'shipment_delete' shipment.pk %}">Delete</a>
-      </td>
-    </tr>
-    {% empty %}
-    <tr>
-      <td colspan="7">No shipments yet.</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+{% block content %}
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+  <div>
+    <h1 class="text-2xl font-bold text-slate-100">Shipments</h1>
+    <p class="text-sm text-slate-400 mt-1">Manage incoming and confirmed shipments.</p>
+  </div>
+  <div class="flex gap-3 w-full sm:w-auto">
+    <button
+      class="sm:hidden flex-1 sm:flex-none border border-slate-600 bg-slate-800 text-slate-200 px-4 py-2 rounded-xl text-sm font-medium hover:bg-slate-700 transition">
+      Filters
+    </button>
+    <a href="{% url 'shipment_create' %}"
+      class="flex-1 sm:flex-none bg-accent hover:bg-amber-400 text-slate-900 px-4 py-2 rounded-xl text-sm font-semibold transition text-center shadow-sm shadow-accent/20">
+      Add Shipment
+    </a>
+  </div>
+</div>
+
+<!-- Desktop Filters (Mobile hidden) -->
+<div class="hidden sm:block mb-6 bg-surface border border-slate-700/50 rounded-2xl p-4 shadow-xl shadow-black/20">
+  <div class="flex gap-4">
+    <input type="text" placeholder="Search shipments..."
+      class="flex-1 bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent text-sm">
+    <select
+      class="bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent text-sm">
+      <option>All Statuses</option>
+      <option>Pending Review</option>
+      <option>Confirmed</option>
+      <option>Invoiced</option>
+    </select>
+    <button
+      class="bg-slate-800 text-slate-200 px-4 py-2 border border-slate-600 rounded-xl text-sm font-medium hover:bg-slate-700 transition w-auto">Apply
+      Filters</button>
+  </div>
+</div>
+
+<!-- Data Table -->
+<div class="bg-surface border border-slate-700/50 rounded-2xl shadow-xl shadow-black/20 overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full text-left text-sm whitespace-nowrap">
+      <thead class="bg-slate-800/50 border-b border-slate-700/50 text-slate-400">
+        <tr>
+          <th class="px-6 py-4 font-medium tracking-wide">ID / Date</th>
+          <th class="px-6 py-4 font-medium tracking-wide">Container / Booking</th>
+          <th class="px-6 py-4 font-medium tracking-wide">Customer / Rate</th>
+          <th class="px-6 py-4 font-medium tracking-wide">Status</th>
+          <th class="px-6 py-4 font-medium tracking-wide text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-700/50 text-slate-200">
+        {% for shipment in shipments %}
+        <tr
+          class="hover:bg-slate-800/30 transition-colors {% if shipment.is_flagged %}bg-red-900/10 border-l-4 border-l-red-500{% endif %}">
+          <td class="px-6 py-4">
+            <div class="font-medium text-slate-100">#{{ shipment.pk }}</div>
+            <div class="text-xs text-slate-500 mt-0.5">{{ shipment.date|date:"m/d/Y" }}</div>
+            {% if shipment.is_flagged %}
+            <div class="text-xs text-red-400 mt-1 font-semibold">Flagged</div>
+            {% endif %}
+          </td>
+          <td class="px-6 py-4">
+            <div class="font-mono text-slate-200">{{ shipment.container }}</div>
+            <div class="text-xs font-mono text-slate-500 mt-0.5">{{ shipment.booking }}</div>
+          </td>
+          <td class="px-6 py-4">
+            <div class="text-slate-200">{{ shipment.customer.abbreviation }}</div>
+            <div class="text-xs text-slate-400 mt-0.5">${{ shipment.amount }}</div>
+          </td>
+          <td class="px-6 py-4">
+            {% if shipment.status == 'pending_review' %}
+            <span
+              class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-amber-400/10 text-amber-400 border border-amber-400/20">Pending
+              Review</span>
+            {% elif shipment.status == 'confirmed' %}
+            <span
+              class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-emerald-400/10 text-emerald-400 border border-emerald-400/20">Confirmed</span>
+            {% elif shipment.status == 'invoiced' %}
+            <span
+              class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-400/10 text-slate-400 border border-slate-400/20">Invoiced</span>
+            {% else %}
+            <span
+              class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-400/10 text-slate-400 border border-slate-400/20">{{
+              shipment.get_status_display }}</span>
+            {% endif %}
+          </td>
+          <td class="px-6 py-4 text-right">
+            <a href="{% url 'shipment_detail' shipment.pk %}"
+              class="text-brand-light hover:text-accent font-medium text-sm mr-3 transition-colors">View</a>
+            <a href="{% url 'shipment_update' shipment.pk %}"
+              class="text-slate-400 hover:text-slate-200 font-medium text-sm transition-colors">Edit</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="px-6 py-8 text-center text-slate-500">
+            <div class="flex flex-col items-center justify-center">
+              <svg class="w-10 h-10 mb-2 opacity-50" fill="none" stroke="currentColor" stroke-width="2"
+                viewBox="0 0 24 24">
+                <path d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+              </svg>
+              <p>No shipments found.</p>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 {% endblock %}

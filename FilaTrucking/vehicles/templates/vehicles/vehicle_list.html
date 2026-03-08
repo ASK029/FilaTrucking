@@ -61,8 +61,7 @@
           <td class="px-6 py-4 text-slate-400">{{ vehicle.registration_number }}</td>
           <td class="px-6 py-4 text-slate-300">
             {% if vehicle.driver %}
-            <a href="{% url 'driver_detail' vehicle.driver.pk %}" class="hover:text-brand-light transition">{{
-              vehicle.driver.name }}</a>
+            <a href="{% url 'driver_detail' vehicle.driver.pk %}" class="hover:text-brand-light transition">{{ vehicle.driver.name }}</a>
             {% else %}
             <span class="text-slate-500 italic">Unassigned</span>
             {% endif %}
