@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Monthly Statement {{ year }}-{{ month }}</title>
+    <style>
+        @page {
+            size: letter;
+            margin: 0.5in;
+        }
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 10pt;
+            color: #333;
+        }
+        h1 {
+            font-size: 18pt;
+            margin-bottom: 4px;
+        }
+        h2 {
+            font-size: 12pt;
+            margin-top: 18px;
+            margin-bottom: 6px;
+        }
+        .muted {
+            color: #64748b;
+            font-size: 9pt;
+        }
+        .stat-grid {
+            display: table;
+            width: 100%;
+            margin-top: 16px;
+            margin-bottom: 16px;
+        }
+        .stat {
+            display: table-cell;
+            width: 33%;
+            padding-right: 12px;
+        }
+        .stat-label {
+            font-size: 8pt;
+            text-transform: uppercase;
+            color: #64748b;
+        }
+        .stat-value {
+            font-size: 16pt;
+            font-weight: bold;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 18px;
+        }
+        th {
+            text-align: left;
+            font-size: 8pt;
+            text-transform: uppercase;
+            color: #64748b;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 6px 4px;
+        }
+        td {
+            padding: 6px 4px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .amount {
+            text-align: right;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Monthly Statement</h1>
+    <p class="muted">
+        Period: {{ start_date|date:"M d, Y" }} – {{ end_date|date:"M d, Y" }}
+    </p>
+
+    <div class="stat-grid">
+        <div class="stat">
+            <div class="stat-label">Gross Revenue</div>
+            <div class="stat-value">${{ revenue }}</div>
+        </div>
+        <div class="stat">
+            <div class="stat-label">Total Expenses</div>
+            <div class="stat-value">${{ total_expenses }}</div>
+        </div>
+        <div class="stat">
+            <div class="stat-label">Net Profit</div>
+            <div class="stat-value">${{ net_profit }}</div>
+        </div>
+    </div>
+
+    <h2>Expenses by Category</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Category</th>
+                <th class="amount">Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in expenses_by_category %}
+            <tr>
+                <td>{{ row.category|title }}</td>
+                <td class="amount">${{ row.total }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="2" class="muted">No expenses recorded for this month.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
+
