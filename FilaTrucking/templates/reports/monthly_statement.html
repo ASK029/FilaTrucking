@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold tracking-tight">Monthly Statement</h1>
+    <p class="text-sm text-muted mt-0.5">
+      Financial overview for {{ start_date|date:"F Y" }}.
+    </p>
+  </div>
+  <div class="flex items-center gap-2">
+    <a href="{% url 'yearly_statement' %}?year={{ year }}"
+       class="text-xs text-muted hover:text-slate-200">
+      View Yearly Summary
+    </a>
+    <a href="{% url 'monthly_statement_pdf' %}?year={{ year }}&month={{ month }}"
+       class="bg-slate-800 hover:bg-slate-700 text-slate-100 font-semibold px-3 py-2 rounded-xl text-xs min-h-[36px]">
+      Export PDF
+    </a>
+  </div>
+</div>
+
+<div class="bg-surface-card rounded-2xl p-5 border border-slate-700/50 shadow-lg mb-6">
+  <form method="get" class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+    <div>
+      <label class="block text-sm text-muted mb-1" for="id_year">Year</label>
+      <input id="id_year" type="number" name="year" value="{{ year }}"
+             min="2020" max="2035"
+             class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-slate-100
+                    focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent">
+    </div>
+    <div>
+      <label class="block text-sm text-muted mb-1" for="id_month">Month</label>
+      <select id="id_month" name="month"
+              class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-slate-100
+                     focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent">
+        {% for m, label in month_choices %}
+        <option value="{{ m }}" {% if month == m %}selected{% endif %}>
+          {{ label }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="flex gap-3">
+      <button type="submit"
+              class="bg-accent hover:bg-accent-dark text-surface font-semibold px-4 py-2 rounded-xl min-h-[44px] transition-colors">
+        Update
+      </button>
+    </div>
+  </form>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+  <div class="bg-surface-card rounded-2xl p-5 border border-slate-700/50">
+    <p class="text-muted text-xs uppercase tracking-widest">Gross Revenue</p>
+    <p class="text-3xl font-bold text-slate-100 mt-1 font-mono">${{ revenue }}</p>
+    <p class="text-slate-500 text-xs mt-1">Invoices in this month</p>
+  </div>
+  <div class="bg-surface-card rounded-2xl p-5 border border-slate-700/50">
+    <p class="text-muted text-xs uppercase tracking-widest">Total Expenses</p>
+    <p class="text-3xl font-bold text-red-300 mt-1 font-mono">${{ total_expenses }}</p>
+    <p class="text-slate-500 text-xs mt-1">All expense categories</p>
+  </div>
+  <div class="bg-surface-card rounded-2xl p-5 border border-slate-700/50">
+    <p class="text-muted text-xs uppercase tracking-widest">Net Profit</p>
+    <p class="text-3xl font-bold {% if net_profit >= 0 %}text-emerald-300{% else %}text-red-300{% endif %} mt-1 font-mono">
+      ${{ net_profit }}
+    </p>
+    <p class="text-slate-500 text-xs mt-1">Revenue minus expenses</p>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div class="bg-surface-card rounded-2xl p-4 border border-slate-700/50 shadow-lg">
+    <h2 class="text-sm font-semibold text-slate-100 mb-3">Expenses by Category</h2>
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-sm">
+        <thead>
+          <tr class="text-left text-xs uppercase tracking-wider text-muted border-b border-slate-700/60">
+            <th class="py-2 pr-4">Category</th>
+            <th class="py-2 pr-4 text-right">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in expenses_by_category %}
+          <tr class="odd:bg-surface even:bg-surface-card border-b border-slate-800/60">
+            <td class="py-2 pr-4">{{ row.category|title }}</td>
+            <td class="py-2 pr-4 text-right font-mono">${{ row.total }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="2" class="py-6 text-center text-muted text-sm">
+              No expenses recorded for this month.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="bg-surface-card rounded-2xl p-4 border border-slate-700/50 shadow-lg">
+    <h2 class="text-sm font-semibold text-slate-100 mb-3">Driver Pay Breakdown</h2>
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-sm">
+        <thead>
+          <tr class="text-left text-xs uppercase tracking-wider text-muted border-b border-slate-700/60">
+            <th class="py-2 pr-4">Driver</th>
+            <th class="py-2 pr-4 text-right">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in driver_pay_breakdown %}
+          <tr class="odd:bg-surface even:bg-surface-card border-b border-slate-800/60">
+            <td class="py-2 pr-4">
+              {{ row.driver__name|default:"Unassigned" }}
+            </td>
+            <td class="py-2 pr-4 text-right font-mono">${{ row.total }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="2" class="py-6 text-center text-muted text-sm">
+              No driver pay recorded for this month.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
