@@ -19,18 +19,38 @@ from django.urls import include, path
 from django.conf import settings
 from django.conf.urls.static import static
 
-from .views import dashboard
+from . import views as project_views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("auth/", include("django.contrib.auth.urls")),
-    path("", dashboard, name="dashboard"),
+    path("", project_views.dashboard, name="dashboard"),
     path("customers/", include("customers.urls")),
     path("drivers/", include("drivers.urls")),
     path("shipments/", include("shipments.shipment_urls")),
     path("vehicles/", include("vehicles.urls")),
     path("invoices/", include("shipments.urls")),
     path("expenses/", include("shipments.expense_urls")),
+    path(
+        "reports/financial/monthly/",
+        project_views.monthly_statement,
+        name="monthly_statement",
+    ),
+    path(
+        "reports/financial/yearly/",
+        project_views.yearly_statement,
+        name="yearly_statement",
+    ),
+    path(
+        "reports/financial/monthly/pdf/",
+        project_views.monthly_statement_pdf,
+        name="monthly_statement_pdf",
+    ),
+    path(
+        "reports/financial/yearly/pdf/",
+        project_views.yearly_statement_pdf,
+        name="yearly_statement_pdf",
+    ),
 ]
 
 

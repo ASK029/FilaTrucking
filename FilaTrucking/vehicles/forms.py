@@ -1,5 +1,5 @@
 from django import forms
-from .models import Vehicle, IFTAMileageLog, Maintenance
+from .models import Vehicle, IFTAMileage, Maintenance
 from FilaTrucking.utils import TailwindFormMixin
 
 
@@ -15,5 +15,5 @@ class VehicleForm(TailwindFormMixin, forms.ModelForm):
 
 class IFTAMileageLogForm(TailwindFormMixin, forms.ModelForm):
     class Meta:
-        model = IFTAMileageLog
-        fields = ['truck', 'month', 'year', 'state_code', 'miles_driven']
+        model = IFTAMileage
+        fields = ["vehicle", "state_code", "quarter", "year", "miles"]

@@ -40,13 +40,13 @@
 - [X] Apply list view table and card patterns to Invoices.
 
 ## Milestone 5: Financials & IFTA Calculation
-- [ ] Implement `IFTAMileage` entry model (State, Vehicle, Quarter, Year, Miles).
-- [ ] Implement `IFTARate` model (State, Quarter, Year, Rate).
-- [ ] Implement IFTA calculation logic (calculating fuel tax owed or computed gallons) and quarterly reporting UI.
-- [ ] Develop Monthly Financial Statement generation logic (Gross Revenue, Expenses by category, Net Profit, Driver Pay breakdown).
-- [ ] Develop Yearly Financial Statement aggregated logic.
-- [ ] Build Financial pages using stat card components (§7.4).
-- [ ] Ensure financial reports are exportable to PDF without breaking the layout.
+- [X] Implement `IFTAMileage` entry model (State, Vehicle, Quarter, Year, Miles).
+- [X] Implement `IFTARate` model (State, Quarter, Year, Rate).
+- [X] Implement IFTA calculation logic (calculating fuel tax owed or computed gallons) and quarterly reporting UI.
+- [X] Develop Monthly Financial Statement generation logic (Gross Revenue, Expenses by category, Net Profit, Driver Pay breakdown).
+- [X] Develop Yearly Financial Statement aggregated logic.
+- [X] Build Financial pages using stat card components (§7.4).
+- [X] Ensure financial reports are exportable to PDF without breaking the layout.
 
 ## Milestone 6: Automation, Integrations & Dashboard
 - [ ] Integrate Celery and Redis into Django settings for task scheduling.

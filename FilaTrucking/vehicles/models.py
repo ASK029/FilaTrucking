@@ -1,6 +1,7 @@
 from django.db import models
 
 from drivers.models import Driver
+# from shipments.models import IFTARate
 
 class Status(models.TextChoices):
     Available = 'AV', 'Available'
@@ -38,30 +39,51 @@ class Vehicle(models.Model):
     image = models.ImageField(upload_to='vehicle_images/', verbose_name="Vehicle Image")
 
 
-class IFTAMileageLog(models.Model):
-    """Monthly mileage per state for quarterly IFTA reporting."""
-    truck = models.ForeignKey(Vehicle, on_delete=models.CASCADE, verbose_name="Truck")
-    month = models.IntegerField(choices=[(i, str(i)) for i in range(1, 13)])
-    year = models.IntegerField(choices=[(i, str(i)) for i in range(2000, 2100)])
-    state_code = models.CharField(max_length=2)
-    miles_driven = models.DecimalField(max_digits=12, decimal_places=2)
+class IFTAMileage(models.Model):
+    """Quarterly mileage per state for IFTA reporting."""
+
+    QUARTER_CHOICES = (
+        (1, "Q1 (Jan–Mar)"),
+        (2, "Q2 (Apr–Jun)"),
+        (3, "Q3 (Jul–Sep)"),
+        (4, "Q4 (Oct–Dec)"),
+    )
+
+    vehicle = models.ForeignKey(
+        Vehicle,
+        on_delete=models.CASCADE,
+        verbose_name="Vehicle",
+        related_name="ifta_mileage_entries",
+    )
+    state_code = models.CharField(max_length=2, verbose_name="State")
+    quarter = models.IntegerField(choices=QUARTER_CHOICES, verbose_name="Quarter")
+    year = models.IntegerField(verbose_name="Year")
+    miles = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        verbose_name="Miles Driven",
+    )
     calculated_gallons = models.DecimalField(
-        max_digits=12, decimal_places=2, null=True, blank=True
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name="Computed Gallons (from MPG)",
     )
 
     class Meta:
-        verbose_name = "IFTA Mileage Log"
-        verbose_name_plural = "IFTA Mileage Logs"
-        ordering = ["-year", "-month", "state_code"]
-        unique_together = [["truck", "month", "year", "state_code"]]
+        verbose_name = "IFTA Mileage Entry"
+        verbose_name_plural = "IFTA Mileage Entries"
+        ordering = ["-year", "-quarter", "state_code"]
+        unique_together = [["vehicle", "state_code", "quarter", "year"]]
 
     def save(self, *args, **kwargs):
-        if self.truck.average_mpg and self.truck.average_mpg > 0:
-            self.calculated_gallons = self.miles_driven / self.truck.average_mpg
+        if self.vehicle.average_mpg and self.vehicle.average_mpg > 0:
+            self.calculated_gallons = self.miles / self.vehicle.average_mpg
         super().save(*args, **kwargs)
 
-    def __str__(self):
-        return f"{self.truck.name} – {self.year}-{self.month:02d} – {self.state_code}"
+    def __str__(self) -> str:
+        return f"{self.vehicle.name} – Q{self.quarter} {self.year} – {self.state_code}"
 
 
 class Maintenance(models.Model):

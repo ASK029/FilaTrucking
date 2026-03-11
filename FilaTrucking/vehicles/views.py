@@ -10,7 +10,7 @@ from django.views.generic import (
     UpdateView,
 )
 
-from .models import IFTAMileageLog, Vehicle
+from .models import IFTAMileage, Vehicle
 from .forms import VehicleForm, IFTAMileageLogForm
 
 class VehicleListView(LoginRequiredMixin, ListView):
@@ -46,21 +46,21 @@ class VehicleDeleteView(LoginRequiredMixin, DeleteView):
 
 
 class IFTALogCreateView(LoginRequiredMixin, CreateView):
-    model = IFTAMileageLog
+    model = IFTAMileage
     template_name = "vehicles/ifta_log_form.html"
     form_class = IFTAMileageLogForm
     success_url = reverse_lazy("ifta_log_list")
 
 
 class IFTALogListView(LoginRequiredMixin, ListView):
-    model = IFTAMileageLog
+    model = IFTAMileage
     template_name = "vehicles/ifta_log_list.html"
     context_object_name = "logs"
     paginate_by = 50
 
 
 def ifta_report(request):
-    """IFTA report view: filter by year and quarter (months 1-3, 4-6, 7-9, 10-12)."""
+    """IFTA report view: filter by year and quarter and calculate taxes."""
     if not request.user.is_authenticated:
         from django.contrib.auth.views import redirect_to_login
         return redirect_to_login(request.get_full_path())
@@ -71,23 +71,40 @@ def ifta_report(request):
 
     if year and quarter:
         try:
-            year = int(year)
+            year_int = int(year)
             q = int(quarter)
             if 1 <= q <= 4:
-                start_month = (q - 1) * 3 + 1
-                end_month = start_month + 2
-                months = list(range(start_month, end_month + 1))
-                logs = (
-                    IFTAMileageLog.objects.filter(year=year, month__in=months)
-                    .values("truck__id", "truck__name", "state_code")
+                entries = (
+                    IFTAMileage.objects.filter(year=year_int, quarter=q)
+                    .values("vehicle__id", "vehicle__name", "state_code")
                     .annotate(
-                        total_miles=Sum("miles_driven"),
+                        total_miles=Sum("miles"),
                         total_gallons=Sum("calculated_gallons"),
                     )
-                    .order_by("truck__name", "state_code")
+                    .order_by("vehicle__name", "state_code")
                 )
-                context["summary"] = list(logs)
-                context["quarter_label"] = f"Q{q} ({start_month}-{end_month})"
+
+                summary = []
+                for row in entries:
+                    rate_obj = IFTARate.objects.filter(
+                        state_code=row["state_code"],
+                        year=year_int,
+                        quarter=q,
+                    ).first()
+                    rate = rate_obj.rate if rate_obj else None
+                    gallons = row["total_gallons"]
+                    tax_owed = gallons * rate if (gallons and rate) else None
+                    summary.append(
+                        {
+                            **row,
+                            "rate": rate,
+                            "tax_owed": tax_owed,
+                        }
+                    )
+
+                context["summary"] = summary
+                context["quarter_label"] = f"Q{q}"
+                context["year"] = year_int
         except (ValueError, TypeError):
             pass
 
