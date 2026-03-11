@@ -1,5 +1,6 @@
 from django import forms
 from django.forms import inlineformset_factory
+from datetime import date
 
 from FilaTrucking.utils import TailwindFormMixin
 from .models import Expense, Invoice, InvoiceLineItem, Shipment
@@ -28,6 +29,11 @@ class ExpenseForm(TailwindFormMixin, forms.ModelForm):
             'date': forms.DateInput(attrs={'type': 'date'}),
             'notes': forms.Textarea(attrs={'rows': 3}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.instance.pk and 'date' not in self.data:
+            self.fields['date'].widget.attrs['value'] = date.today().strftime('%Y-%m-%d')
 
 class InvoiceForm(forms.ModelForm):
     class Meta:
@@ -36,6 +42,11 @@ class InvoiceForm(forms.ModelForm):
         widgets = {
             "invoice_date": forms.DateInput(attrs={"type": "date"}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.instance.pk and 'invoice_date' not in self.data:
+            self.fields['invoice_date'].widget.attrs['value'] = date.today().strftime('%Y-%m-%d')
 
 
 class InvoiceLineItemForm(forms.ModelForm):

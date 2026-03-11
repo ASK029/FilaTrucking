@@ -5,6 +5,13 @@ class TailwindFormMixin:
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field_name, field in self.fields.items():
+            widget = field.widget
+            widget_type = widget.__class__.__name__
+            
+            # Skip applying classes to date/time inputs - they have native styling
+            if widget_type in ('DateInput', 'DateTimeInput', 'TimeInput'):
+                continue
+            
             # Add base classes for text/password/email inputs, textareas, selects
             base_class = "w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
             

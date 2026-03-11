@@ -1,0 +1,7 @@
+[10/Mar/2026 21:49:09] "GET / HTTP/1.1" 200 28029
+Not Found: /favicon.ico
+[10/Mar/2026 21:49:09] "GET /favicon.ico HTTP/1.1" 404 3775
+[10/Mar/2026 21:49:18] "GET /expenses/ HTTP/1.1" 200 26248
+[10/Mar/2026 21:49:26] "GET /expenses/create/ HTTP/1.1" 200 28658
+[10/Mar/2026 21:50:15] "GET /expenses/create/ HTTP/1.1" 200 28658
+[10/Mar/2026 21:50:47] "GET /expenses/create/ HTTP/1.1" 200 28658

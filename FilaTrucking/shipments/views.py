@@ -16,7 +16,7 @@ from django.views.generic import (
 
 try:
     from weasyprint import HTML
-except ImportError:
+except (ImportError, OSError):
     HTML = None
 
 from .forms import (
