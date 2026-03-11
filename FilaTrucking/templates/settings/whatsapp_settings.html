@@ -1,0 +1,367 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}WhatsApp Settings - FilaTrucking{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<main class="flex-1 pt-14 overflow-y-auto">
+    <div class="p-4 md:p-8 max-w-7xl mx-auto">
+        
+        {# Page Header #}
+        <div class="mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-slate-100 mb-2">WhatsApp Configuration</h1>
+            <p class="text-muted">Manage your WhatsApp connection and group settings for shipment ingestion</p>
+        </div>
+
+        {# Status Cards Grid #}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            {# Sidecar Status #}
+            <div class="bg-surface-card rounded-2xl p-6 border border-slate-700/50">
+                <div class="flex items-center justify-between mb-3">
+                    <p class="text-muted text-xs uppercase tracking-widest font-semibold">Sidecar</p>
+                    <span class="relative flex h-2 w-2">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 
+                        {% if config.sidecar_status == 'connected' or config.sidecar_status == 'authenticated' %}bg-green-400
+                        {% elif config.sidecar_status == 'authenticating' %}bg-amber-400
+                        {% else %}bg-red-400{% endif %}"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 
+                        {% if config.sidecar_status == 'connected' or config.sidecar_status == 'authenticated' %}bg-green-500
+                        {% elif config.sidecar_status == 'authenticating' %}bg-amber-500
+                        {% else %}bg-red-500{% endif %}"></span>
+                    </span>
+                </div>
+                <p class="text-sm font-semibold text-slate-200">{{ config.get_sidecar_status_display }}</p>
+            </div>
+            
+            {# Auth Status #}
+            <div class="bg-surface-card rounded-2xl p-6 border border-slate-700/50">
+                <div class="flex items-center justify-between mb-3">
+                    <p class="text-muted text-xs uppercase tracking-widest font-semibold">Auth</p>
+                    <span class="relative flex h-2 w-2">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 
+                        {% if config.auth_status == 'authenticated' %}bg-green-400
+                        {% elif config.auth_status == 'authenticating' %}bg-amber-400
+                        {% else %}bg-red-400{% endif %}"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 
+                        {% if config.auth_status == 'authenticated' %}bg-green-500
+                        {% elif config.auth_status == 'authenticating' %}bg-amber-500
+                        {% else %}bg-red-500{% endif %}"></span>
+                    </span>
+                </div>
+                <p class="text-sm font-semibold text-slate-200">{{ config.get_auth_status_display }}</p>
+            </div>
+            
+            {# Active Groups #}
+            <div class="bg-surface-card rounded-2xl p-6 border border-slate-700/50">
+                <p class="text-muted text-xs uppercase tracking-widest font-semibold mb-3">Active Groups</p>
+                <p class="text-2xl font-bold text-accent">{{ active_groups_count }}<span class="text-xs text-muted ml-1">/ {{ total_groups }}</span></p>
+            </div>
+            
+            {# Last Connected #}
+            <div class="bg-surface-card rounded-2xl p-6 border border-slate-700/50">
+                <p class="text-muted text-xs uppercase tracking-widest font-semibold mb-3">Last Connected</p>
+                {% if config.last_connection_time %}
+                    <p class="text-sm text-slate-300">{{ config.last_connection_time|date:"M d, H:i" }}</p>
+                {% else %}
+                    <p class="text-sm text-slate-500">Never connected</p>
+                {% endif %}
+            </div>
+        </div>
+
+        {# Action Buttons #}
+        <div class="bg-surface-card rounded-2xl p-6 border border-slate-700/50 mb-8">
+            <p class="text-xs uppercase tracking-widest text-muted font-semibold mb-4">Connection Controls</p>
+            <div class="flex flex-wrap gap-2 sm:gap-3">
+                <button id="sync-groups-btn" class="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold px-4 py-2 rounded-lg transition-colors flex items-center gap-2 text-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    <span>Sync Groups</span>
+                </button>
+                
+                <button id="restart-btn" class="bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed text-slate-100 font-semibold px-4 py-2 rounded-lg transition-colors flex items-center gap-2 text-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Restart</span>
+                </button>
+                
+                <button id="clear-auth-btn" class="bg-red-700 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-red-100 font-semibold px-4 py-2 rounded-lg transition-colors flex items-center gap-2 text-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Clear Auth</span>
+                </button>
+            </div>
+        </div>
+
+        {# Main Content Grid: QR Code + Groups/Logs #}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            {# Left Column: QR Code #}
+            <div class="lg:col-span-1">
+                <div class="bg-surface-card rounded-2xl p-6 border border-slate-700/50 mb-6">
+                    <h2 class="text-lg font-bold text-slate-100 mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                        QR Code
+                    </h2>
+                    
+                    {% if config.auth_status == 'authenticating' and config.qr_code_data %}
+                        <div id="qr-code" class="flex justify-center items-center bg-white p-4 rounded-lg min-h-[300px]"></div>
+                        <p class="text-xs text-muted mt-4 text-center">Scan with WhatsApp → Settings → Linked Devices → Link a Device</p>
+                    {% elif config.auth_status == 'authenticated' %}
+                        <div class="flex flex-col items-center justify-center py-12 bg-slate-800/50 rounded-xl border border-slate-700/30">
+                            <svg class="w-12 h-12 text-green-400 mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p class="text-slate-300 text-center font-semibold">Already Authenticated</p>
+                            <p class="text-xs text-muted mt-1">Connected to WhatsApp</p>
+                        </div>
+                    {% elif config.sidecar_status == 'disconnected' %}
+                        <div class="flex flex-col items-center justify-center py-12 bg-slate-800/50 rounded-xl border border-slate-700/30">
+                            <svg class="w-12 h-12 text-slate-600 mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.658 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                            </svg>
+                            <p class="text-slate-400 text-center font-semibold">Sidecar Disconnected</p>
+                            <p class="text-xs text-muted mt-1">Start the container to see QR code</p>
+                        </div>
+                    {% else %}
+                        <div class="flex flex-col items-center justify-center py-12 bg-slate-800/50 rounded-xl border border-slate-700/30">
+                            <svg class="animate-spin h-8 w-8 text-slate-400 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <p class="text-slate-400 text-center font-semibold">Generating QR Code...</p>
+                            <p class="text-xs text-muted mt-1">Please wait</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                {# Error Display #}
+                {% if config.last_error %}
+                    <div class="bg-red-500/15 border border-red-500/40 rounded-xl p-4">
+                        <p class="text-sm font-semibold text-red-300 mb-2 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            Last Error
+                        </p>
+                        <p class="text-xs text-red-200 font-mono break-words">{{ config.last_error|truncatewords:20 }}</p>
+                        {% if config.last_error_time %}
+                            <p class="text-xs text-red-300/70 mt-2">{{ config.last_error_time|date:"M d, H:i:s" }}</p>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+
+            {# Right Column: Groups + Logs #}
+            <div class="lg:col-span-2 space-y-8">
+                
+                {# Groups Section #}
+                <div class="bg-surface-card rounded-2xl p-6 border border-slate-700/50">
+                    <h2 class="text-lg font-bold text-slate-100 mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        WhatsApp Groups ({{ total_groups }})
+                    </h2>
+                    
+                    {% if groups %}
+                        <div class="space-y-2 max-h-80 overflow-y-auto">
+                            {% for group in groups %}
+                                <div class="flex items-center justify-between p-3 bg-slate-800/40 rounded-lg border border-slate-700/30 hover:border-amber-500/60 hover:bg-amber-500/5 transition-all cursor-pointer">
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-medium text-slate-100 truncate">{{ group.group_name }}</p>
+                                        <p class="text-xs text-muted">{{ group.participant_count }} members • Last synced {{ group.last_synced_at|timesince }} ago</p>
+                                    </div>
+                                    <label class="flex items-center gap-2 cursor-pointer ml-3 flex-shrink-0">
+                                        <input type="checkbox" 
+                                            class="w-4 h-4 rounded border-2 border-slate-500 text-amber-500 focus:ring-amber-500 focus:ring-offset-0 bg-transparent cursor-pointer toggle-group-checkbox"
+                                            data-group-id="{{ group.id }}"
+                                            {% if group.is_active %}checked{% endif %}
+                                        />
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-8 text-muted">
+                            <svg class="w-12 h-12 mx-auto text-slate-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            <p class="text-sm font-medium">No groups found</p>
+                            <p class="text-xs mt-1">Click "Sync Groups" to fetch from your sidecar</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                {# Recent Activity #}
+                <div class="bg-surface-card rounded-2xl p-6 border border-slate-700/50">
+                    <h2 class="text-lg font-bold text-slate-100 mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                        </svg>
+                        Recent Activity ({{ logs|length }})
+                    </h2>
+                    
+                    {% if logs %}
+                        <div class="space-y-2 max-h-80 overflow-y-auto font-mono text-xs">
+                            {% for log in logs %}
+                                <div class="p-2 rounded border-l-4 
+                                    {% if log.level == 'error' %}border-red-500 bg-red-500/10 text-red-300
+                                    {% elif log.level == 'warning' %}border-amber-500 bg-amber-500/10 text-amber-300
+                                    {% elif log.level == 'info' %}border-blue-500 bg-blue-500/10 text-blue-300
+                                    {% else %}border-purple-500 bg-purple-500/10 text-purple-300{% endif %}">
+                                    <span class="text-muted">[{{ log.created_at|date:"H:i:s" }}]</span>
+                                    <span class="ml-1">{{ log.message|truncatewords:30 }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-8 text-muted">
+                            <svg class="w-12 h-12 mx-auto text-slate-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                            <p class="text-sm font-medium">No activity yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<script>
+// Render QR Code if data exists
+function renderQRCode() {
+    const qrData = `{{ config.qr_code_data }}`;
+    const qrContainer = document.getElementById('qr-code');
+    
+    if (qrData && qrContainer && qrContainer.children.length === 0) {
+        try {
+            new QRCode(qrContainer, {
+                text: qrData,
+                width: 220,
+                height: 220,
+                colorDark: '#1B3A6B',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        } catch (e) {
+            console.error('QR Code error:', e);
+        }
+    }
+}
+
+// Handle sync groups button
+document.getElementById('sync-groups-btn').addEventListener('click', function() {
+    this.disabled = true;
+    const originalHTML = this.innerHTML;
+    this.innerHTML = '<svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Syncing...</span>';
+    
+    fetch('{% url "api_trigger_sync_groups" %}', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert('Groups synced! (' + data.groups_synced + ' found)');
+                setTimeout(() => location.reload(), 500);
+            } else {
+                alert('Error: ' + (data.error || 'Unknown error'));
+                this.disabled = false;
+                this.innerHTML = originalHTML;
+            }
+        })
+        .catch(err => {
+            alert('Error syncing groups: ' + err.message);
+            this.disabled = false;
+            this.innerHTML = originalHTML;
+        });
+});
+
+// Handle restart button
+document.getElementById('restart-btn').addEventListener('click', function() {
+    if (confirm('Restart WhatsApp connection?')) {
+        this.disabled = true;
+        const originalHTML = this.innerHTML;
+        this.innerHTML = '<svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Restarting...</span>';
+        
+        fetch('{% url "api_trigger_restart" %}', { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                alert('Connection restarting...');
+                setTimeout(() => location.reload(), 2000);
+            })
+            .catch(err => {
+                alert('Error: ' + err.message);
+                this.disabled = false;
+                this.innerHTML = originalHTML;
+            });
+    }
+});
+
+// Handle clear auth button
+document.getElementById('clear-auth-btn').addEventListener('click', function() {
+    if (confirm('Clear authentication and rescan QR code?')) {
+        this.disabled = true;
+        const originalHTML = this.innerHTML;
+        this.innerHTML = '<svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Clearing...</span>';
+        
+        fetch('{% url "api_trigger_clear_auth" %}', { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('Authentication cleared. Please scan the new QR code.');
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    alert('Error: ' + (data.error || 'Unknown error'));
+                    this.disabled = false;
+                    this.innerHTML = originalHTML;
+                }
+            })
+            .catch(err => {
+                alert('Error: ' + err.message);
+                this.disabled = false;
+                this.innerHTML = originalHTML;
+            });
+    }
+});
+
+// Handle group toggle
+document.querySelectorAll('.toggle-group-checkbox').forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+        const groupId = this.getAttribute('data-group-id');
+        const isActive = this.checked;
+        
+        fetch('{% url "api_whatsapp_update_group_status" group_id=999 %}'.replace('/999/', '/' + groupId + '/'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ is_active: isActive })
+        })
+        .then(r => r.json())
+        .catch(err => {
+            console.error('Error updating group:', err);
+            this.checked = !isActive;
+        });
+    });
+});
+
+// Auto-refresh status every 3 seconds
+setInterval(() => {
+    fetch('{% url "api_whatsapp_status" %}')
+        .then(r => r.json())
+        .catch(err => console.error('Status check error:', err));
+}, 3000);
+
+// Render QR on load
+document.addEventListener('DOMContentLoaded', renderQRCode);
+</script>
+
+{% endblock %}

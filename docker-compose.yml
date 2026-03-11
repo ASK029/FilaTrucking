@@ -1,0 +1,42 @@
+services:
+  whatsapp-sidecar:
+    build:
+      context: ./sidecar
+      dockerfile: Dockerfile
+    container_name: fila-whatsapp-sidecar
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - DJANGO_API_URL=http://host.docker.internal:8000/shipments/api/ingest/
+      - DJANGO_SECRET=fila_secret_2026
+    volumes:
+      # Use anonymous volume for auth to avoid file lock issues
+      - auth_data:/app/sidecar/auth_info_baileys
+      # Share logs directory (optional)
+      - ./logs:/app/sidecar/logs
+    ports:
+      # Express REST API on 3001
+      - "3001:3001"
+      # Optional: expose port if you add health checks or monitoring
+      - "3000:3000"
+    networks:
+      - fila-network
+    # Keep container running and show logs
+    stdin_open: true
+    tty: true
+    # Resource limits (adjust based on your system)
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '1'
+          memory: 512M
+
+networks:
+  fila-network:
+    driver: bridge
+
+volumes:
+  auth_data:

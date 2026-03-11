@@ -5,6 +5,8 @@
 {% url 'invoice_list' as url_invoices %}
 {% url 'driver_list' as url_drivers %}
 {% url 'vehicle_list' as url_vehicles %}
+{% url 'expense_list' as url_expenses %}
+{% url 'whatsapp_settings' as url_whatsapp_settings %}
 <ul class="space-y-0.5">
     {# 1. Dashboard #}
     <li>
@@ -25,8 +27,13 @@
             class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
               {% if 'customer' in url_name %}bg-brand-light/20 text-accent border border-brand-light/30{% else %}text-slate-400 hover:bg-slate-800 hover:text-slate-100{% endif %}">
             <svg class="w-4 h-4 flex-shrink-0 {% if 'customer' in url_name %}text-accent{% else %}text-slate-500 group-hover:text-slate-300{% endif %}"
-                xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M10 12h4"/><path d="M10 8h4"/><path d="M14 21v-3a2 2 0 0 0-4 0v3"/><path d="M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2"/><path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/>
+                xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10 12h4" />
+                <path d="M10 8h4" />
+                <path d="M14 21v-3a2 2 0 0 0-4 0v3" />
+                <path d="M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2" />
+                <path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16" />
             </svg>
             Customers
         </a>
@@ -87,7 +94,7 @@
     </li>
     {# 7. Expenses #}
     <li>
-        <a href="#" id="nav-expenses"
+        <a href="{{ url_expenses }}" id="nav-expenses"
             class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
               {% if 'expense' in url_name %}bg-brand-light/20 text-accent border border-brand-light/30{% else %}text-slate-400 hover:bg-slate-800 hover:text-slate-100{% endif %}">
             <svg class="w-4 h-4 flex-shrink-0 {% if 'expense' in url_name %}text-accent{% else %}text-slate-500 group-hover:text-slate-300{% endif %}"
@@ -96,7 +103,6 @@
                     d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
             Expenses
-            <span class="ml-auto text-xs bg-slate-700 text-slate-400 px-1.5 py-0.5 rounded-md">Soon</span>
         </a>
     </li>
     {# 8. Reports (IFTA, Statements) #}
@@ -115,16 +121,16 @@
     </li>
     {# 9. Settings #}
     <li>
-        <a href="#" id="nav-settings"
+        <a href="{{ url_whatsapp_settings }}" id="nav-settings"
             class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
-              {% if 'settings' in url_name %}bg-brand-light/20 text-accent border border-brand-light/30{% else %}text-slate-400 hover:bg-slate-800 hover:text-slate-100{% endif %}">
-            <svg class="w-4 h-4 flex-shrink-0 {% if 'settings' in url_name %}text-accent{% else %}text-slate-500 group-hover:text-slate-300{% endif %}"
+              {% if 'whatsapp' in url_name or 'settings' in url_name %}bg-brand-light/20 text-accent border border-brand-light/30{% else %}text-slate-400 hover:bg-slate-800 hover:text-slate-100{% endif %}">
+            <svg class="w-4 h-4 flex-shrink-0 {% if 'whatsapp' in url_name or 'settings' in url_name %}text-accent{% else %}text-slate-500 group-hover:text-slate-300{% endif %}"
                 fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round"
                     d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            Settings
+            WhatsApp Settings
         </a>
     </li>
 </ul>

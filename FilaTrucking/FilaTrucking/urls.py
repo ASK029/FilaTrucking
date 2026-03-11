@@ -30,6 +30,7 @@ urlpatterns = [
     path("shipments/", include("shipments.shipment_urls")),
     path("vehicles/", include("vehicles.urls")),
     path("invoices/", include("shipments.urls")),
+    path("expenses/", include("shipments.expense_urls")),
 ]
 
 

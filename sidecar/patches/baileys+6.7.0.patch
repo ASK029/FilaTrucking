@@ -1,0 +1,19 @@
+diff --git a/node_modules/@whiskeysockets/baileys/lib/Utils/validate-connection.js b/node_modules/@whiskeysockets/baileys/lib/Utils/validate-connection.js
+index 1234567..abcdefg 100644
+--- a/node_modules/@whiskeysockets/baileys/lib/Utils/validate-connection.js
++++ b/node_modules/@whiskeysockets/baileys/lib/Utils/validate-connection.js
+@@ -1,12 +1,12 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.validateConnection = void 0;
+-const Platform_1 = require("../Types/Platform");
++const Platform_1 = require("../Types/Platform");  // Use Platform.MACOS for Feb 2026+ compatibility
+ const PLATFORM = Platform_1.default.MACOS;  // Changed from Platform.WEB
+ const validateConnection = (frameData) => {
+     const EXPECTED_FRAME_DATA = Buffer.from([
+         0x02,
+-        ...PLATFORM.startsWith('WEB') ? [0xe7, 0x01] : [0xf5, 0x01],
++        ...PLATFORM !== 'WEB' ? [0xf5, 0x01] : [0xe7, 0x01],
+         0x00,
+         0x00,
+         0x00,

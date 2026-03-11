@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Expenses — FilaTrucking{% endblock %}
+
+{% block content %}
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+    <div>
+        <h1 class="text-2xl font-bold text-slate-100">Expenses</h1>
+        <p class="text-sm text-slate-400 mt-1">Track and manage fleet expenses.</p>
+    </div>
+    <div class="flex gap-3 w-full sm:w-auto">
+        <a href="{% url 'expense_create' %}"
+            class="flex-1 sm:flex-none bg-accent hover:bg-accent-dark text-surface font-semibold px-4 py-2 rounded-xl transition-colors shadow-lg shadow-accent/20 text-center">
+            + Add Expense
+        </a>
+    </div>
+</div>
+
+<!-- Data Table -->
+<div class="bg-surface-card rounded-2xl shadow-lg border border-slate-700/50 overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm whitespace-nowrap">
+            <thead class="bg-slate-800/50 border-b border-slate-700/50 text-slate-400">
+                <tr>
+                    <th class="px-6 py-4 font-medium tracking-wide">Date</th>
+                    <th class="px-6 py-4 font-medium tracking-wide">Category</th>
+                    <th class="px-6 py-4 font-medium tracking-wide">Description / Notes</th>
+                    <th class="px-6 py-4 font-medium tracking-wide">Amount</th>
+                    <th class="px-6 py-4 font-medium tracking-wide text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-700/50 text-slate-200">
+                {% for expense in expenses %}
+                <tr class="hover:bg-slate-800/30 transition-colors odd:bg-slate-900/20">
+                    <td class="px-6 py-4">
+                        <div class="font-medium text-slate-100">{{ expense.date|date:"m/d/Y" }}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span
+                            class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-500/20 text-slate-300 border border-slate-500/40">
+                            {{ expense.get_category_display }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-slate-300 truncate max-w-xs">
+                            {% if expense.notes %}
+                            {{ expense.notes }}
+                            {% else %}
+                            <span class="text-slate-500 italic">No notes</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex gap-2 mt-1">
+                            {% if expense.vehicle %}
+                            <span
+                                class="text-[10px] uppercase tracking-wider text-slate-500 bg-slate-800 px-1.5 py-0.5 rounded">{{ expense.vehicle.registration_number }}</span>
+                            {% endif %}
+                            {% if expense.driver %}
+                            <span
+                                class="text-[10px] uppercase tracking-wider text-slate-500 bg-slate-800 px-1.5 py-0.5 rounded">{{ expense.driver.name }}</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="font-bold text-slate-100">${{ expense.amount }}</div>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <a href="{% url 'expense_update' expense.pk %}"
+                            class="text-accent hover:text-accent-dark font-medium text-sm transition-colors">Edit</a>
+                        <span class="text-slate-700 mx-2">|</span>
+                        <a href="{% url 'expense_delete' expense.pk %}"
+                            class="text-red-400 hover:text-red-300 font-medium text-sm transition-colors">Delete</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-6 py-16 text-center text-slate-500">
+                        <div class="flex flex-col items-center justify-center">
+                            <svg class="w-12 h-12 mb-4 opacity-20" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                    d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2zM10 8.5a.5.5 0 11-1 0 .5.5 0 011 0zm5 5a.5.5 0 11-1 0 .5.5 0 011 0z">
+                                </path>
+                            </svg>
+                            <p class="font-medium text-slate-400">No expenses tracked yet</p>
+                            <p class="text-sm mt-1">Start by adding a manual expense or importing a CSV.</p>
+                            <a href="{% url 'expense_create' %}"
+                                class="mt-4 text-accent hover:underline text-sm font-semibold">+ Add your first
+                                expense</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if is_paginated %}
+<div class="flex items-center justify-between mt-6">
+    <div class="text-sm text-slate-400">
+        Showing <span class="font-medium text-slate-200">{{ page_obj.start_index }}</span> to <span
+            class="font-medium text-slate-200">{{ page_obj.end_index }}</span> of <span
+            class="font-medium text-slate-200">{{ paginator.count }}</span> expenses
+    </div>
+    <div class="flex gap-2">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}"
+            class="bg-slate-800 border border-slate-700 text-slate-300 px-4 py-2 rounded-xl text-sm font-medium hover:bg-slate-700 transition">Previous</a>
+        {% endif %}
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}"
+            class="bg-slate-800 border border-slate-700 text-slate-300 px-4 py-2 rounded-xl text-sm font-medium hover:bg-slate-700 transition">Next</a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

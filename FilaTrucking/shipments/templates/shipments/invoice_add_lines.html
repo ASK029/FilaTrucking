@@ -1,41 +1,145 @@
 {% extends "base.html" %}
 
+{% block title %}Invoice Line Items — FilaTrucking{% endblock %}
+
 {% block content %}
-<h1>Add line items – Invoice #{{ invoice.pk }} ({{ invoice.customer.name }})</h1>
-<form method="post">
-  {% csrf_token %}
-  {{ formset.management_form }}
-  <table>
-    <thead>
-      <tr>
-        <th>Shipment</th>
-        <th>Date</th>
-        <th>Description</th>
-        <th>Container</th>
-        <th>Seal</th>
-        <th>Location</th>
-        <th>Amount</th>
-        <th>Delete</th>
-      </tr>
-    </thead>
-    {% for f in formset %}
-    <tr>
-      {% for field in f.hidden_fields %}{{ field }}{% endfor %}
-      <td>{{ f.shipment }}</td>
-      <td>{{ f.date_incurred }}</td>
-      <td>{{ f.description }}</td>
-      <td>{{ f.container_no }}</td>
-      <td>{{ f.seal_no }}</td>
-      <td>{{ f.location }}</td>
-      <td>{{ f.amount }}</td>
-      <td>{% if f.DELETE %}{{ f.DELETE }}{% endif %}</td>
-    </tr>
-    {% if f.non_field_errors or f.errors %}
-    <tr><td colspan="8">{{ f.non_field_errors }}{{ f.errors }}</td></tr>
+<div class="max-w-6xl mx-auto py-8">
+  <div class="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
+    <div>
+      <a href="{% url 'invoice_detail' invoice.pk %}"
+        class="text-sm text-slate-500 hover:text-slate-300 flex items-center gap-1 transition-colors group">
+        <svg class="w-4 h-4 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor"
+          viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+        Back to Invoice Details
+      </a>
+      <h1 class="text-2xl font-bold text-slate-100 mt-4">Manage Items — Invoice #{{ invoice.pk }}</h1>
+      <p class="text-slate-400 mt-2 text-sm">
+        Customer: <span class="text-slate-200 font-semibold">{{ invoice.customer.name }}</span>
+      </p>
+    </div>
+
+    <!-- Date range filter for pre-populating confirmed shipments -->
+    {% if not invoice.line_items.exists %}
+    <div class="bg-surface-card p-4 rounded-2xl border border-slate-700/50 shadow-lg">
+      <form method="get" class="flex flex-col sm:flex-row items-end gap-3 px-1">
+        <div>
+          <label class="block text-[10px] uppercase tracking-widest text-slate-500 mb-1 font-bold">Start Date</label>
+          <input type="date" name="start_date" value="{{ start_date|default:'' }}"
+            class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:ring-1 focus:ring-accent outline-none">
+        </div>
+        <div>
+          <label class="block text-[10px] uppercase tracking-widest text-slate-500 mb-1 font-bold">End Date</label>
+          <input type="date" name="end_date" value="{{ end_date|default:'' }}"
+            class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:ring-1 focus:ring-accent outline-none">
+        </div>
+        <button type="submit"
+          class="bg-brand-light hover:bg-brand text-white px-4 py-1.5 rounded-lg text-xs font-bold transition-colors">
+          Fetch Shipments
+        </button>
+      </form>
+    </div>
     {% endif %}
-    {% endfor %}
-  </table>
-  <button type="submit">Save line items</button>
-</form>
-<p><a href="{% url 'invoice_detail' invoice.pk %}">Skip / View invoice</a> | <a href="{% url 'invoice_list' %}">Invoices</a></p>
+  </div>
+
+  <div class="bg-surface-card rounded-2xl shadow-xl border border-slate-700/50 overflow-hidden">
+    <form method="post">
+      {% csrf_token %}
+      {{ formset.management_form }}
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-slate-800/50 border-b border-slate-700/50 text-slate-400">
+            <tr>
+              <th class="px-6 py-4 font-medium tracking-wide">Shipment Ref</th>
+              <th class="px-6 py-4 font-medium tracking-wide">Date</th>
+              <th class="px-6 py-4 font-medium tracking-wide">Description</th>
+              <th class="px-6 py-4 font-medium tracking-wide">Container / Seal</th>
+              <th class="px-6 py-4 font-medium tracking-wide">Location</th>
+              <th class="px-6 py-4 font-medium tracking-wide">Amount ($)</th>
+              <th class="px-6 py-4 font-medium tracking-wide text-center">Del</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-700/50 text-slate-200">
+            {% for f in formset %}
+            <tr class="hover:bg-slate-800/20 transition-colors">
+              {% for field in f.hidden_fields %}{{ field }}{% endfor %}
+              <td class="px-4 py-3 min-w-[120px]">
+                <div class="scale-90 origin-left">
+                  {{ f.shipment }}
+                </div>
+              </td>
+              <td class="px-4 py-3 min-w-[140px]">
+                <div class="scale-90 origin-left">
+                  {{ f.date_incurred }}
+                </div>
+              </td>
+              <td class="px-4 py-3">
+                <div class="scale-90 origin-left">
+                  {{ f.description }}
+                </div>
+              </td>
+              <td class="px-4 py-3">
+                <div class="flex flex-col gap-1 scale-90 origin-left">
+                  {{ f.container_no }}
+                  {{ f.seal_no }}
+                </div>
+              </td>
+              <td class="px-4 py-3">
+                <div class="scale-90 origin-left">
+                  {{ f.location }}
+                </div>
+              </td>
+              <td class="px-4 py-3 min-w-[100px]">
+                <div class="scale-90 origin-left">
+                  {{ f.amount }}
+                </div>
+              </td>
+              <td class="px-4 py-3 text-center">
+                {% if f.DELETE %}
+                {{ f.DELETE }}
+                {% endif %}
+              </td>
+            </tr>
+            {% if f.errors %}
+            <tr>
+              <td colspan="7" class="px-6 py-2 bg-red-500/10 text-xs text-red-400">{{ f.errors }}</td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div
+        class="p-6 bg-slate-800/30 border-t border-slate-700/50 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <p class="text-xs text-slate-500 max-w-sm italic">
+          Tip: You can edit dates and amounts manually if needed. Linking a shipment will update its status to
+          'Invoiced' upon saving.
+        </p>
+        <div class="flex gap-3 w-full sm:w-auto">
+          <a href="{% url 'invoice_detail' invoice.pk %}"
+            class="flex-1 sm:flex-none text-center bg-slate-800 hover:bg-slate-700 text-slate-300 px-6 py-3 rounded-xl font-bold border border-slate-600 transition-colors">
+            Cancel
+          </a>
+          <button type="submit"
+            class="flex-1 sm:flex-none bg-accent hover:bg-accent-dark text-surface font-black px-10 py-3 rounded-xl transition-all shadow-lg shadow-accent/20 uppercase tracking-widest text-sm">
+            Save Items
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+  /* Standardizing input scaling for formsets in table rows to prevent overflow */
+  select,
+  input[type="text"],
+  input[type="date"],
+  input[type="number"] {
+    @apply bg-slate-900 border-slate-700 rounded-lg text-xs py-1.5 focus:ring-accent !important;
+  }
+</style>
 {% endblock %}

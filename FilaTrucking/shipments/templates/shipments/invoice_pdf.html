@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice #{{ invoice.pk }}</title>
+    <style>
+        @page {
+            size: letter;
+            margin: 0.5in;
+
+            @bottom-right {
+                content: "Page " counter(page) " of " counter(pages);
+                font-size: 9pt;
+                color: #666;
+            }
+        }
+
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-size: 10pt;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            font-size: 24pt;
+            font-weight: 900;
+            color: #0ea5e9;
+            /* brand blue */
+            text-transform: uppercase;
+        }
+
+        .invoice-title {
+            font-size: 30pt;
+            color: #e2e8f0;
+            text-transform: uppercase;
+            text-align: right;
+            margin-bottom: 10px;
+        }
+
+        .info-grid {
+            display: table;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        .info-col {
+            display: table-cell;
+            width: 50%;
+            vertical-align: top;
+        }
+
+        .label {
+            font-size: 8pt;
+            font-weight: bold;
+            color: #0ea5e9;
+            text-transform: uppercase;
+            border-bottom: 1px solid #f1f5f9;
+            margin-bottom: 5px;
+            padding-bottom: 2px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+
+        th {
+            background-color: #f8fafc;
+            border-bottom: 2px solid #e2e8f0;
+            padding: 10px;
+            text-align: left;
+            font-size: 8pt;
+            text-transform: uppercase;
+            color: #64748b;
+        }
+
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: top;
+        }
+
+        .amount {
+            text-align: right;
+            font-weight: bold;
+        }
+
+        .total-section {
+            float: right;
+            width: 200px;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .grand-total {
+            border-top: 2px solid #333;
+            padding-top: 10px;
+            margin-top: 10px;
+            font-size: 14pt;
+            font-weight: bold;
+            color: #0ea5e9;
+        }
+
+        .footer {
+            margin-top: 50px;
+            font-size: 8pt;
+            color: #94a3b8;
+            border-top: 1px solid #f1f5f9;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div style="float: left;">
+            <div class="logo">Fila Trucking</div>
+            <div style="font-size: 9pt; color: #64748b; margin-top: 5px;">
+                123 Fleet Street, Suite 100<br>
+                Chicago, IL 60601<br>
+                Phone: (555) 012-3456
+            </div>
+        </div>
+        <div style="float: right;">
+            <div class="invoice-title">Invoice</div>
+            <div style="text-align: right; font-weight: bold;">
+                #{{ invoice.pk }}<br>
+                Date: {{ invoice.invoice_date|date:"m/d/Y" }}
+            </div>
+        </div>
+        <div style="clear: both;"></div>
+    </div>
+
+    <div class="info-grid">
+        <div class="info-col">
+            <div class="label" style="width: 80%;">Bill To</div>
+            <div style="font-weight: bold; font-size: 11pt;">{{ invoice.customer.name }}</div>
+            <div style="color: #475569;">
+                {{ invoice.customer.address }}<br>
+                {{ invoice.customer.email }}
+            </div>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Description / Container</th>
+                <th>Seal</th>
+                <th>Location</th>
+                <th style="text-align: right;">Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in invoice.line_items.all %}
+            <tr>
+                <td>{{ item.date_incurred|date:"m/d/Y" }}</td>
+                <td>
+                    <div style="font-weight: bold;">{{ item.description }}</div>
+                    {% if item.container_no %}<div style="font-size: 8pt; color: #64748b;">{{ item.container_no }}</div>
+                    {% endif %}
+                </td>
+                <td>{{ item.seal_no|default:"—" }}</td>
+                <td>{{ item.location }}</td>
+                <td class="amount">${{ item.amount }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="total-section">
+        <div class="total-row">
+            <span style="color: #64748b;">Subtotal:</span>
+            <span style="float: right; font-weight: bold;">${{ invoice.total_amount }}</span>
+        </div>
+        <div class="total-row">
+            <span style="color: #64748b;">Tax (0%):</span>
+            <span style="float: right; font-weight: bold;">$0.00</span>
+        </div>
+        <div class="grand-total">
+            <span>Total Due:</span>
+            <span style="float: right;">${{ invoice.total_amount }}</span>
+        </div>
+    </div>
+    <div style="clear: both;"></div>
+
+    <div class="footer">
+        <p><strong>Notes:</strong> Payment is due within 15 days. Please include invoice number on your check.</p>
+        <p>Thank you for choosing Fila Trucking!</p>
+    </div>
+</body>
+
+</html>

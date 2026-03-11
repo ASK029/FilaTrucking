@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}
+{% if object %}Edit Expense{% else %}New Expense{% endif %} — FilaTrucking
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto py-8">
+    <div class="mb-8">
+        <a href="{% url 'expense_list' %}"
+            class="text-sm text-slate-500 hover:text-slate-300 flex items-center gap-1 transition-colors group">
+            <svg class="w-4 h-4 transform group-hover:-translate-x-1 transition-transform" fill="none"
+                stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+            Back to Expenses
+        </a>
+        <h1 class="text-2xl font-bold text-slate-100 mt-4">
+            {% if object %}Edit Expense Recording{% else %}Record New Expense{% endif %}
+        </h1>
+        <p class="text-slate-400 mt-2 text-sm max-w-lg">
+            Enter expense details, category, and optionally attach vehicle or driver associations for reporting.
+        </p>
+    </div>
+
+    <div class="bg-surface-card rounded-2xl shadow-xl border border-slate-700/50 p-6 md:p-8">
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="bg-red-500/10 border border-red-500/40 text-red-300 px-4 py-3 rounded-xl text-sm font-medium">
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-300 mb-2">Date</label>
+                    {{ form.date }}
+                    {% if form.date.errors %}<p class="mt-1 text-xs text-red-400">{{ form.date.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-300 mb-2">Category</label>
+                    {{ form.category }}
+                    {% if form.category.errors %}<p class="mt-1 text-xs text-red-400">{{ form.category.errors.0 }}</p>{% endif %}
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-slate-300 mb-2">Amount ($)</label>
+                {{ form.amount }}
+                {% if form.amount.errors %}<p class="mt-1 text-xs text-red-400">{{ form.amount.errors.0 }}</p>{% endif %}
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-300 mb-2">Vehicle (Optional)</label>
+                    {{ form.vehicle }}
+                    {% if form.vehicle.errors %}<p class="mt-1 text-xs text-red-400">{{ form.vehicle.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-300 mb-2">Driver (Optional)</label>
+                    {{ form.driver }}
+                    {% if form.driver.errors %}<p class="mt-1 text-xs text-red-400">{{ form.driver.errors.0 }}</p>{% endif %}
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-slate-300 mb-2">Notes</label>
+                {{ form.notes }}
+                {% if form.notes.errors %}<p class="mt-1 text-xs text-red-400">{{ form.notes.errors.0 }}</p>{% endif %}
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-slate-300 mb-2">Receipt (Optional Upload)</label>
+                {{ form.receipt }}
+                {% if form.receipt.errors %}<p class="mt-1 text-xs text-red-400">{{ form.receipt.errors.0 }}</p>{% endif %}
+                {% if object.receipt %}
+                <div class="mt-2 flex items-center gap-2 text-xs text-slate-400">
+                    <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Current file: <a href="{{ object.receipt.url }}" target="_blank"
+                        class="text-accent hover:underline font-medium">{{ object.receipt.name }}</a>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="flex gap-4 pt-6 border-t border-slate-700/50 mt-8">
+                <button type="submit"
+                    class="flex-1 bg-accent hover:bg-accent-dark text-surface font-extrabold px-6 py-3 rounded-xl transition-all shadow-lg shadow-accent/20">
+                    {% if object %}Save Changes{% else %}Record Expense{% endif %}
+                </button>
+                <a href="{% url 'expense_list' %}"
+                    class="flex-1 text-center bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold px-6 py-3 rounded-xl transition-all border border-slate-600">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

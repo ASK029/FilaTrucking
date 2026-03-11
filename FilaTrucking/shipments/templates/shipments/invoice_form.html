@@ -1,14 +1,60 @@
 {% extends "base.html" %}
 
+{% block title %}Create Invoice — FilaTrucking{% endblock %}
+
 {% block content %}
-<h1>Create Invoice</h1>
-<form method="post">
-  {% csrf_token %}
-  <table>
-    {{ form.as_table }}
-  </table>
-  <button type="submit">Create invoice</button>
-</form>
-<p>After creating, you can add line items (shipments or manual entries like Yard Rent) on the invoice page.</p>
-<p><a href="{% url 'invoice_list' %}">Back to invoices</a></p>
+<div class="max-w-2xl mx-auto py-8">
+  <div class="mb-8 text-center sm:text-left">
+    <a href="{% url 'invoice_list' %}"
+      class="text-sm text-slate-500 hover:text-slate-300 flex items-center justify-center sm:justify-start gap-1 transition-colors group">
+      <svg class="w-4 h-4 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor"
+        viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+      </svg>
+      Back to Invoices
+    </a>
+    <h1 class="text-2xl font-bold text-slate-100 mt-4">Create New Invoice</h1>
+    <p class="text-slate-400 mt-2 text-sm leading-relaxed">
+      Initial step for building a customer invoice. After creation, you will select the confirmed shipments to include.
+    </p>
+  </div>
+
+  <div class="bg-surface-card rounded-2xl shadow-xl border border-slate-700/50 p-6 md:p-8">
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+      <div class="bg-red-500/10 border border-red-500/40 text-red-300 px-4 py-3 rounded-xl text-sm font-medium">
+        {{ form.non_field_errors }}
+      </div>
+      {% endif %}
+
+      <div>
+        <label class="block text-sm font-semibold text-slate-300 mb-2">Customer</label>
+        {{ form.customer }}
+        {% if form.customer.errors %}<p class="mt-1 text-xs text-red-400">{{ form.customer.errors.0 }}</p>{% endif %}
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+        <div>
+          <label class="block text-sm font-semibold text-slate-300 mb-2">Invoice Date</label>
+          {{ form.invoice_date }}
+          {% if form.invoice_date.errors %}<p class="mt-1 text-xs text-red-400">{{ form.invoice_date.errors.0 }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-slate-300 mb-2">Initial Status</label>
+          {{ form.status }}
+          {% if form.status.errors %}<p class="mt-1 text-xs text-red-400">{{ form.status.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+
+      <div class="pt-6 border-t border-slate-700/50 mt-8">
+        <button type="submit"
+          class="w-full bg-accent hover:bg-accent-dark text-surface font-extrabold px-6 py-4 rounded-xl transition-all shadow-lg shadow-accent/20 uppercase tracking-widest text-sm">
+          Next: Add Shipments & Items
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
 {% endblock %}

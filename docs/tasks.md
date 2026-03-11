@@ -30,14 +30,14 @@
 - [X] Add validation to flag missing required fields or duplicate containers within billing period.
 
 ## Milestone 4: Invoicing & Expense Tracking
-- [ ] Implement `Expense` model and categories (Driver Pay, Repairs/Maintenance Parts, Insurance, Fuel, Tolls, Other).
-- [ ] Build Expense Tracking module CRUD views.
-- [ ] Build Expenses list view following table and card patterns from §7.4.
-- [ ] Implement one-time management command or view for CSV bulk import and automatic column mapping.
-- [ ] Implement `Invoice` models grouping `confirmed` shipments by customer + date range.
-- [ ] Implement WeasyPrint PDF invoice generation matching the `invoice_91.pdf` reference layout.
-- [ ] Implement email delivery of PDFs using Django SMTP backend and provide a downloadable copy.
-- [ ] Apply list view table and card patterns to Invoices.
+- [X] Implement `Expense` model and categories (Driver Pay, Repairs/Maintenance Parts, Insurance, Fuel, Tolls, Other).
+- [X] Build Expense Tracking module CRUD views.
+- [X] Build Expenses list view following table and card patterns from §7.4.
+- [X] Implement one-time management command or view for CSV bulk import and automatic column mapping.
+- [X] Implement `Invoice` models grouping `confirmed` shipments by customer + date range.
+- [X] Implement WeasyPrint PDF invoice generation matching the `invoice_91.pdf` reference layout.
+- [X] Implement email delivery of PDFs using Django SMTP backend and provide a downloadable copy.
+- [X] Apply list view table and card patterns to Invoices.
 
 ## Milestone 5: Financials & IFTA Calculation
 - [ ] Implement `IFTAMileage` entry model (State, Vehicle, Quarter, Year, Miles).

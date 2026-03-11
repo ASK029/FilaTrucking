@@ -191,3 +191,116 @@ class IFTARate(models.Model):
 
     def __str__(self) -> str:
         return f"{self.state_code} Q{self.quarter}/{self.year} @ ${self.rate}"
+
+
+# ---------------------------------------------------------------------------
+# WhatsApp Configuration & Groups
+# ---------------------------------------------------------------------------
+
+class WhatsAppConfig(models.Model):
+    """Singleton model to store WhatsApp sidecar connection status and QR code."""
+    
+    class ConnectionStatus(models.TextChoices):
+        DISCONNECTED = "disconnected", "Disconnected"
+        CONNECTING = "connecting", "Connecting"
+        CONNECTED = "connected", "Connected"
+        ERROR = "error", "Error"
+    
+    class AuthStatus(models.TextChoices):
+        NOT_AUTHENTICATED = "not_authenticated", "Not Authenticated"
+        AUTHENTICATING = "authenticating", "Authenticating (Scan QR)"
+        AUTHENTICATED = "authenticated", "Authenticated"
+    
+    sidecar_status = models.CharField(
+        max_length=20,
+        choices=ConnectionStatus,
+        default=ConnectionStatus.DISCONNECTED,
+        verbose_name="Sidecar Status",
+    )
+    auth_status = models.CharField(
+        max_length=20,
+        choices=AuthStatus,
+        default=AuthStatus.NOT_AUTHENTICATED,
+        verbose_name="Auth Status",
+    )
+    qr_code_data = models.TextField(
+        blank=True,
+        verbose_name="QR Code Data",
+        help_text="Latest QR code in ASCII format",
+    )
+    last_connection_time = models.DateTimeField(
+        null=True, blank=True, verbose_name="Last Connected At"
+    )
+    last_error = models.TextField(blank=True, verbose_name="Last Error")
+    last_error_time = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = "WhatsApp Configuration"
+        verbose_name_plural = "WhatsApp Configuration"
+    
+    def __str__(self) -> str:
+        return f"WhatsApp Config – Status: {self.get_sidecar_status_display()}"
+    
+    @classmethod
+    def get_instance(cls):
+        """Get or create the singleton instance."""
+        instance, _ = cls.objects.get_or_create(pk=1)
+        return instance
+
+
+class WhatsAppGroup(models.Model):
+    """Store WhatsApp groups that the sidecar can listen to."""
+    
+    group_jid = models.CharField(
+        max_length=100, unique=True, verbose_name="Group JID",
+        help_text="WhatsApp group identifier (e.g., 123456789-1234567890@g.us)"
+    )
+    group_name = models.CharField(max_length=255, verbose_name="Group Name")
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="Active (Listen to this group)",
+        help_text="If unchecked, messages from this group will be ignored"
+    )
+    participant_count = models.IntegerField(default=0, verbose_name="Participant Count")
+    last_synced_at = models.DateTimeField(
+        auto_now=True, verbose_name="Last Synced"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ["-last_synced_at", "group_name"]
+        verbose_name = "WhatsApp Group"
+        verbose_name_plural = "WhatsApp Groups"
+    
+    def __str__(self) -> str:
+        status = "✓ Active" if self.is_active else "✗ Inactive"
+        return f"{self.group_name} ({status})"
+
+
+class WhatsAppLog(models.Model):
+    """Store sidecar logs for debugging and monitoring."""
+    
+    class LogLevel(models.TextChoices):
+        DEBUG = "debug", "Debug"
+        INFO = "info", "Info"
+        WARNING = "warning", "Warning"
+        ERROR = "error", "Error"
+    
+    level = models.CharField(
+        max_length=10,
+        choices=LogLevel,
+        default=LogLevel.INFO,
+        verbose_name="Log Level",
+    )
+    message = models.TextField(verbose_name="Message")
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "WhatsApp Log"
+        verbose_name_plural = "WhatsApp Logs"
+        indexes = [models.Index(fields=["-created_at"])]
+    
+    def __str__(self) -> str:
+        return f"[{self.get_level_display()}] {self.message[:100]}"

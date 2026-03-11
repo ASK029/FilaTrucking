@@ -1,62 +1,205 @@
 {% extends "base.html" %}
 
+{% block title %}Invoice #{{ invoice.pk }} — FilaTrucking{% endblock %}
+
 {% block content %}
-<style media="print">
-  .no-print { display: none !important; }
-  .invoice-print { margin: 0; }
-  .invoice-print header { margin-bottom: 1em; }
-  .invoice-print table { width: 100%%; border-collapse: collapse; }
-  .invoice-print th, .invoice-print td { border: 1px solid #333; padding: 4px 8px; text-align: left; }
-  .invoice-print .total { margin-top: 1em; font-size: 1.2em; }
-</style>
-<div class="invoice-detail">
-  <p class="no-print"><a href="{% url 'invoice_list' %}">← Invoices</a> | <a href="{% url 'invoice_add_lines' invoice.pk %}">Edit line items</a> | <a href="{% url 'invoice_line_item_add' invoice.pk %}">Add one line item</a></p>
+<div class="max-w-5xl mx-auto py-8">
+  <!-- Action Bar -->
+  <div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div>
+      <a href="{% url 'invoice_list' %}"
+        class="text-sm text-slate-500 hover:text-slate-300 flex items-center gap-1 transition-colors group">
+        <svg class="w-4 h-4 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor"
+          viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+        Back to Invoices
+      </a>
+      <h1 class="text-2xl font-bold text-slate-100 mt-4">Invoice #{{ invoice.pk }}</h1>
+      <div class="flex items-center gap-2 mt-2">
+        {% if invoice.status == 'draft' %}
+        <span
+          class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-500/20 text-slate-300 border border-slate-500/40">Draft</span>
+        {% elif invoice.status == 'sent' %}
+        <span
+          class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/40">Sent</span>
+        {% elif invoice.status == 'paid' %}
+        <span
+          class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">Paid</span>
+        {% endif %}
+        <span class="text-slate-500 text-xs">•</span>
+        <span class="text-slate-400 text-xs font-medium">Issued on {{ invoice.invoice_date|date:"F j, Y" }}</span>
+      </div>
+    </div>
 
-  <div class="invoice-print" id="invoice-print">
-    <header>
-      <h1>Fila Trucking</h1>
-      <p>Invoice #{{ invoice.pk }}</p>
-    </header>
-
-    <section class="bill-to">
-      <h2>Bill To</h2>
-      <p><strong>{{ invoice.customer.name }}</strong></p>
-      <p>{{ invoice.customer.street }}<br>{{ invoice.customer.address1 }}<br>{{ invoice.customer.address2 }}</p>
-      <p>{{ invoice.customer.email }}</p>
-    </section>
-
-    <p><strong>Invoice date:</strong> {{ invoice.invoice_date }} &nbsp; <strong>Status:</strong> {{ invoice.get_status_display }}</p>
-
-    <table>
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Description</th>
-          <th>Container</th>
-          <th>Seal</th>
-          <th>Location</th>
-          <th>Amount</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for item in invoice.line_items.all %}
-        <tr>
-          <td>{{ item.date_incurred }}</td>
-          <td>{{ item.description }}</td>
-          <td>{{ item.container_no|default:"—" }}</td>
-          <td>{{ item.seal_no|default:"—" }}</td>
-          <td>{{ item.location }}</td>
-          <td>${{ item.amount }}</td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="6">No line items.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-
-    <p class="total"><strong>Total: ${{ invoice.total_amount }}</strong></p>
+    <div class="flex flex-wrap gap-3 w-full md:w-auto">
+      <a href="{% url 'invoice_add_lines' invoice.pk %}"
+        class="flex-1 md:flex-none text-center bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2 rounded-xl text-sm font-semibold border border-slate-600 transition-colors">
+        Edit Items
+      </a>
+      <button onclick="window.print()"
+        class="flex-1 md:flex-none text-center bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2 rounded-xl text-sm font-semibold border border-slate-600 transition-colors flex items-center justify-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z">
+          </path>
+        </svg>
+        Print
+      </button>
+      <a href="{% url 'invoice_pdf' invoice.pk %}"
+        class="flex-1 md:flex-none text-center bg-brand-light hover:bg-brand text-white px-5 py-2 rounded-xl text-sm font-bold transition-all shadow-md shadow-brand/20 flex items-center justify-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+          </path>
+        </svg>
+        Download PDF
+      </a>
+      <a href="{% url 'invoice_email' invoice.pk %}"
+        class="flex-1 md:flex-none text-center bg-accent hover:bg-accent-dark text-surface px-6 py-2 rounded-xl text-sm font-black transition-all shadow-lg shadow-accent/20 uppercase tracking-wider flex items-center justify-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+          </path>
+        </svg>
+        Email Customer
+      </a>
+    </div>
   </div>
 
-  <p class="no-print"><button type="button" onclick="window.print();">Print</button></p>
+  <!-- Preview Area (Paper Simulation) -->
+  <div class="bg-white text-slate-900 rounded-2xl shadow-2xl p-8 md:p-12 min-h-[1000px] border border-slate-200">
+    <div id="invoice-canvas">
+      <div class="flex justify-between items-start mb-12">
+        <div>
+          <h2 class="text-3xl font-black text-brand uppercase tracking-tighter">Fila Trucking</h2>
+          <div class="text-xs text-slate-500 mt-2 space-y-0.5 font-medium uppercase tracking-wide">
+            <p>123 Fleet Street, Suite 100</p>
+            <p>Chicago, IL 60601</p>
+            <p>Phone: (555) 012-3456</p>
+            <p>Email: billing@filatrucking.com</p>
+          </div>
+        </div>
+        <div class="text-right">
+          <h3 class="text-4xl font-light text-slate-300 uppercase leading-none">Invoice</h3>
+          <div class="mt-4 text-sm font-bold space-y-1">
+            <p><span class="text-slate-400 font-medium uppercase text-[10px] tracking-widest mr-2">Number</span> #{{
+              invoice.pk }}</p>
+            <p><span class="text-slate-400 font-medium uppercase text-[10px] tracking-widest mr-2">Date</span> {{
+              invoice.invoice_date|date:"m/d/Y" }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-12 grid grid-cols-2 gap-12">
+        <div>
+          <h4
+            class="text-[10px] uppercase tracking-[0.2em] font-black text-brand-light mb-3 border-b border-brand-light/20 pb-1">
+            Bill To</h4>
+          <div class="text-sm">
+            <p class="font-bold text-lg mb-1">{{ invoice.customer.name }}</p>
+            <div class="text-slate-600 leading-relaxed font-medium">
+              <p>{{ invoice.customer.address }}</p>
+              <p>{{ invoice.customer.email }}</p>
+              <p>{{ invoice.customer.phone }}</p>
+            </div>
+          </div>
+        </div>
+        <!-- You could add shipping info here if relevant, or just keep it simple -->
+      </div>
+
+      <table class="w-full text-left text-xs mb-12">
+        <thead class="bg-slate-50 border-y border-slate-200 text-slate-500">
+          <tr>
+            <th class="px-3 py-3 font-bold uppercase tracking-wider">Date</th>
+            <th class="px-3 py-3 font-bold uppercase tracking-wider">Description / Container</th>
+            <th class="px-3 py-3 font-bold uppercase tracking-wider">Seal / Booking</th>
+            <th class="px-3 py-3 font-bold uppercase tracking-wider">Location</th>
+            <th class="px-3 py-3 font-bold uppercase tracking-wider text-right">Amount</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 font-medium">
+          {% for item in invoice.line_items.all %}
+          <tr>
+            <td class="px-3 py-4 text-slate-500">{{ item.date_incurred|date:"m/d/Y" }}</td>
+            <td class="px-3 py-4">
+              <div class="text-slate-900 font-bold uppercase">{{ item.description }}</div>
+              {% if item.container_no %}<div class="text-slate-500 mt-0.5 text-[10px] tracking-wider">{{
+                item.container_no }}</div>{% endif %}
+            </td>
+            <td class="px-3 py-4 text-slate-600 font-mono text-[10px]">
+              {% if item.seal_no %}S: {{ item.seal_no }}{% endif %}
+              {% if item.shipment.booking %}<br>B: {{ item.shipment.booking }}{% endif %}
+            </td>
+            <td class="px-3 py-4 text-slate-600">{{ item.location }}</td>
+            <td class="px-3 py-4 text-right font-bold text-slate-900">${{ item.amount }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="px-3 py-12 text-center text-slate-400 italic">No billable items on this invoice.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <div class="flex justify-end pt-6 border-t-2 border-slate-900/10">
+        <div class="w-64 space-y-3">
+          <div class="flex justify-between text-sm">
+            <span class="text-slate-500 uppercase font-bold tracking-widest text-[10px]">Subtotal</span>
+            <span class="font-bold font-mono">${{ invoice.total_amount }}</span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-slate-500 uppercase font-bold tracking-widest text-[10px]">Tax (0%)</span>
+            <span class="font-bold font-mono">$0.00</span>
+          </div>
+          <div class="flex justify-between items-center pt-4 border-t border-slate-100">
+            <span class="text-brand font-black uppercase tracking-tighter text-lg">Total Due</span>
+            <span class="text-2xl font-black text-brand font-mono">${{ invoice.total_amount }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="mt-24 pt-12 border-t border-slate-100 text-[10px] text-slate-400 uppercase tracking-widest leading-relaxed">
+        <p class="font-bold text-slate-500 mb-1">Notes & Legal</p>
+        <p>Payment is due within 15 days from the date of invoice. Please include invoice number on your check or wire
+          transfer. Late payments may be subject to interest as permitted by law.</p>
+      </div>
+    </div>
+  </div>
 </div>
+
+<style>
+  @media print {
+    body {
+      background: white !important;
+      padding: 0 !important;
+    }
+
+    aside,
+    header,
+    .no-print,
+    a[href*="logout"],
+    a[href*="admin"],
+    nav {
+      display: none !important;
+    }
+
+    main {
+      margin-left: 0 !important;
+      padding: 0 !important;
+    }
+
+    .max-w-5xl {
+      max-width: 100% !important;
+      margin: 0 !important;
+    }
+
+    .bg-white {
+      box-shadow: none !important;
+      border: none !important;
+      padding: 0 !important;
+    }
+  }
+</style>
 {% endblock %}

@@ -1,18 +1,23 @@
 {
   "name": "sidecar",
   "version": "1.0.0",
-  "description": "",
+  "description": "WhatsApp Sidecar Bot for Fila Trucking Management System",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "patch-package"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@whiskeysockets/baileys": "^7.0.0-rc.9",
+    "@whiskeysockets/baileys": "^6.7.0",
     "axios": "^1.13.6",
-    "qrcode-terminal": "^0.12.0"
+    "qrcode-terminal": "^0.12.0",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "patch-package": "^6.4.14"
   }
 }

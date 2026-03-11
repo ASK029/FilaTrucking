@@ -1,33 +1,100 @@
 {% extends "base.html" %}
 
+{% block title %}Invoices — FilaTrucking{% endblock %}
+
 {% block content %}
-<h1>Invoices</h1>
-<p><a href="{% url 'invoice_create' %}">Create invoice</a></p>
-<table>
-  <thead>
-    <tr>
-      <th>#</th>
-      <th>Customer</th>
-      <th>Date</th>
-      <th>Status</th>
-      <th>Total</th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for invoice in invoices %}
-    <tr>
-      <td>{{ invoice.pk }}</td>
-      <td>{{ invoice.customer.name }}</td>
-      <td>{{ invoice.invoice_date }}</td>
-      <td>{{ invoice.get_status_display }}</td>
-      <td>${{ invoice.total_amount }}</td>
-      <td><a href="{% url 'invoice_detail' invoice.pk %}">View</a></td>
-    </tr>
-    {% empty %}
-    <tr><td colspan="6">No invoices yet.</td></tr>
-    {% endfor %}
-  </tbody>
-</table>
-{% if page_obj %}<p>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</p>{% endif %}
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+  <div>
+    <h1 class="text-2xl font-bold text-slate-100">Invoices</h1>
+    <p class="text-sm text-slate-400 mt-1">Manage customer billing and payments.</p>
+  </div>
+  <div class="flex gap-3 w-full sm:w-auto">
+    <a href="{% url 'invoice_create' %}"
+      class="flex-1 sm:flex-none bg-accent hover:bg-accent-dark text-surface font-semibold px-4 py-2 rounded-xl transition-colors shadow-lg shadow-accent/20 text-center">
+      + Create Invoice
+    </a>
+  </div>
+</div>
+
+<!-- Data Table -->
+<div class="bg-surface-card rounded-2xl shadow-lg border border-slate-700/50 overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full text-left text-sm whitespace-nowrap">
+      <thead class="bg-slate-800/50 border-b border-slate-700/50 text-slate-400">
+        <tr>
+          <th class="px-6 py-4 font-medium tracking-wide">ID/Date</th>
+          <th class="px-6 py-4 font-medium tracking-wide">Customer</th>
+          <th class="px-6 py-4 font-medium tracking-wide">Status</th>
+          <th class="px-6 py-4 font-medium tracking-wide">Total Amount</th>
+          <th class="px-6 py-4 font-medium tracking-wide text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-700/50 text-slate-200">
+        {% for invoice in invoices %}
+        <tr class="hover:bg-slate-800/30 transition-colors odd:bg-slate-900/20">
+          <td class="px-6 py-4">
+            <div class="font-medium text-slate-100">#{{ invoice.pk }}</div>
+            <div class="text-xs text-slate-500 mt-0.5">{{ invoice.invoice_date|date:"m/d/Y" }}</div>
+          </td>
+          <td class="px-6 py-4">
+            <div class="text-slate-200 font-medium">{{ invoice.customer.name }}</div>
+          </td>
+          <td class="px-6 py-4">
+            {% if invoice.status == 'draft' %}
+            <span
+              class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-500/20 text-slate-300 border border-slate-500/40">Draft</span>
+            {% elif invoice.status == 'sent' %}
+            <span
+              class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/40">Sent</span>
+            {% elif invoice.status == 'paid' %}
+            <span
+              class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">Paid</span>
+            {% endif %}
+          </td>
+          <td class="px-6 py-4">
+            <div class="font-bold text-slate-100">${{ invoice.total_amount }}</div>
+          </td>
+          <td class="px-6 py-4 text-right">
+            <a href="{% url 'invoice_detail' invoice.pk %}"
+              class="text-accent hover:text-accent-dark font-medium text-sm transition-colors">Manage</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="px-6 py-16 text-center text-slate-500">
+            <div class="flex flex-col items-center justify-center">
+              <svg class="w-12 h-12 mb-4 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                </path>
+              </svg>
+              <p class="font-medium text-slate-400">No invoices generated yet</p>
+              <p class="text-sm mt-1">Start by clicking "Create Invoice" above.</p>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if is_paginated %}
+<div class="flex items-center justify-between mt-6">
+  <div class="text-sm text-slate-400">
+    Showing <span class="font-medium text-slate-200">{{ page_obj.start_index }}</span> to <span
+      class="font-medium text-slate-200">{{ page_obj.end_index }}</span> of <span class="font-medium text-slate-200">{{ paginator.count }}</span> invoices
+  </div>
+  <div class="flex gap-2">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}"
+      class="bg-slate-800 border border-slate-700 text-slate-300 px-4 py-2 rounded-xl text-sm font-medium hover:bg-slate-700 transition">Previous</a>
+    {% endif %}
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}"
+      class="bg-slate-800 border border-slate-700 text-slate-300 px-4 py-2 rounded-xl text-sm font-medium hover:bg-slate-700 transition">Next</a>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
 {% endblock %}
