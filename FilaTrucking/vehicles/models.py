@@ -31,8 +31,20 @@ class Vehicle(models.Model):
         verbose_name="Average MPG (for IFTA)"
     )
     status = models.CharField(max_length=2, choices=Status, default=Status.Available)
-    # Mileage
-
+    # GoMotive / mileage
+    gomotive_id = models.CharField(
+        max_length=64,
+        null=True,
+        blank=True,
+        verbose_name="GoMotive Vehicle ID",
+        help_text="If set, mileage and maintenance can be synced from GoMotive.",
+    )
+    current_odometer = models.IntegerField(
+        null=True,
+        blank=True,
+        verbose_name="Current Odometer",
+        help_text="Most recent odometer reading (miles).",
+    )
     # Ownership
     ownership_type = models.CharField(max_length=2, choices=Ownership, default=Ownership.CompanyOwned)
     # Image
@@ -96,6 +108,12 @@ class Maintenance(models.Model):
     description = models.TextField()
     # Record
     mileage_at_service = models.IntegerField()
+    next_service_mileage = models.IntegerField(
+        null=True,
+        blank=True,
+        verbose_name="Next Service Mileage",
+        help_text="Mileage at which the next service should occur.",
+    )
     date = models.DateField(auto_now_add=True, verbose_name="Service Date")
     next_service_due = models.DateField(null=True, verbose_name="Next Service Due")
 

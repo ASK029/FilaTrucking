@@ -3,16 +3,105 @@ from calendar import month_name, monthrange
 
 from decimal import Decimal
 
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum
+from django.db.models import Max, Sum
 from django.shortcuts import render
 
-from shipments.models import Expense, ExpenseCategory, Invoice
+from shipments.models import Expense, ExpenseCategory, Invoice, InvoiceStatus, Shipment, ShipmentStatus
+from vehicles.models import Maintenance, Vehicle
 
 
 @login_required
 def dashboard(request):
-    return render(request, "dashboard.html")
+    """Central dashboard with financial stats, shipment status, and maintenance alerts."""
+    today = date.today()
+    year = today.year
+    month = today.month
+
+    # Current month date range
+    _, last_day = monthrange(year, month)
+    start_date = date(year, month, 1)
+    end_date = date(year, month, last_day)
+
+    # Revenue for current month (sum of invoiced totals in range)
+    invoices = Invoice.objects.filter(invoice_date__range=(start_date, end_date))
+    revenue = invoices.aggregate(total=Sum("total_amount"))["total"] or Decimal("0")
+
+    # Shipment stats
+    active_shipments_count = Shipment.objects.filter(
+        status=ShipmentStatus.CONFIRMED
+    ).count()
+    pending_review_count = Shipment.objects.filter(
+        status=ShipmentStatus.PENDING_REVIEW
+    ).count()
+
+    # Pending invoices: drafts + sent
+    open_invoices_count = Invoice.objects.filter(
+        status__in=[InvoiceStatus.DRAFT, InvoiceStatus.SENT]
+    ).count()
+
+    # Maintenance alerts: vehicles within 500 miles of next service
+    maintenance_alerts = []
+    alert_threshold = 500
+
+    # For each vehicle, look at the latest maintenance record with next_service_mileage
+    latest_maintenance = (
+        Maintenance.objects.filter(next_service_mileage__isnull=False)
+        .values("vehicle_id")
+        .annotate(latest_id=Max("id"))
+    )
+    latest_ids = [row["latest_id"] for row in latest_maintenance]
+    maintenance_qs = (
+        Maintenance.objects.filter(id__in=latest_ids)
+        .select_related("vehicle")
+        .order_by("vehicle__name")
+    )
+
+    for entry in maintenance_qs:
+        vehicle = entry.vehicle
+        if vehicle.current_odometer is None or entry.next_service_mileage is None:
+            continue
+        miles_to_service = entry.next_service_mileage - vehicle.current_odometer
+        if miles_to_service <= alert_threshold:
+            maintenance_alerts.append(
+                {
+                    "vehicle": vehicle,
+                    "miles_to_service": miles_to_service,
+                    "next_service_mileage": entry.next_service_mileage,
+                    "last_service_mileage": entry.mileage_at_service,
+                }
+            )
+
+    # Schedule overview from Celery beat schedule
+    beat_schedule = getattr(settings, "CELERY_BEAT_SCHEDULE", {}) or {}
+    schedule_rows = []
+    label_map = {
+        "monthly-financial-statement": "Monthly statement",
+        "yearly-financial-statement": "Yearly statement",
+        "recurring-invoices": "Recurring invoices",
+        "ifta-deadline-reminders": "IFTA reminders",
+        "gomotive-nightly-sync": "GoMotive nightly sync",
+    }
+    for key, value in beat_schedule.items():
+        schedule_rows.append(
+            {
+                "key": key,
+                "label": label_map.get(key, key.replace("-", " ").title()),
+                "task": value.get("task"),
+                "schedule": str(value.get("schedule")),
+            }
+        )
+
+    context = {
+        "revenue_this_month": revenue,
+        "active_shipments_count": active_shipments_count,
+        "pending_review_count": pending_review_count,
+        "open_invoices_count": open_invoices_count,
+        "maintenance_alerts": maintenance_alerts,
+        "schedule_rows": schedule_rows,
+    }
+    return render(request, "dashboard.html", context)
 
 
 @login_required

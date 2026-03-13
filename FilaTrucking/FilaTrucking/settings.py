@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import os
 from pathlib import Path
 
+from celery.schedules import crontab
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -151,3 +153,38 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Celery / Redis configuration
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://127.0.0.1:6379/0")
+CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", CELERY_BROKER_URL)
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_ENABLE_UTC = True
+
+# Celery Beat schedule for periodic jobs
+CELERY_BEAT_SCHEDULE = {
+    # Run on the 1st of each month at 01:00
+    "monthly-financial-statement": {
+        "task": "shipments.tasks.generate_monthly_statement",
+        "schedule": crontab(minute=0, hour=1, day_of_month="1"),
+    },
+    # Run on Jan 1st at 02:00
+    "yearly-financial-statement": {
+        "task": "shipments.tasks.generate_yearly_statement",
+        "schedule": crontab(minute=0, hour=2, day_of_month="1", month_of_year="1"),
+    },
+    # Check recurring invoice schedules every night at 00:30
+    "recurring-invoices": {
+        "task": "shipments.tasks.generate_recurring_invoices",
+        "schedule": crontab(minute=30, hour=0),
+    },
+    # Check IFTA reminders daily at 09:00
+    "ifta-deadline-reminders": {
+        "task": "shipments.tasks.send_ifta_deadline_reminders",
+        "schedule": crontab(minute=0, hour=9),
+    },
+    # Nightly GoMotive sync at 03:00
+    "gomotive-nightly-sync": {
+        "task": "vehicles.tasks.sync_gomotive_data",
+        "schedule": crontab(minute=0, hour=3),
+    },
+}

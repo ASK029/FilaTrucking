@@ -12,29 +12,40 @@
 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
     <div class="bg-surface-card rounded-2xl p-5 border border-slate-700/50 shadow-lg">
         <p class="text-muted text-xs uppercase tracking-widest font-medium">Gross Revenue</p>
-        <p class="text-3xl font-bold text-slate-100 mt-1 font-mono">$0.00</p>
+        <p class="text-3xl font-bold text-slate-100 mt-1 font-mono">
+            ${{ revenue_this_month|default:"0.00" }}
+        </p>
         <p class="text-slate-500 text-sm mt-1">This month</p>
     </div>
     <div class="bg-surface-card rounded-2xl p-5 border border-slate-700/50 shadow-lg">
         <p class="text-muted text-xs uppercase tracking-widest font-medium">Active Shipments</p>
-        <p class="text-3xl font-bold text-slate-100 mt-1 font-mono">0</p>
+        <p class="text-3xl font-bold text-slate-100 mt-1 font-mono">
+            {{ active_shipments_count|default:0 }}
+        </p>
         <p class="text-slate-500 text-sm mt-1">Confirmed, not yet invoiced</p>
     </div>
     <div class="bg-surface-card rounded-2xl p-5 border border-slate-700/50 shadow-lg">
         <p class="text-muted text-xs uppercase tracking-widest font-medium">Pending Review</p>
-        <p class="text-3xl font-bold text-yellow-400 mt-1 font-mono">0</p>
+        <p class="text-3xl font-bold text-yellow-400 mt-1 font-mono">
+            {{ pending_review_count|default:0 }}
+        </p>
         <p class="text-slate-500 text-sm mt-1">Shipments awaiting confirmation</p>
     </div>
     <div class="bg-surface-card rounded-2xl p-5 border border-slate-700/50 shadow-lg">
         <p class="text-muted text-xs uppercase tracking-widest font-medium">Open Invoices</p>
-        <p class="text-3xl font-bold text-slate-100 mt-1 font-mono">0</p>
+        <p class="text-3xl font-bold text-slate-100 mt-1 font-mono">
+            {{ open_invoices_count|default:0 }}
+        </p>
         <p class="text-slate-500 text-sm mt-1">Drafts &amp; sent, awaiting payment</p>
     </div>
 </div>
-{# Quick links #}
-<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-4 items-start">
+    {# Quick links #}
+    <div class="space-y-4 xl:col-span-1">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
     <a href="{% url 'shipment_list' %}"
-        class="bg-surface-card rounded-2xl p-5 border border-slate-700/50 hover:border-brand-light/50 hover:bg-slate-800/60 transition-all group">
+        class="bg-surface-card rounded-2xl p-5 min-h-[44px] border border-slate-700/50 hover:border-brand-light/50 hover:bg-slate-800/60 transition-all group">
         <div class="flex items-center gap-3 mb-3">
             <div class="w-9 h-9 rounded-xl bg-brand-light/10 flex items-center justify-center">
                 <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -47,7 +58,7 @@
         <p class="text-sm text-muted">View, confirm, and manage all shipments.</p>
     </a>
     <a href="{% url 'invoice_list' %}"
-        class="bg-surface-card rounded-2xl p-5 border border-slate-700/50 hover:border-brand-light/50 hover:bg-slate-800/60 transition-all group">
+        class="bg-surface-card rounded-2xl p-5 min-h-[44px] border border-slate-700/50 hover:border-brand-light/50 hover:bg-slate-800/60 transition-all group">
         <div class="flex items-center gap-3 mb-3">
             <div class="w-9 h-9 rounded-xl bg-brand-light/10 flex items-center justify-center">
                 <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -60,7 +71,7 @@
         <p class="text-sm text-muted">Generate and send PDF invoices by customer.</p>
     </a>
     <a href="{% url 'driver_list' %}"
-        class="bg-surface-card rounded-2xl p-5 border border-slate-700/50 hover:border-brand-light/50 hover:bg-slate-800/60 transition-all group">
+        class="bg-surface-card rounded-2xl p-5 min-h-[44px] border border-slate-700/50 hover:border-brand-light/50 hover:bg-slate-800/60 transition-all group">
         <div class="flex items-center gap-3 mb-3">
             <div class="w-9 h-9 rounded-xl bg-brand-light/10 flex items-center justify-center">
                 <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -72,5 +83,97 @@
         </div>
         <p class="text-sm text-muted">Manage your driver roster and documents.</p>
     </a>
+        </div>
+
+        {# Schedule overview #}
+        <div class="bg-surface-card rounded-2xl p-5 border border-slate-700/50 shadow-lg mt-4">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-sm font-semibold text-slate-100">Report &amp; Sync Schedule</h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm">
+                    <thead class="text-xs uppercase text-muted border-b border-slate-700/60">
+                        <tr>
+                            <th class="py-2 pr-4 text-left">Report</th>
+                            <th class="py-2 px-4 text-left">Task</th>
+                            <th class="py-2 pl-4 text-left">Schedule</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if schedule_rows %}
+                            {% for row in schedule_rows %}
+                            <tr class="odd:bg-surface even:bg-surface-card">
+                                <td class="py-2 pr-4 whitespace-nowrap">{{ row.label }}</td>
+                                <td class="py-2 px-4 text-xs font-mono text-muted break-all">{{ row.task }}</td>
+                                <td class="py-2 pl-4 text-xs text-muted">{{ row.schedule }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="3" class="py-6 text-center text-muted">
+                                    <div class="flex flex-col items-center gap-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-slate-500"
+                                            fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v11a2 2 0 002 2z" />
+                                        </svg>
+                                        <p class="font-medium">No schedules configured</p>
+                                        <p class="text-xs text-muted">
+                                            Celery Beat schedule is empty. Configure periodic tasks in settings.
+                                        </p>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {# Maintenance alerts #}
+    <div class="bg-surface-card rounded-2xl p-5 border border-slate-700/50 shadow-lg xl:col-span-2">
+        <div class="flex items-center justify-between mb-3">
+            <div>
+                <h2 class="text-sm font-semibold text-slate-100">Maintenance Alerts</h2>
+                <p class="text-xs text-muted mt-0.5">
+                    Vehicles within 500 miles of their next service mileage.
+                </p>
+            </div>
+        </div>
+        {% if maintenance_alerts %}
+            <div class="space-y-2">
+                {% for alert in maintenance_alerts %}
+                <div class="flex items-center justify-between gap-3 bg-surface rounded-xl px-4 py-3 border border-slate-700/60">
+                    <div>
+                        <p class="font-medium text-slate-100">
+                            {{ alert.vehicle.name }} — {{ alert.vehicle.registration_number }}
+                        </p>
+                        <p class="text-xs text-muted mt-0.5">
+                            Next service at {{ alert.next_service_mileage }} miles
+                            · Last service at {{ alert.last_service_mileage }} miles
+                        </p>
+                    </div>
+                    <span
+                        class="inline-flex items-center px-3 py-1 rounded-full text-xs border bg-yellow-500/20 text-yellow-300 border-yellow-500/40">
+                        {{ alert.miles_to_service }} miles remaining
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-10 text-muted">
+                <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-10 w-10 text-slate-600" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M12 9v3.75m0 3.75h.007v.008H12v-.008zM21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p class="mt-3 font-medium">No maintenance alerts</p>
+                <p class="text-xs mt-1">
+                    All vehicles are more than 500 miles away from their next service mileage.
+                </p>
+            </div>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}
