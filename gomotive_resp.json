@@ -1,0 +1,139 @@
+{
+  "v": {
+    "vehicles": [
+      {
+        "vehicle": {
+          "id": 3028030,
+          "number": "578",
+          "year": "2020",
+          "make": "FREIGHTLINER",
+          "model": "Cascadia",
+          "vin": "3AKJGLDRXLDMC3436",
+          "current_location": {
+            "lat": 41.6728385,
+            "lon": -87.7536569,
+            "located_at": "2026-03-20T21:11:27Z",
+            "bearing": 30.48,
+            "engine_hours": 18776.345269,
+            "id": "1be1cc53-1670-4b13-9281-769ab60cfd59",
+            "type": "breadcrumb",
+            "description": "Alsip, IL",
+            "speed": null,
+            "odometer": 463961.83102982,
+            "battery_voltage": null,
+            "fuel": 77358.22977809237,
+            "fuel_primary_remaining_percentage": null,
+            "fuel_secondary_remaining_percentage": null
+          },
+          "current_driver": null
+        }
+      },
+      {
+        "vehicle": {
+          "id": 2415030,
+          "number": "988",
+          "year": "2019",
+          "make": "VOLVO TRUCK",
+          "model": "VNL",
+          "vin": "4V4NC9EH8KN233151",
+          "current_location": {
+            "lat": 41.7455788,
+            "lon": -87.7088907,
+            "located_at": "2026-03-20T21:16:49Z",
+            "bearing": 223.27,
+            "engine_hours": 14373.174263,
+            "id": "520b506a-bf3a-44b7-ba61-0b879cd52b8c",
+            "type": "gps_stopped",
+            "description": "Chicago, IL",
+            "speed": null,
+            "odometer": 537975.086212895,
+            "battery_voltage": null,
+            "fuel": null,
+            "fuel_primary_remaining_percentage": null,
+            "fuel_secondary_remaining_percentage": null
+          },
+          "current_driver": null
+        }
+      },
+      {
+        "vehicle": {
+          "id": 1688389,
+          "number": "992",
+          "year": "2019",
+          "make": "freightliner",
+          "model": "Cascadia",
+          "vin": "3AKJGLDR1KDLG5893",
+          "current_location": {
+            "lat": 41.6730429,
+            "lon": -87.7536401,
+            "located_at": "2026-03-20T21:12:51Z",
+            "bearing": 357.77,
+            "engine_hours": 14947.578326,
+            "id": "459d7486-5d1a-4063-94e6-705ab48ae4f5",
+            "type": "breadcrumb",
+            "description": "Alsip, IL",
+            "speed": null,
+            "odometer": 658949.00774116,
+            "battery_voltage": null,
+            "fuel": 23873.690303536412,
+            "fuel_primary_remaining_percentage": null,
+            "fuel_secondary_remaining_percentage": null
+          },
+          "current_driver": null
+        }
+      }
+    ],
+    "pagination": {
+      "per_page": 25,
+      "page_no": 1,
+      "total": 3
+    }
+  },
+  "f": {
+    "fault_codes": [
+      {
+        "fault_code": {
+          "id": 1302060230,
+          "code_label": "SPN-523530",
+          "code_description": null,
+          "source_address_label": "Cab Controller - Primary",
+          "status": "open",
+          "first_observed_at": "2026-02-19T20:12:29Z",
+          "last_observed_at": "2026-03-14T10:55:16Z",
+          "type": "constant",
+          "fmi": 31,
+          "occurrence_count": 3,
+          "num_observations": 56,
+          "sum_num_observations": 13158,
+          "source_address_name": "Cab Controller - Primary",
+          "source_address": "49",
+          "is_sid": false,
+          "fmi_description": "Condition Exists",
+          "code": "523530",
+          "dtc_status": null,
+          "dtc_severity": null,
+          "functional_grp_id": null,
+          "ftb": null,
+          "eld_device": {
+            "id": 3578140,
+            "identifier": "AABL36XF433662",
+            "model": "lbb-3.6ca"
+          },
+          "vehicle": {
+            "id": 3028030,
+            "number": "578",
+            "year": "2020",
+            "make": "FREIGHTLINER",
+            "model": "Cascadia",
+            "vin": "3AKJGLDRXLDMC3436",
+            "metric_units": false
+          },
+          "network": "j1939"
+        }
+      }
+    ],
+    "per_page": 25,
+    "page_no": 1,
+    "total": 1
+  }
+}

@@ -14,8 +14,15 @@ urlpatterns = [
         views.VehicleDeleteView.as_view(),
         name="vehicle_delete",
     ),
+    path("<int:pk>/sync/", views.sync_vehicle_gomotive, name="sync_vehicle"),
+    path("gomotive/", views.gomotive_vehicles_view, name="gomotive_vehicles"),
     # IFTA
     path("ifta/log/", views.IFTALogCreateView.as_view(), name="ifta_log_create"),
     path("ifta/logs/", views.IFTALogListView.as_view(), name="ifta_log_list"),
     path("ifta/report/", views.ifta_report, name="ifta_report"),
+    # Maintenance
+    path("maintenance/", views.MaintenanceListView.as_view(), name="maintenance_list"),
+    path("maintenance/create/", views.MaintenanceCreateView.as_view(), name="maintenance_create"),
+    path("maintenance/<int:pk>/edit/", views.MaintenanceUpdateView.as_view(), name="maintenance_update"),
+    path("maintenance/<int:pk>/delete/", views.MaintenanceDeleteView.as_view(), name="maintenance_delete"),
 ]

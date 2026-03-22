@@ -39,7 +39,7 @@
         <div>
           <label class="block text-sm font-semibold text-slate-300 mb-2">Invoice Date</label>
           {{ form.invoice_date }}
-          {% if form.invoice_date.errors %}<p class="mt-1 text-xs text-red-400">{{ form.invoice_date.errors.0 }}</p>{% endif %}
+          {% if form.invoice_date.errors %}<p class="mt-1 text-xs text-red-400">{{ form.invoice_date.errors.0 }}</p>{%endif %}
         </div>
         <div>
           <label class="block text-sm font-semibold text-slate-300 mb-2">Initial Status</label>

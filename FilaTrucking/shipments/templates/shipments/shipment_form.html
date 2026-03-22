@@ -8,8 +8,7 @@
 <div class="max-w-4xl mx-auto">
   <div class="mb-6">
     <h1 class="text-2xl font-bold text-slate-100">{% if object.pk %}Edit Shipment{% else %}Add Shipment{% endif %}</h1>
-    <p class="text-sm text-slate-400 mt-1">{% if object.pk %}Update container and booking information for Shipment #{{
-      object.pk }}.{% else %}Manually log a new shipment.{% endif %}</p>
+    <p class="text-sm text-slate-400 mt-1">{% if object.pk %}Update container and booking information for Shipment #{{ object.pk }}.{% else %}Manually log a new shipment.{% endif %}</p>
   </div>
 
   <div class="bg-surface border border-slate-700/50 rounded-2xl p-6 sm:p-8 shadow-xl shadow-black/20">
@@ -31,8 +30,7 @@
           {{ field }}
           <label class="text-sm text-slate-400 font-medium" for="{{ field.id_for_label }}">{{ field.label }}</label>
           {% else %}
-          <label class="block text-sm text-slate-400 mb-1.5 font-medium" for="{{ field.id_for_label }}">{{ field.label
-            }}</label>
+          <label class="block text-sm text-slate-400 mb-1.5 font-medium" for="{{ field.id_for_label }}">{{ field.label }}</label>
           {{ field }}
           {% endif %}
           {% if field.errors %}

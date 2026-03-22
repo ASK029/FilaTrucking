@@ -25,8 +25,9 @@ from .forms import (
     InvoiceLineItemForm,
     InvoiceLineItemFormSet,
     ShipmentForm,
+    SystemSettingsForm,
 )
-from .models import Expense, Invoice, InvoiceLineItem, Shipment, ShipmentStatus
+from .models import Expense, Invoice, InvoiceLineItem, Shipment, ShipmentStatus, SystemSettings, WhatsAppConfig, WhatsAppGroup, WhatsAppLog
 
 
 class ShipmentListView(LoginRequiredMixin, ListView):
@@ -201,12 +202,33 @@ def invoice_email(request, pk):
     # Create email
     subject = f"Invoice #{invoice.pk} from Fila Trucking"
     body = f"Hello {customer.name},\n\nPlease find attached the invoice #{invoice.pk} for your recent shipments.\n\nThank you for your business!\n\nBest regards,\nFila Trucking"
-    email = EmailMessage(
-        subject,
-        body,
-        settings.DEFAULT_FROM_EMAIL,
-        [customer.email],
-    )
+    
+    # Try to use dynamic settings if configured
+    settings_obj = SystemSettings.get_instance()
+    from_email = settings_obj.email_from_email or settings.DEFAULT_FROM_EMAIL
+    
+    email_kwargs = {
+        'subject': subject,
+        'body': body,
+        'from_email': from_email,
+        'to': [customer.email],
+    }
+
+    if settings_obj.email_host_user and settings_obj.get_email_password():
+        from django.core.mail import get_connection
+        try:
+            connection = get_connection(
+                host=getattr(settings, 'EMAIL_HOST', 'smtp.gmail.com'),
+                port=getattr(settings, 'EMAIL_PORT', 587),
+                username=settings_obj.email_host_user,
+                password=settings_obj.get_email_password(),
+                use_tls=getattr(settings, 'EMAIL_USE_TLS', True),
+            )
+            email_kwargs['connection'] = connection
+        except Exception as e:
+            messages.warning(request, f"Using default email server as custom configuration failed: {str(e)}")
+
+    email = EmailMessage(**email_kwargs)
     email.attach(f"Invoice_{invoice.pk}.pdf", pdf, "application/pdf")
     
     try:
@@ -290,12 +312,10 @@ class WhatsAppSettingsView(LoginRequiredMixin, DetailView):
     
     def get_object(self, queryset=None):
         """Redirect to WhatsApp configuration - singleton pattern."""
-        from .models import WhatsAppConfig
         return WhatsAppConfig.get_instance()
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        from .models import WhatsAppConfig, WhatsAppGroup, WhatsAppLog
         
         config = WhatsAppConfig.get_instance()
         groups = WhatsAppGroup.objects.all().order_by('-last_synced_at')
@@ -310,3 +330,79 @@ class WhatsAppSettingsView(LoginRequiredMixin, DetailView):
         })
         
         return context
+
+# ============================================================================
+# System Settings Views
+# ============================================================================
+
+from django.http import JsonResponse
+from django.views import View
+from .forms import SystemSettingsForm
+
+class SystemSettingsView(LoginRequiredMixin, UpdateView):
+    model = SystemSettings
+    form_class = SystemSettingsForm
+    template_name = "shipments/settings_form.html"
+    success_url = reverse_lazy("system_settings")
+
+    def get_object(self, queryset=None):
+        return SystemSettings.get_instance()
+
+    def form_valid(self, form):
+        messages.success(self.request, "System settings updated successfully.")
+        return super().form_valid(form)
+
+
+class TestMotiveConnectionView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        from vehicles.gomotive_client import GoMotiveClient
+        settings_obj = SystemSettings.get_instance()
+        api_key = request.POST.get('motive_api_key') or settings_obj.get_motive_api_key()
+        
+        if not api_key:
+            return JsonResponse({'success': False, 'message': 'API Key is missing.'})
+            
+        client = GoMotiveClient(api_key=api_key)
+        try:
+            if client.test_connection():
+                return JsonResponse({'success': True, 'message': 'Successfully connected to Motive API.'})
+            else:
+                return JsonResponse({'success': False, 'message': 'Failed to connect to Motive. Check your API key or Base URL.'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': f'Error: {str(e)}'})
+
+
+class TestEmailConnectionView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        from django.core.mail import get_connection, EmailMessage
+        
+        settings_obj = SystemSettings.get_instance()
+        host_user = request.POST.get('email_host_user') or settings_obj.email_host_user
+        password = request.POST.get('email_password') or settings_obj.get_email_password()
+        from_email = request.POST.get('email_from_email') or settings_obj.email_from_email
+        
+        if not all([host_user, password, from_email]):
+            return JsonResponse({'success': False, 'message': 'Email configuration is incomplete.'})
+            
+        try:
+            # Use dynamic connection settings
+            connection = get_connection(
+                host=getattr(settings, 'EMAIL_HOST', 'smtp.gmail.com'),
+                port=getattr(settings, 'EMAIL_PORT', 587),
+                username=host_user,
+                password=password,
+                use_tls=getattr(settings, 'EMAIL_USE_TLS', True),
+                fail_silently=False,
+            )
+            
+            subject = "FilaTrucking - Test Email"
+            body = "This is a test email from your FilaTrucking system settings."
+            
+            email = EmailMessage(
+                subject, body, from_email, [request.user.email or from_email],
+                connection=connection
+            )
+            email.send()
+            return JsonResponse({'success': True, 'message': f'Test email sent to {request.user.email or from_email}'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': f'Failed to send email: {str(e)}'})

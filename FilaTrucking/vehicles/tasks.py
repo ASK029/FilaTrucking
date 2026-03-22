@@ -36,15 +36,30 @@ def sync_gomotive_data() -> int:
                 vehicle.save(update_fields=["current_odometer"])
 
             for alert in alerts:
-                Maintenance.objects.create(
-                    vehicle=vehicle,
-                    cost=0,
-                    service_provider="GoMotive",
-                    type=alert.service_type,
-                    description=alert.description,
-                    mileage_at_service=alert.mileage_at_service or (vehicle.current_odometer or 0),
-                    next_service_mileage=alert.next_service_mileage,
-                )
+                if alert.alert_id:
+                    Maintenance.objects.update_or_create(
+                        gomotive_alert_id=alert.alert_id,
+                        defaults={
+                            'vehicle': vehicle,
+                            'cost': 0,
+                            'service_provider': "GoMotive",
+                            'type': alert.service_type,
+                            'description': alert.description,
+                            'mileage_at_service': alert.mileage_at_service or (vehicle.current_odometer or 0),
+                            'next_service_mileage': alert.next_service_mileage,
+                        }
+                    )
+                else:
+                    # Fallback for old/empty IDs or if API doesn't provide one
+                    Maintenance.objects.create(
+                        vehicle=vehicle,
+                        cost=0,
+                        service_provider="GoMotive",
+                        type=alert.service_type,
+                        description=alert.description,
+                        mileage_at_service=alert.mileage_at_service or (vehicle.current_odometer or 0),
+                        next_service_mileage=alert.next_service_mileage,
+                    )
 
         if odometer is not None or alerts:
             updated_count += 1

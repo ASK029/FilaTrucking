@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-xl mx-auto py-12">
+  <div class="bg-surface-card rounded-2xl p-8 border border-slate-700/50 shadow-2xl">
+    <div class="flex flex-col items-center text-center">
+      <div class="h-16 w-16 bg-red-500/10 rounded-full flex items-center justify-center mb-6">
+        <svg class="h-8 w-8 text-red-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+      </div>
+      <h1 class="text-2xl font-bold mb-3 tracking-tight">Delete Maintenance Log?</h1>
+      <p class="text-muted text-sm mb-8 leading-relaxed">
+        You are about to delete this maintenance record for <span class="text-slate-100 font-semibold">{{ object.vehicle.name }}</span> ({{ object.type }}).
+        This action cannot be undone. Are you sure?
+      </p>
+
+      <form method="post" class="flex flex-col sm:flex-row gap-4 w-full">
+        {% csrf_token %}
+        <a href="{% url 'maintenance_list' %}" 
+           class="flex-1 px-6 py-3 rounded-xl border border-slate-700 text-sm font-medium hover:bg-slate-800 transition-colors text-center">
+           No, Cancel
+        </a>
+        <button type="submit" 
+                class="flex-1 px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl transition-colors shadow-lg shadow-red-500/20">
+          Yes, Delete
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

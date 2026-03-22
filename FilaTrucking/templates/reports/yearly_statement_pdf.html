@@ -5,32 +5,21 @@
     <title>Yearly Statement {{ year }}</title>
     <style>
         @page {
-            size: letter;
-            margin: 0.5in;
+            size: letter landscape;
+            margin: 0.4in;
         }
         body {
             font-family: Helvetica, Arial, sans-serif;
-            font-size: 10pt;
+            font-size: 8pt;
             color: #333;
         }
-        h1 {
-            font-size: 18pt;
-            margin-bottom: 4px;
-        }
-        h2 {
-            font-size: 12pt;
-            margin-top: 18px;
-            margin-bottom: 6px;
-        }
-        .muted {
-            color: #64748b;
-            font-size: 9pt;
-        }
+        h1 { font-size: 16pt; margin-bottom: 4px; }
+        .muted { color: #64748b; font-size: 8pt; }
         .stat-grid {
             display: table;
             width: 100%;
-            margin-top: 16px;
-            margin-bottom: 16px;
+            margin-top: 12px;
+            margin-bottom: 12px;
         }
         .stat {
             display: table-cell;
@@ -38,39 +27,36 @@
             padding-right: 12px;
         }
         .stat-label {
-            font-size: 8pt;
+            font-size: 7pt;
             text-transform: uppercase;
             color: #64748b;
         }
-        .stat-value {
-            font-size: 16pt;
-            font-weight: bold;
-        }
+        .stat-value { font-size: 14pt; font-weight: bold; }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 18px;
+            margin-bottom: 14px;
         }
         th {
-            text-align: left;
-            font-size: 8pt;
+            text-align: right;
+            font-size: 6pt;
             text-transform: uppercase;
             color: #64748b;
             border-bottom: 1px solid #e2e8f0;
-            padding: 6px 4px;
+            padding: 3px 2px;
         }
+        th:first-child { text-align: left; }
         td {
-            padding: 6px 4px;
+            text-align: right;
+            padding: 3px 2px;
             border-bottom: 1px solid #f1f5f9;
         }
-        .amount {
-            text-align: right;
-            font-weight: bold;
-        }
+        td:first-child { text-align: left; font-weight: 600; }
+        .totals td { border-top: 2px solid #cbd5e1; font-weight: bold; }
     </style>
 </head>
 <body>
-    <h1>Yearly Statement</h1>
+    <h1>Yearly Statement {{ year }}</h1>
     <p class="muted">
         Period: {{ start_date|date:"M d, Y" }} – {{ end_date|date:"M d, Y" }}
     </p>
@@ -78,37 +64,75 @@
     <div class="stat-grid">
         <div class="stat">
             <div class="stat-label">Total Revenue</div>
-            <div class="stat-value">${{ total_revenue }}</div>
+            <div class="stat-value">${{ total_revenue|floatformat:2 }}</div>
         </div>
         <div class="stat">
-            <div class="stat-label">Total Expenses</div>
-            <div class="stat-value">${{ total_expenses }}</div>
+            <div class="stat-label">Total Spending</div>
+            <div class="stat-value">${{ total_expenses|floatformat:2 }}</div>
         </div>
         <div class="stat">
-            <div class="stat-label">Net Profit</div>
-            <div class="stat-value">${{ net_profit }}</div>
+            <div class="stat-label">Profit</div>
+            <div class="stat-value">${{ net_profit|floatformat:2 }}</div>
         </div>
     </div>
 
-    <h2>Monthly Breakdown</h2>
     <table>
         <thead>
             <tr>
                 <th>Month</th>
-                <th class="amount">Revenue</th>
-                <th class="amount">Expenses</th>
+                <th>IRP</th>
+                <th>Parking</th>
+                <th>On Site</th>
+                <th>Truck</th>
+                <th>Chk Chg</th>
+                <th>Insurance</th>
+                <th>Toll</th>
+                <th>Fuel</th>
+                <th>Other</th>
+                <th>Chassis</th>
+                <th>Pay</th>
+                <th>Deposit</th>
+                <th>Profit</th>
             </tr>
         </thead>
         <tbody>
             {% for row in monthly_rows %}
             <tr>
                 <td>{{ row.label }}</td>
-                <td class="amount">${{ row.revenue }}</td>
-                <td class="amount">${{ row.expenses }}</td>
+                <td>${{ row.irp|floatformat:2 }}</td>
+                <td>${{ row.parking|floatformat:2 }}</td>
+                <td>${{ row.on_site|floatformat:2 }}</td>
+                <td>${{ row.truck|floatformat:2 }}</td>
+                <td>${{ row.check_charge|floatformat:2 }}</td>
+                <td>${{ row.insurance|floatformat:2 }}</td>
+                <td>${{ row.toll|floatformat:2 }}</td>
+                <td>${{ row.fuel|floatformat:2 }}</td>
+                <td>${{ row.other_exp|floatformat:2 }}</td>
+                <td>${{ row.chassis|floatformat:2 }}</td>
+                <td>${{ row.pay|floatformat:2 }}</td>
+                <td>${{ row.deposit|floatformat:2 }}</td>
+                <td>${{ row.profit|floatformat:2 }}</td>
             </tr>
             {% endfor %}
         </tbody>
+        <tfoot>
+            <tr class="totals">
+                <td>TOTALS</td>
+                <td>${{ col_totals.irp|floatformat:2 }}</td>
+                <td>${{ col_totals.parking|floatformat:2 }}</td>
+                <td>${{ col_totals.on_site|floatformat:2 }}</td>
+                <td>${{ col_totals.truck|floatformat:2 }}</td>
+                <td>${{ col_totals.check_charge|floatformat:2 }}</td>
+                <td>${{ col_totals.insurance|floatformat:2 }}</td>
+                <td>${{ col_totals.toll|floatformat:2 }}</td>
+                <td>${{ col_totals.fuel|floatformat:2 }}</td>
+                <td>${{ col_totals.other_exp|floatformat:2 }}</td>
+                <td>${{ col_totals.chassis|floatformat:2 }}</td>
+                <td>${{ col_totals.pay|floatformat:2 }}</td>
+                <td>${{ col_totals.deposit|floatformat:2 }}</td>
+                <td>${{ net_profit|floatformat:2 }}</td>
+            </tr>
+        </tfoot>
     </table>
 </body>
 </html>
-

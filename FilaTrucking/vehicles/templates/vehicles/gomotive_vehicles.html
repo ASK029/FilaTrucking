@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}GoMotive Vehicles — FilaTrucking{% endblock %}
+
+{% block content %}
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+  <div>
+    <div class="flex items-center gap-3">
+      <a href="{% url 'vehicle_list' %}" class="text-slate-400 hover:text-white transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+      </a>
+      <h1 class="text-2xl font-bold text-slate-100">GoMotive Vehicles</h1>
+    </div>
+    <p class="text-sm text-slate-400 mt-1 ml-8">Vehicles currently registered in your GoMotive account.</p>
+  </div>
+</div>
+
+<!-- Data Table -->
+<div class="bg-surface border border-slate-700/50 rounded-2xl shadow-xl shadow-black/20 overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full text-left text-sm whitespace-nowrap">
+      <thead class="bg-slate-800/50 border-b border-slate-700/50 text-slate-400">
+        <tr>
+          <th class="px-6 py-4 font-medium tracking-wide">ID</th>
+          <th class="px-6 py-4 font-medium tracking-wide">Name / VIN</th>
+          <th class="px-6 py-4 font-medium tracking-wide">Make & Model</th>
+          <th class="px-6 py-4 font-medium tracking-wide">Status</th>
+          <th class="px-6 py-4 font-medium tracking-wide text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-700/50 text-slate-200">
+        {% for v in vehicles %}
+        <tr class="hover:bg-slate-800/30 transition-colors">
+          <td class="px-6 py-4 font-mono text-slate-400">{{ v.vehicle.id|default:"-" }}</td>
+          <td class="px-6 py-4">
+            <div class="font-medium text-slate-100">{{ v.vehicle.name|default:"Unnamed" }}</div>
+            <div class="text-xs text-slate-500 mt-0.5">{{ v.vehicle.vehicle_identification_number|default:"No VIN" }}</div>
+          </td>
+          <td class="px-6 py-4 text-slate-400">{{ v.vehicle.make|default:"-" }} {{ v.vehicle.model|default:"-" }}</td>
+          <td class="px-6 py-4">
+            {% if v.vehicle.status == 'active' %}
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-emerald-400/10 text-emerald-400 border border-emerald-400/20">Active</span>
+            {% else %}
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-400/10 text-slate-400 border border-slate-400/20">{{ v.vehicle.status|default:"Unknown"|title }}</span>
+            {% endif %}
+          </td>
+          <td class="px-6 py-4 text-right">
+            <a href="{% url 'vehicle_create' %}?gomotive_id={{ v.vehicle.id|urlencode }}&name={{ v.vehicle.name|urlencode }}&vin={{ v.vehicle.vehicle_identification_number|urlencode }}&make={{ v.vehicle.make|urlencode }}&model={{ v.vehicle.model|urlencode }}"
+               class="inline-block bg-accent hover:bg-amber-400 text-slate-900 font-medium py-1.5 px-3 rounded-lg text-sm transition-colors shadow-sm shadow-accent/20">
+              Import
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="px-6 py-8 text-center text-slate-500">
+            <div class="flex flex-col items-center justify-center">
+              <svg class="w-10 h-10 mb-2 opacity-50" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+              </svg>
+              <p>No vehicles found or API key not configured.</p>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

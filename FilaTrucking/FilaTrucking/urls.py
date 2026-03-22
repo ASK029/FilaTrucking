@@ -31,6 +31,7 @@ urlpatterns = [
     path("vehicles/", include("vehicles.urls")),
     path("invoices/", include("shipments.urls")),
     path("expenses/", include("shipments.expense_urls")),
+    path("settings/", include("shipments.settings_urls")),
     path(
         "reports/financial/monthly/",
         project_views.monthly_statement,

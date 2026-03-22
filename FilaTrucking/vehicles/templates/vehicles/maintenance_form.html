@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold tracking-tight">
+      {% if object.pk %}Edit Maintenance Log{% else %}Add Maintenance Log{% endif %}
+    </h1>
+    <a href="{% url 'maintenance_list' %}" class="text-sm text-muted hover:text-accent transition-colors">
+      &larr; Back to Logs
+    </a>
+  </div>
+
+  <div class="bg-surface-card rounded-2xl p-6 shadow-lg border border-slate-700/50">
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {% for field in form %}
+        <div class="{% if field.name == 'description' %}md:col-span-2{% endif %}">
+          <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-muted mb-1">
+            {{ field.label }}
+          </label>
+          {{ field }}
+          {% if field.help_text %}
+          <p class="mt-1 text-xs text-slate-500">{{ field.help_text }}</p>
+          {% endif %}
+          {% if field.errors %}
+          <p class="mt-1 text-xs text-red-400">{{ field.errors.0 }}</p>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="pt-4 flex border-t border-slate-700/60 justify-end gap-3">
+        <a href="{% url 'maintenance_list' %}" 
+           class="px-4 py-2 rounded-xl border border-slate-700 text-sm font-medium hover:bg-slate-800 transition-colors">
+          Cancel
+        </a>
+        <button type="submit" 
+                class="bg-accent hover:bg-accent-dark text-surface font-semibold px-6 py-2 rounded-xl transition-colors shadow-lg shadow-accent/20">
+          {% if object.pk %}Update Log{% else %}Save Log{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

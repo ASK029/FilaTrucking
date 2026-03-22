@@ -49,14 +49,14 @@
 - [X] Ensure financial reports are exportable to PDF without breaking the layout.
 
 ## Milestone 6: Automation, Integrations & Dashboard
-- [ ] Integrate Celery and Redis into Django settings for task scheduling.
-- [ ] Create Celery tasks for scheduled reports (Monthly statement, Yearly statement, Recurring invoices) and IFTA reminders.
-- [ ] Integrate GoMotive REST API (syncing odometer readings and maintenance alerts).
-- [ ] Setup scheduled Celery beat task for nightly GoMotive mileage/maintenance sync.
-- [ ] Build central Dashboard UI.
-- [ ] Add Dashboard stat cards: Revenue, active shipments, pending invoices, maintenance alerts (§7.4).
-- [ ] Add Schedule overview table on Dashboard for report schedules.
-- [ ] Trigger dashboard alerts when a GoMotive or manual vehicle is within 500 miles of next service.
+- [X] Integrate Celery and Redis into Django settings for task scheduling.
+- [X] Create Celery tasks for scheduled reports (Monthly statement, Yearly statement, Recurring invoices) and IFTA reminders.
+- [X] Integrate GoMotive REST API (syncing odometer readings and maintenance alerts).
+- [X] Setup scheduled Celery beat task for nightly GoMotive mileage/maintenance sync.
+- [X] Build central Dashboard UI.
+- [X] Add Dashboard stat cards: Revenue, active shipments, pending invoices, maintenance alerts (§7.4).
+- [X] Add Schedule overview table on Dashboard for report schedules.
+- [X] Trigger dashboard alerts when a GoMotive or manual vehicle is within 500 miles of next service.
 
 ## Milestone 7: Data Migration & Final Polish
 - [ ] Create management command to migrate `2025_STATMENTS_-_JAN.csv` (Expenses + Deposits).

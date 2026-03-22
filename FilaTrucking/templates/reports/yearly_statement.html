@@ -20,6 +20,7 @@
   </div>
 </div>
 
+<!-- Year picker -->
 <div class="bg-surface-card rounded-2xl p-5 border border-slate-700/50 shadow-lg mb-6">
   <form method="get" class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
     <div>
@@ -38,48 +39,90 @@
   </form>
 </div>
 
+<!-- Stat cards -->
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
   <div class="bg-surface-card rounded-2xl p-5 border border-slate-700/50">
     <p class="text-muted text-xs uppercase tracking-widest">Total Revenue</p>
-    <p class="text-3xl font-bold text-slate-100 mt-1 font-mono">${{ total_revenue }}</p>
-    <p class="text-slate-500 text-xs mt-1">All invoices in {{ year }}</p>
+    <p class="text-3xl font-bold text-slate-100 mt-1 font-mono">${{ total_revenue|floatformat:2 }}</p>
+    <p class="text-slate-500 text-xs mt-1">All deposits in {{ year }}</p>
   </div>
   <div class="bg-surface-card rounded-2xl p-5 border border-slate-700/50">
-    <p class="text-muted text-xs uppercase tracking-widest">Total Expenses</p>
-    <p class="text-3xl font-bold text-red-300 mt-1 font-mono">${{ total_expenses }}</p>
+    <p class="text-muted text-xs uppercase tracking-widest">Total Spending</p>
+    <p class="text-3xl font-bold text-red-300 mt-1 font-mono">${{ total_expenses|floatformat:2 }}</p>
     <p class="text-slate-500 text-xs mt-1">All expenses in {{ year }}</p>
   </div>
   <div class="bg-surface-card rounded-2xl p-5 border border-slate-700/50">
-    <p class="text-muted text-xs uppercase tracking-widest">Net Profit</p>
+    <p class="text-muted text-xs uppercase tracking-widest">Profit</p>
     <p class="text-3xl font-bold {% if net_profit >= 0 %}text-emerald-300{% else %}text-red-300{% endif %} mt-1 font-mono">
-      ${{ net_profit }}
+      ${{ net_profit|floatformat:2 }}
     </p>
     <p class="text-slate-500 text-xs mt-1">Revenue minus expenses</p>
   </div>
 </div>
 
+<!-- Monthly category grid -->
 <div class="bg-surface-card rounded-2xl p-4 border border-slate-700/50 shadow-lg">
   <h2 class="text-sm font-semibold text-slate-100 mb-3">Monthly Breakdown</h2>
   <div class="overflow-x-auto">
-    <table class="min-w-full text-sm">
+    <table class="min-w-full text-xs whitespace-nowrap">
       <thead>
-        <tr class="text-left text-xs uppercase tracking-wider text-muted border-b border-slate-700/60">
-          <th class="py-2 pr-4">Month</th>
-          <th class="py-2 pr-4 text-right">Revenue</th>
-          <th class="py-2 pr-4 text-right">Expenses</th>
+        <tr class="text-left uppercase tracking-wider text-muted border-b border-slate-700/60">
+          <th class="py-2 pr-3 sticky left-0 bg-surface-card">Month</th>
+          <th class="py-2 pr-3 text-right">IRP</th>
+          <th class="py-2 pr-3 text-right">Parking</th>
+          <th class="py-2 pr-3 text-right">On Site</th>
+          <th class="py-2 pr-3 text-right">Truck</th>
+          <th class="py-2 pr-3 text-right">Chk Chg</th>
+          <th class="py-2 pr-3 text-right">Insurance</th>
+          <th class="py-2 pr-3 text-right">Toll</th>
+          <th class="py-2 pr-3 text-right">Fuel</th>
+          <th class="py-2 pr-3 text-right">Other</th>
+          <th class="py-2 pr-3 text-right">Chassis</th>
+          <th class="py-2 pr-3 text-right">Pay</th>
+          <th class="py-2 pr-3 text-right">Deposit</th>
+          <th class="py-2 pr-3 text-right">Profit</th>
         </tr>
       </thead>
       <tbody>
         {% for row in monthly_rows %}
-        <tr class="odd:bg-surface even:bg-surface-card border-b border-slate-800/60">
-          <td class="py-2 pr-4">{{ row.label }}</td>
-          <td class="py-2 pr-4 text-right font-mono">${{ row.revenue }}</td>
-          <td class="py-2 pr-4 text-right font-mono">${{ row.expenses }}</td>
+        <tr class="odd:bg-surface even:bg-surface-card border-b border-slate-800/60 cursor-pointer hover:bg-slate-700/30"
+            onclick="window.location='{% url 'monthly_statement' %}?year={{ year }}&month={{ row.month }}'">
+          <td class="py-2 pr-3 sticky left-0 bg-inherit font-semibold">{{ row.label }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ row.irp|floatformat:2 }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ row.parking|floatformat:2 }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ row.on_site|floatformat:2 }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ row.truck|floatformat:2 }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ row.check_charge|floatformat:2 }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ row.insurance|floatformat:2 }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ row.toll|floatformat:2 }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ row.fuel|floatformat:2 }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ row.other_exp|floatformat:2 }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ row.chassis|floatformat:2 }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ row.pay|floatformat:2 }}</td>
+          <td class="py-2 pr-3 text-right font-mono text-emerald-300">${{ row.deposit|floatformat:2 }}</td>
+          <td class="py-2 pr-3 text-right font-mono font-semibold {% if row.profit >= 0 %}text-emerald-300{% else %}text-red-300{% endif %}">${{ row.profit|floatformat:2 }}</td>
         </tr>
         {% endfor %}
       </tbody>
+      <tfoot>
+        <tr class="border-t-2 border-slate-600 font-semibold text-slate-100">
+          <td class="py-2 pr-3 sticky left-0 bg-surface-card">TOTALS</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ col_totals.irp|floatformat:2 }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ col_totals.parking|floatformat:2 }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ col_totals.on_site|floatformat:2 }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ col_totals.truck|floatformat:2 }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ col_totals.check_charge|floatformat:2 }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ col_totals.insurance|floatformat:2 }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ col_totals.toll|floatformat:2 }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ col_totals.fuel|floatformat:2 }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ col_totals.other_exp|floatformat:2 }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ col_totals.chassis|floatformat:2 }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ col_totals.pay|floatformat:2 }}</td>
+          <td class="py-2 pr-3 text-right font-mono text-emerald-300">${{ col_totals.deposit|floatformat:2 }}</td>
+          <td class="py-2 pr-3 text-right font-mono font-semibold {% if net_profit >= 0 %}text-emerald-300{% else %}text-red-300{% endif %}">${{ net_profit|floatformat:2 }}</td>
+        </tr>
+      </tfoot>
     </table>
   </div>
 </div>
 {% endblock %}
-

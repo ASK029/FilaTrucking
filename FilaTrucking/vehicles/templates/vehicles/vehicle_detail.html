@@ -65,8 +65,7 @@
         <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Assigned Driver</dt>
         <dd class="text-base text-slate-200">
           {% if vehicle.driver %}
-          <a href="{% url 'driver_detail' vehicle.driver.pk %}" class="text-brand-light hover:underline">{{
-            vehicle.driver.name }}</a>
+          <a href="{% url 'driver_detail' vehicle.driver.pk %}" class="text-brand-light hover:underline">{{ vehicle.driver.name }}</a>
           {% else %}
           <span class="text-slate-500 italic">Unassigned</span>
           {% endif %}
@@ -79,16 +78,26 @@
     </div>
   </div>
 
-  <!-- Image / Maintenance Overview -->
+  <!-- Image / GoMotive Sync Card -->
   <div class="bg-surface border border-slate-700/50 rounded-2xl p-6 shadow-xl shadow-black/20">
-    <h2 class="text-lg font-bold text-slate-200 border-b border-slate-700/50 pb-3 mb-4 flex items-center gap-2">
-      <svg class="w-5 h-5 text-brand-light" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round"
-          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
-        </path>
-        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-      </svg>
-      Status
+    <h2 class="text-lg font-bold text-slate-200 border-b border-slate-700/50 pb-3 mb-4 flex items-center justify-between">
+      <span class="flex items-center gap-2">
+        <svg class="w-5 h-5 text-brand-light" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+          </path>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+        </svg>
+        Status
+      </span>
+      {% if vehicle.gomotive_id %}
+      <form action="{% url 'sync_vehicle' vehicle.pk %}" method="post" class="inline">
+        {% csrf_token %}
+        <button type="submit" class="text-xs bg-slate-800 hover:bg-slate-700 text-brand-light font-medium py-1 px-3 rounded border border-brand-light/20 transition-colors">
+          Sync GoMotive
+        </button>
+      </form>
+      {% endif %}
     </h2>
 
     {% if vehicle.image %}
@@ -97,12 +106,72 @@
     </div>
     {% endif %}
 
-    <a href="{% url 'ifta_log_list' %}"
-      class="block w-full text-center px-4 py-2 bg-slate-800 text-slate-300 hover:text-white border border-slate-600 rounded-xl text-sm font-medium transition mb-2">View
-      IFTA Logs</a>
-    <button
-      class="block w-full text-center px-4 py-2 bg-slate-800 text-slate-300 hover:text-white border border-slate-600 rounded-xl text-sm font-medium transition">View
-      Maintenance</button>
+    <div class="space-y-4">
+      <!-- Odometer Status -->
+      <div class="bg-surface-card p-4 rounded-xl border border-slate-700/50">
+        <p class="text-xs text-muted font-medium mb-1">Current Odometer</p>
+        <p class="text-xl font-mono text-slate-100">{{ vehicle.current_odometer|default:"Unknown" }}</p>
+      </div>
+
+      <!-- Links -->
+      <a href="{% url 'ifta_log_list' %}?vehicle={{ vehicle.pk }}"
+        class="block w-full text-center px-4 py-2.5 bg-slate-800 text-slate-300 hover:text-white border border-slate-600 rounded-xl text-sm font-medium transition mb-2">
+        Manage IFTA Logs
+      </a>
+      <a href="{% url 'maintenance_list' %}?vehicle={{ vehicle.pk }}"
+        class="block w-full text-center px-4 py-2.5 bg-slate-800 text-slate-300 hover:text-white border border-slate-600 rounded-xl text-sm font-medium transition">
+        Manage Maintenance Logs
+      </a>
+    </div>
+  </div>
+
+  <!-- Recent Logs Spread -->
+  <div class="lg:col-span-3 grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2">
+    <!-- Maintenance Logs -->
+    <div class="bg-surface border border-slate-700/50 rounded-2xl p-6 shadow-xl shadow-black/20">
+      <h3 class="text-lg font-bold text-slate-200 border-b border-slate-700/50 pb-3 mb-4">Recent Maintenance</h3>
+      {% if maintenance_logs %}
+        <div class="space-y-3">
+          {% for log in maintenance_logs %}
+          <div class="flex items-center justify-between p-3 bg-surface-card rounded-xl border border-slate-700/50 text-sm">
+            <div>
+              <p class="font-medium text-slate-200">{{ log.type }}</p>
+              <p class="text-xs text-muted">{{ log.date|date:"Y-m-d" }} &bull; {{ log.service_provider }}</p>
+            </div>
+            <div class="text-right">
+              <p class="font-mono text-slate-200">${{ log.cost }}</p>
+              <p class="text-xs text-muted font-mono">{{ log.mileage_at_service }} mi</p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-sm text-muted text-center py-6">No maintenance records found.</p>
+      {% endif %}
+    </div>
+
+    <!-- IFTA Logs -->
+    <div class="bg-surface border border-slate-700/50 rounded-2xl p-6 shadow-xl shadow-black/20">
+      <h3 class="text-lg font-bold text-slate-200 border-b border-slate-700/50 pb-3 mb-4">Recent IFTA Entries</h3>
+      {% if ifta_logs %}
+        <div class="space-y-3">
+          {% for log in ifta_logs %}
+          <div class="flex items-center justify-between p-3 bg-surface-card rounded-xl border border-slate-700/50 text-sm">
+            <div>
+              <p class="font-medium text-slate-200">{{ log.state_code }}</p>
+              <p class="text-xs text-muted">Q{{ log.quarter }} {{ log.year }}</p>
+            </div>
+            <div class="text-right">
+              <p class="font-mono text-slate-200">{{ log.miles }} mi</p>
+              <p class="text-xs text-muted">{{ log.calculated_gallons|default:"-" }} gal</p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-sm text-muted text-center py-6">No IFTA entries found.</p>
+      {% endif %}
+    </div>
   </div>
 </div>
 {% endblock %}

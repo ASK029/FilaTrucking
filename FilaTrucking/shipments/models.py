@@ -304,3 +304,54 @@ class WhatsAppLog(models.Model):
     
     def __str__(self) -> str:
         return f"[{self.get_level_display()}] {self.message[:100]}"
+
+# ---------------------------------------------------------------------------
+# System Settings (Singleton)
+# ---------------------------------------------------------------------------
+
+class SystemSettings(models.Model):
+    """
+    Singleton model to store global system configurations.
+    Sensitive fields are stored encrypted.
+    """
+    # Motive (GoMotive) Settings
+    motive_api_key_encrypted = models.TextField(blank=True, verbose_name="Motive API Key (Encrypted)")
+    motive_base_url = models.URLField(
+        default="https://api.keeptruckin.com/v1",
+        verbose_name="Motive Base URL"
+    )
+
+    # Email Settings (Dynamic SMTP credentials)
+    email_host_user = models.CharField(max_length=255, blank=True, verbose_name="Email Host User")
+    email_host_password_encrypted = models.TextField(blank=True, verbose_name="Email Host Password (Encrypted)")
+    email_from_email = models.EmailField(blank=True, verbose_name="From Email Address")
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "System Settings"
+        verbose_name_plural = "System Settings"
+
+    def __str__(self) -> str:
+        return "System Settings"
+
+    @classmethod
+    def get_instance(cls):
+        instance, _ = cls.objects.get_or_create(pk=1)
+        return instance
+
+    def set_motive_api_key(self, value):
+        from .utils import encrypt_value
+        self.motive_api_key_encrypted = encrypt_value(value)
+
+    def get_motive_api_key(self):
+        from .utils import decrypt_value
+        return decrypt_value(self.motive_api_key_encrypted)
+
+    def set_email_password(self, value):
+        from .utils import encrypt_value
+        self.email_host_password_encrypted = encrypt_value(value)
+
+    def get_email_password(self):
+        from .utils import decrypt_value
+        return decrypt_value(self.email_host_password_encrypted)

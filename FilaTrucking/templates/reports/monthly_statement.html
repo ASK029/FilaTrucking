@@ -20,6 +20,7 @@
   </div>
 </div>
 
+<!-- Month/Year picker -->
 <div class="bg-surface-card rounded-2xl p-5 border border-slate-700/50 shadow-lg mb-6">
   <form method="get" class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
     <div>
@@ -50,27 +51,29 @@
   </form>
 </div>
 
+<!-- Stat cards -->
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
   <div class="bg-surface-card rounded-2xl p-5 border border-slate-700/50">
     <p class="text-muted text-xs uppercase tracking-widest">Gross Revenue</p>
-    <p class="text-3xl font-bold text-slate-100 mt-1 font-mono">${{ revenue }}</p>
-    <p class="text-slate-500 text-xs mt-1">Invoices in this month</p>
+    <p class="text-3xl font-bold text-slate-100 mt-1 font-mono">${{ revenue|floatformat:2 }}</p>
+    <p class="text-slate-500 text-xs mt-1">Deposits in this month</p>
   </div>
   <div class="bg-surface-card rounded-2xl p-5 border border-slate-700/50">
-    <p class="text-muted text-xs uppercase tracking-widest">Total Expenses</p>
-    <p class="text-3xl font-bold text-red-300 mt-1 font-mono">${{ total_expenses }}</p>
+    <p class="text-muted text-xs uppercase tracking-widest">Total Spending</p>
+    <p class="text-3xl font-bold text-red-300 mt-1 font-mono">${{ total_expenses|floatformat:2 }}</p>
     <p class="text-slate-500 text-xs mt-1">All expense categories</p>
   </div>
   <div class="bg-surface-card rounded-2xl p-5 border border-slate-700/50">
-    <p class="text-muted text-xs uppercase tracking-widest">Net Profit</p>
+    <p class="text-muted text-xs uppercase tracking-widest">Profit</p>
     <p class="text-3xl font-bold {% if net_profit >= 0 %}text-emerald-300{% else %}text-red-300{% endif %} mt-1 font-mono">
-      ${{ net_profit }}
+      ${{ net_profit|floatformat:2 }}
     </p>
     <p class="text-slate-500 text-xs mt-1">Revenue minus expenses</p>
   </div>
 </div>
 
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<!-- Category totals (CSV columns) -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
   <div class="bg-surface-card rounded-2xl p-4 border border-slate-700/50 shadow-lg">
     <h2 class="text-sm font-semibold text-slate-100 mb-3">Expenses by Category</h2>
     <div class="overflow-x-auto">
@@ -82,18 +85,16 @@
           </tr>
         </thead>
         <tbody>
-          {% for row in expenses_by_category %}
+          {% for label, amount in category_totals.items %}
           <tr class="odd:bg-surface even:bg-surface-card border-b border-slate-800/60">
-            <td class="py-2 pr-4">{{ row.category|title }}</td>
-            <td class="py-2 pr-4 text-right font-mono">${{ row.total }}</td>
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="2" class="py-6 text-center text-muted text-sm">
-              No expenses recorded for this month.
-            </td>
+            <td class="py-2 pr-4">{{ label }}</td>
+            <td class="py-2 pr-4 text-right font-mono">${{ amount|floatformat:2 }}</td>
           </tr>
           {% endfor %}
+          <tr class="border-t border-slate-600">
+            <td class="py-2 pr-4 font-semibold">Driver Pay</td>
+            <td class="py-2 pr-4 text-right font-mono font-semibold">${{ driver_pay|floatformat:2 }}</td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -115,7 +116,7 @@
             <td class="py-2 pr-4">
               {{ row.driver__name|default:"Unassigned" }}
             </td>
-            <td class="py-2 pr-4 text-right font-mono">${{ row.total }}</td>
+            <td class="py-2 pr-4 text-right font-mono">${{ row.total|floatformat:2 }}</td>
           </tr>
           {% empty %}
           <tr>
@@ -129,5 +130,63 @@
     </div>
   </div>
 </div>
-{% endblock %}
 
+<!-- Transaction log -->
+<div class="bg-surface-card rounded-2xl p-4 border border-slate-700/50 shadow-lg">
+  <h2 class="text-sm font-semibold text-slate-100 mb-3">Transaction Log</h2>
+  <div class="overflow-x-auto">
+    <table class="min-w-full text-xs whitespace-nowrap">
+      <thead>
+        <tr class="text-left uppercase tracking-wider text-muted border-b border-slate-700/60">
+          <th class="py-2 pr-3 sticky left-0 bg-surface-card">Date</th>
+          <th class="py-2 pr-3 text-right">Deposit</th>
+          <th class="py-2 pr-3">From</th>
+          <th class="py-2 pr-3 text-right">IRP</th>
+          <th class="py-2 pr-3 text-right">Parking</th>
+          <th class="py-2 pr-3 text-right">On Site</th>
+          <th class="py-2 pr-3 text-right">Truck</th>
+          <th class="py-2 pr-3 text-right">Chk Chg</th>
+          <th class="py-2 pr-3 text-right">Insurance</th>
+          <th class="py-2 pr-3 text-right">Toll</th>
+          <th class="py-2 pr-3 text-right">Fuel</th>
+          <th class="py-2 pr-3 text-right">Other</th>
+          <th class="py-2 pr-3 text-right">Chassis</th>
+          <th class="py-2 pr-3 text-right">Pay</th>
+          <th class="py-2 pr-3">Pay To</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in transaction_rows %}
+        <tr class="odd:bg-surface even:bg-surface-card border-b border-slate-800/60">
+          <td class="py-2 pr-3 sticky left-0 bg-inherit font-mono">{{ row.date|date:"m-d-Y" }}</td>
+          <td class="py-2 pr-3 text-right font-mono {% if row.deposit > 0 %}text-emerald-300{% endif %}">${{ row.deposit|floatformat:2 }}</td>
+          <td class="py-2 pr-3">{{ row.deposit_from }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ row.irp|floatformat:2 }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ row.parking|floatformat:2 }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ row.on_site|floatformat:2 }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ row.truck|floatformat:2 }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ row.check_charge|floatformat:2 }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ row.insurance|floatformat:2 }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ row.toll|floatformat:2 }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ row.fuel|floatformat:2 }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ row.other|floatformat:2 }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ row.chassis|floatformat:2 }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ row.pay|floatformat:2 }}</td>
+          <td class="py-2 pr-3">{{ row.pay_to }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="15" class="py-8 text-center text-muted">
+            <svg class="mx-auto h-8 w-8 mb-2 text-slate-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+            </svg>
+            <p class="font-medium">No transactions yet</p>
+            <p class="text-sm mt-1">Import a CSV or create expenses manually.</p>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

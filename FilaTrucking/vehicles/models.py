@@ -116,5 +116,7 @@ class Maintenance(models.Model):
     )
     date = models.DateField(auto_now_add=True, verbose_name="Service Date")
     next_service_due = models.DateField(null=True, verbose_name="Next Service Due")
+    # GoMotive sync metadata
+    gomotive_alert_id = models.CharField(max_length=64, null=True, blank=True, unique=True, verbose_name="GoMotive Alert ID")
 
 
