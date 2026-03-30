@@ -11,6 +11,7 @@ from django.views.generic import (
 )
 
 from .models import IFTAMileage, Vehicle, Maintenance
+from shipments.models import IFTARate
 from .forms import VehicleForm, IFTAMileageLogForm, MaintenanceForm
 
 

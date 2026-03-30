@@ -8,8 +8,39 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Max, Sum
 from django.shortcuts import render
 
+from celery.schedules import crontab
+
 from shipments.models import Expense, ExpenseCategory, Invoice, InvoiceStatus, Shipment, ShipmentStatus
 from vehicles.models import Maintenance, Vehicle
+
+
+def format_crontab(schedule):
+    """Format a crontab schedule into a human-readable string."""
+    if not isinstance(schedule, crontab):
+        return str(schedule)
+
+    crontab_str = str(schedule)
+
+    month_names = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+    parts = []
+
+    import re
+    match = re.match(r"<crontab: (\d+) (\d+) (\d+|\*) (\d+|\*) (\d+|\*)", crontab_str)
+    if match:
+        minute, hour, dom, moy, dow = match.groups()
+        parts.append(f"{int(hour):02d}:{int(minute):02d}")
+        if dom != "*":
+            parts.append(f"day {dom}")
+        if moy != "*":
+            try:
+                m = int(moy)
+                if 1 <= m <= 12:
+                    parts.append(month_names[m])
+            except ValueError:
+                pass
+
+    return " ".join(parts) if parts else "Daily"
 
 
 @login_required
@@ -89,7 +120,7 @@ def dashboard(request):
                 "key": key,
                 "label": label_map.get(key, key.replace("-", " ").title()),
                 "task": value.get("task"),
-                "schedule": str(value.get("schedule")),
+                "schedule": format_crontab(value.get("schedule")),
             }
         )
 
