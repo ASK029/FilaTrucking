@@ -411,6 +411,7 @@ def trigger_restart_connection(request):
         response = requests.post(sidecar_url, headers=headers, timeout=10)
         
         if response.status_code == 200:
+
             return JsonResponse({"status": "success"})
         else:
             return JsonResponse({
@@ -437,6 +438,7 @@ def trigger_clear_auth(request):
         response = requests.delete(sidecar_url, headers=headers, timeout=10)
         
         if response.status_code == 200:
+            WhatsAppGroup.objects.all().delete()
             return JsonResponse({"status": "success"})
         else:
             return JsonResponse({
