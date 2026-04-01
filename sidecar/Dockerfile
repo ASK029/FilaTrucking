@@ -25,8 +25,8 @@ RUN npm install && npm run postinstall
 # Copy application code
 COPY . .
 
-# Create auth directory
-RUN mkdir -p auth_info_baileys
+# Create auth directory at runtime (not build time)
+# RUN mkdir -p auth_info_baileys
 
 # Expose port (if needed for health checks or API)
 EXPOSE 3000 3001

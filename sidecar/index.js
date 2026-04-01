@@ -2,6 +2,8 @@ const { default: makeWASocket, useMultiFileAuthState, DisconnectReason } = requi
 const qrcode = require('qrcode-terminal');
 const axios = require('axios');
 const express = require('express');
+const path = require('path');
+const fs = require('fs');
 
 // ============================================================================
 // Configuration
@@ -112,7 +114,8 @@ async function sendGroupsToDjango() {
 // ============================================================================
 
 async function startBot() {
-    const { state, saveCreds } = await useMultiFileAuthState('auth_info_baileys');
+    const authDir = path.join(process.cwd(), 'auth_data');
+    const { state, saveCreds } = await useMultiFileAuthState(authDir);
 
     sock = makeWASocket({
         auth: state,
@@ -400,25 +403,30 @@ app.delete('/api/auth', async (req, res) => {
     // Wait for connections to fully close
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-    const authPath = path.join(process.cwd(), 'auth_info_baileys');
+    // Use auth folder in current working directory (which may be volume mounted)
+    // Store in a subfolder to avoid volume mount issues
+    const authPath = path.join(process.cwd(), 'auth_data');
     
     try {
-        // Try to clear the auth folder
-        if (fs.existsSync(authPath)) {
-            try {
-                // First try to rename
-                const backupPath = path.join(process.cwd(), 'auth_info_baileys_backup_' + Date.now());
-                fs.renameSync(authPath, backupPath);
-                addLog('info', 'Auth folder renamed to backup');
-            } catch (renameErr) {
-                addLog('warn', 'Could not rename auth folder: ' + renameErr.message);
-                // Continue anyway - we'll create a new folder
-            }
-        }
-        
-        // Create fresh auth folder (overwrite if exists)
+        // Ensure auth directory exists
         if (!fs.existsSync(authPath)) {
             fs.mkdirSync(authPath, { recursive: true });
+        } else {
+            // Clear existing auth files
+            const files = fs.readdirSync(authPath);
+            for (const file of files) {
+                const filePath = path.join(authPath, file);
+                try {
+                    if (fs.statSync(filePath).isDirectory()) {
+                        fs.rmSync(filePath, { recursive: true, force: true });
+                    } else {
+                        fs.unlinkSync(filePath);
+                    }
+                } catch (e) {
+                    addLog('warn', 'Could not delete: ' + file);
+                }
+            }
+            addLog('info', 'Auth data cleared');
         }
         addLog('info', 'Auth folder prepared for new login');
         

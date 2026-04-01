@@ -60,7 +60,7 @@ services:
       - DJANGO_API_URL=http://django:8000/shipments/api/ingest/
       - DJANGO_SECRET=${DJANGO_SECRET}
     volumes:
-      - auth_data:/app/sidecar/auth_info_baileys
+      - auth_data:/app/sidecar/auth_data
     ports:
       - "3001:3001"
     depends_on:
