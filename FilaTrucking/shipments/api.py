@@ -17,6 +17,7 @@ from drivers.models import Driver
 from vehicles.models import Vehicle
 
 WHATSAPP_SECRET = getattr(settings, 'WHATSAPP_INGEST_SECRET', 'fila_secret_2026')
+WHATSAPP_SIDECAR_URL = getattr(settings, 'WHATSAPP_SIDECAR_URL', 'http://localhost:3001')
 
 @csrf_exempt
 @require_POST
@@ -359,7 +360,7 @@ def trigger_sync_groups(request):
         import requests
         
         # Get groups from sidecar
-        sidecar_url = "http://localhost:3001/api/groups"
+        sidecar_url = f"{WHATSAPP_SIDECAR_URL}/api/groups"
         response = requests.get(sidecar_url, timeout=10)
         
         if response.status_code == 200:
@@ -404,7 +405,7 @@ def trigger_restart_connection(request):
     try:
         import requests
         
-        sidecar_url = "http://localhost:3001/api/restart"
+        sidecar_url = f"{WHATSAPP_SIDECAR_URL}/api/restart"
         headers = {"Authorization": f"Bearer {WHATSAPP_SECRET}"}
         
         response = requests.post(sidecar_url, headers=headers, timeout=10)
@@ -430,7 +431,7 @@ def trigger_clear_auth(request):
     try:
         import requests
         
-        sidecar_url = "http://localhost:3001/api/auth"
+        sidecar_url = f"{WHATSAPP_SIDECAR_URL}/api/auth"
         headers = {"Authorization": f"Bearer {WHATSAPP_SECRET}"}
         
         response = requests.delete(sidecar_url, headers=headers, timeout=10)
