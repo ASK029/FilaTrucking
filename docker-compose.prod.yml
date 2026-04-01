@@ -32,11 +32,12 @@ services:
     environment:
       - DATABASE_URL=mysql://filatrucking:${MYSQL_PASSWORD}@mysql:3306/filatrucking
       - SECRET_KEY=${SECRET_KEY}
-      - ALLOWED_HOSTS=localhost,127.0.0.1,django,django:8000,host.docker.internal,0.0.0.0
+      - DEBUG=${DEBUG:-False}
       - WHATSAPP_INGEST_SECRET=fila_secret_2026
     volumes:
       - ./FilaTrucking/media:/app/FilaTrucking/media
       - staticfiles:/app/FilaTrucking/staticfiles
+      - ./.env:/app/.env:ro
     ports:
       - "8888:8000"
     depends_on:
