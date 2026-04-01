@@ -34,6 +34,7 @@ services:
       - SECRET_KEY=${SECRET_KEY}
       - DEBUG=${DEBUG:-False}
       - WHATSAPP_INGEST_SECRET=fila_secret_2026
+      - WHATSAPP_SIDECAR_URL=http://sidecar:3001
     volumes:
       - ./FilaTrucking/media:/app/FilaTrucking/media
       - staticfiles:/app/FilaTrucking/staticfiles
