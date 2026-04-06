@@ -19,8 +19,7 @@
         class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-400/10 text-slate-400 border border-slate-400/20">Invoiced</span>
       {% else %}
       <span
-        class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-400/10 text-slate-400 border border-slate-400/20">{{
-        shipment.get_status_display }}</span>
+        class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-400/10 text-slate-400 border border-slate-400/20">{{ shipment.get_status_display }}</span>
       {% endif %}
 
       {% if shipment.is_flagged %}
@@ -72,8 +71,7 @@
 
     <div class="mt-6 pt-6 border-t border-slate-700/50">
       <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-2">Notes</dt>
-      <dd class="text-sm text-slate-300 p-4 bg-slate-800/50 rounded-xl border border-slate-700 whitespace-pre-wrap">{{
-        shipment.notes|default:"No notes added." }}</dd>
+      <dd class="text-sm text-slate-300 p-4 bg-slate-800/50 rounded-xl border border-slate-700 whitespace-pre-wrap">{{ shipment.notes|default:"No notes added." }}</dd>
     </div>
   </div>
 
