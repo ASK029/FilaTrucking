@@ -24,21 +24,33 @@ class VehicleForm(TailwindFormMixin, forms.ModelForm):
     class Meta:
         model = Vehicle
         fields = [
-            'driver', 'registration_number', 'name', 'Manufacturer', 
-            'model', 'year', 'chassis_number', 'engine_number', 
+            'driver', 'registration_number', 'Manufacturer', 
+            'model', 'year', 'chassis_number',
             'average_mpg', 'status', 'ownership_type', 'image'
         ]
 
 
-class IFTAMileageLogForm(TailwindFormMixin, forms.ModelForm):
+class IFTAMilesLogForm(TailwindFormMixin, forms.ModelForm):
     state_code = forms.ChoiceField(
         choices=US_STATES,
         label="State",
+        initial="IL",
     )
 
     class Meta:
         model = IFTAMileage
-        fields = ["vehicle", "state_code", "quarter", "year", "miles"]
+        fields = ["vehicle", "state_code", "month", "year", "miles"]
+
+class IFTAGallonsLogForm(TailwindFormMixin, forms.ModelForm):
+    state_code = forms.ChoiceField(
+        choices=US_STATES,
+        label="State",
+        initial="IL",
+    )
+
+    class Meta:
+        model = IFTAMileage
+        fields = ["vehicle", "state_code", "month", "year", "gallons"]
 
 
 class MaintenanceForm(TailwindFormMixin, forms.ModelForm):
@@ -53,6 +65,7 @@ class MaintenanceForm(TailwindFormMixin, forms.ModelForm):
             "mileage_at_service",
             "next_service_mileage",
             "next_service_due",
+            "gomotive_alert_id",
         ]
         widgets = {
             "next_service_due": forms.DateInput(attrs={"type": "date"}),

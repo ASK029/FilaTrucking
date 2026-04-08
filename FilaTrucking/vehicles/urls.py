@@ -17,7 +17,8 @@ urlpatterns = [
     path("<int:pk>/sync/", views.sync_vehicle_gomotive, name="sync_vehicle"),
     path("gomotive/", views.gomotive_vehicles_view, name="gomotive_vehicles"),
     # IFTA
-    path("ifta/log/", views.IFTALogCreateView.as_view(), name="ifta_log_create"),
+    path("ifta/log/miles/", views.IFTAMilesCreateView.as_view(), name="ifta_log_miles_create"),
+    path("ifta/log/gallons/", views.IFTAGallonsCreateView.as_view(), name="ifta_log_gallons_create"),
     path("ifta/logs/", views.IFTALogListView.as_view(), name="ifta_log_list"),
     path("ifta/report/", views.ifta_report, name="ifta_report"),
     # Maintenance

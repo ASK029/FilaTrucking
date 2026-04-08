@@ -58,14 +58,16 @@
         {% for vehicle in vehicles %}
         <tr class="hover:bg-slate-800/30 transition-colors">
           <td class="px-6 py-4">
-            <div class="font-medium text-slate-100">{{ vehicle.name }}</div>
-            <div class="text-xs text-slate-500 mt-0.5">{{ vehicle.year }} {{ vehicle.Manufacturer }} {{ vehicle.model }}
+            <div class="font-medium text-slate-100">{{ vehicle.chassis_number }}</div>
+            <div class="text-xs text-slate-500 mt-0.5">{{ vehicle.year|default:"" }} {{ vehicle.Manufacturer|default:""
+              }} {{ vehicle.model|default:"" }}
             </div>
           </td>
           <td class="px-6 py-4 text-slate-400">{{ vehicle.registration_number }}</td>
           <td class="px-6 py-4 text-slate-300">
             {% if vehicle.driver %}
-            <a href="{% url 'driver_detail' vehicle.driver.pk %}" class="hover:text-brand-light transition">{{ vehicle.driver.name }}</a>
+            <a href="{% url 'driver_detail' vehicle.driver.pk %}" class="hover:text-brand-light transition">{{
+              vehicle.driver.name }}</a>
             {% else %}
             <span class="text-slate-500 italic">Unassigned</span>
             {% endif %}

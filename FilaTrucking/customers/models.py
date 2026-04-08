@@ -1,14 +1,15 @@
 from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
+from django.core.exceptions import ValidationError
 
 
 class Customer(models.Model):
     name = models.CharField(max_length=100, verbose_name="Customer Name")
     abbreviation = models.CharField(max_length=20, verbose_name="Abbreviation / Short Name")
     phone_number = PhoneNumberField(region="US")
-    street = models.CharField(max_length=100)
-    address1 = models.CharField(max_length=100, blank=True)
-    address2 = models.CharField(max_length=100, blank=True)
+    address = models.CharField(max_length=100, default="")
+    city_state = models.CharField(max_length=100, blank=True, default="", verbose_name="City & State")
+    country = models.CharField(max_length=100, blank=True, default="United States")
     email = models.EmailField(verbose_name="Customer Email")
     notes = models.TextField(blank=True, verbose_name="Notes")
     default_rate = models.DecimalField(
@@ -25,3 +26,8 @@ class Customer(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+    def delete(self, *args, **kwargs):
+        if self.shipment_set.exists() or self.invoices.exists():
+            raise ValidationError("Cannot delete a customer that has shipments or invoices.")
+        return super().delete(*args, **kwargs)

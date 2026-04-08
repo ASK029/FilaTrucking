@@ -2,9 +2,8 @@
 
 {% block content %}
 <div class="flex items-center justify-between mb-6">
-  <h1 class="text-2xl font-bold tracking-tight">Add IFTA Mileage Entry</h1>
-  <a href="{% url 'ifta_log_list' %}"
-     class="text-sm text-muted hover:text-slate-200 transition-colors">
+  <h1 class="text-2xl font-bold tracking-tight">Add {{ log_type|default:"IFTA" }} Entry</h1>
+  <a href="{% url 'ifta_log_list' %}" class="text-sm text-muted hover:text-slate-200 transition-colors">
     Back to list
   </a>
 </div>
@@ -14,26 +13,26 @@
     {% csrf_token %}
     {{ form.non_field_errors }}
     {% for field in form %}
-      <div>
-        <label class="block text-sm text-muted mb-1" for="{{ field.id_for_label }}">
-          {{ field.label }}
-        </label>
-        {{ field }}
-        {% if field.help_text %}
-          <p class="mt-1 text-xs text-slate-500">{{ field.help_text }}</p>
-        {% endif %}
-        {% for error in field.errors %}
-          <p class="mt-1 text-xs text-red-400">{{ error }}</p>
-        {% endfor %}
-      </div>
+    <div>
+      <label class="block text-sm text-muted mb-1" for="{{ field.id_for_label }}">
+        {{ field.label }}
+      </label>
+      {{ field }}
+      {% if field.help_text %}
+      <p class="mt-1 text-xs text-slate-500">{{ field.help_text }}</p>
+      {% endif %}
+      {% for error in field.errors %}
+      <p class="mt-1 text-xs text-red-400">{{ error }}</p>
+      {% endfor %}
+    </div>
     {% endfor %}
 
     <div class="pt-2 flex items-center justify-between">
       <a href="{% url 'ifta_report' %}" class="text-xs text-muted hover:text-slate-200">
-        View Quarterly Report
+        View Monthly Report
       </a>
       <button type="submit"
-              class="bg-accent hover:bg-accent-dark text-surface font-semibold px-4 py-2 rounded-xl min-w-[120px] min-h-[44px] transition-colors">
+        class="bg-accent hover:bg-accent-dark text-surface font-semibold px-4 py-2 rounded-xl min-w-[120px] min-h-[44px] transition-colors">
         Save Entry
       </button>
     </div>

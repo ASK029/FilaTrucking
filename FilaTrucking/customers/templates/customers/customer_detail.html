@@ -7,8 +7,6 @@
   <div>
     <div class="flex items-center gap-3">
       <h1 class="text-2xl font-bold text-slate-100">{{ customer.name }}</h1>
-      <span
-        class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-emerald-400/10 text-emerald-400 border border-emerald-400/20">Active</span>
     </div>
     <p class="text-sm text-slate-400 mt-1">Abbreviation: {{ customer.abbreviation }}</p>
   </div>
@@ -46,7 +44,10 @@
       </div>
       <div>
         <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Physical Address</dt>
-        <dd class="text-base text-slate-200 whitespace-pre-wrap">{{ customer.address }}</dd>
+        <dd class="text-base text-slate-200">{{ customer.address }}<br>
+          {% if customer.city_state %}{{ customer.city_state }}<br>{% endif %}
+          {{ customer.country }}
+        </dd>
       </div>
     </dl>
   </div>
@@ -64,7 +65,7 @@
 
     <dl class="space-y-4">
       <div>
-        <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Default Rate (per mile)</dt>
+        <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Default Rate</dt>
         <dd class="text-base text-slate-200">{% if customer.default_rate %}${{ customer.default_rate }}{% else %}<span
             class="text-slate-500">Not set</span>{% endif %}</dd>
       </div>

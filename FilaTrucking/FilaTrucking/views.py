@@ -12,6 +12,10 @@ from celery.schedules import crontab
 
 from shipments.models import Expense, ExpenseCategory, Invoice, InvoiceStatus, Shipment, ShipmentStatus
 from vehicles.models import Maintenance, Vehicle
+from shipments.tasks import generate_monthly_statement
+from vehicles.tasks import sync_gomotive_data
+from django.shortcuts import redirect
+from django.contrib import messages
 
 
 def format_crontab(schedule):
@@ -133,6 +137,22 @@ def dashboard(request):
         "schedule_rows": schedule_rows,
     }
     return render(request, "dashboard.html", context)
+
+
+@login_required
+def test_report(request):
+    """Trigger the monthly report task manually."""
+    generate_monthly_statement.delay()
+    messages.success(request, "Monthly statement generation triggered.")
+    return redirect('dashboard')
+
+
+@login_required
+def test_sync_schedule(request):
+    """Trigger the GoMotive sync task manually."""
+    sync_gomotive_data.delay()
+    messages.success(request, "GoMotive sync triggered.")
+    return redirect('dashboard')
 
 
 # ── CSV-style category labels used in notes field during import ──

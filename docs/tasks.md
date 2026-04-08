@@ -59,10 +59,81 @@
 - [X] Trigger dashboard alerts when a GoMotive or manual vehicle is within 500 miles of next service.
 
 ## Milestone 7: Data Migration & Final Polish
-- [ ] Create management command to migrate `2025_STATMENTS_-_JAN.csv` (Expenses + Deposits).
-- [ ] Create management command to migrate `IFTA2025_2ND.xlsx` (IFTA historical records).
-- [ ] Conduct end-to-end testing of the complete dispatcher workflow (WhatsApp message → confirmed shipment → invoice PDF sent).
-- [ ] UI audit: verify every page passes full mobile access (390px wide screen check).
-- [ ] UI audit: verify empty states exist on every list view.
-- [ ] UI audit: verify all status badges strictly use their correct predefined pill classes.
-- [ ] UI audit: verify all clickable targets are ≥ 44×44 px.
+- [X] Create management command to migrate `2025_STATMENTS_-_JAN.csv` (Expenses + Deposits).
+- [X] Create management command to migrate `IFTA2025_2ND.xlsx` (IFTA historical records).
+- [X] Conduct end-to-end testing of the complete dispatcher workflow (WhatsApp message → confirmed shipment → invoice PDF sent).
+- [X] UI audit: verify every page passes full mobile access (390px wide screen check).
+- [X] UI audit: verify empty states exist on every list view.
+- [X] UI audit: verify all status badges strictly use their correct predefined pill classes.
+- [X] UI audit: verify all clickable targets are ≥ 44×44 px.
+
+## Milestone 8: Module Refinements & Workflow Improvements
+
+### Dashboard
+- [X] Add manual "Test Report" button to trigger report generation on demand.
+- [X] Add manual "Sync Schedule" button to trigger GoMotive/schedule sync on demand.
+
+### Customers
+- [X] Rename `street` field to `address` in model, forms, and templates.
+- [X] Rename `address_1` field to `city_state` (City & State) in model, forms, and templates.
+- [X] Replace `address_2` field with `country` field, default value `United States`, and remove it from the form (auto-populated).
+- [X] Remove the "Delete" button from the Customer detail/form view.
+- [X] Add validation to prevent deleting a Customer that has child records (shipments, invoices, etc.).
+- [X] Remove the `status` column from the Customer list view.
+- [X] Remove `/ mile` display from the default rate field in the Customer list/detail views.
+- [X] Fix Customer list search functionality (not returning results).
+- [ ] Fix Customer list filter functionality (filters not applying correctly).
+
+### Drivers
+- [X] Add `joined` (date joined) field to the Driver model.
+- [X] Display `joined` date in the Driver list view.
+- [X] Add `joined` date input to the Driver create/edit form.
+- [X] Make `license_expiry` field not required in the Driver model and form.
+
+### Vehicles
+- [X] Make `driver` field not required in the Vehicle model and form.
+- [X] Make `manufacturer` field not required in the Vehicle model and form.
+- [X] Make `model_year` field not required in the Vehicle model and form.
+- [X] Make `vehicle_image` field not required and add a placeholder image when empty.
+- [X] Remove `engine_number` field from the Vehicle model, form, and templates.
+- [X] Remove `name` field from the Vehicle model, form, and templates.
+- [X] Use VIN (Chassis Number) as the primary vehicle identifier across all views and references.
+
+### IFTA
+- [X] Move IFTA module under the "Reports" navigation option (sub-menu or nested route).
+- [X] Set default state to `Illinois` in the IFTA entry form.
+- [X] Change IFTA reporting granularity from quarterly to monthly.
+- [X] Create a separate form for entering miles driven per state/vehicle/month.
+- [X] Create a separate form for entering gallons consumed per state/vehicle/month.
+- [X] Display Vehicle VIN (instead of name/plate) as the vehicle identifier in IFTA reports.
+- [ ] Remove `tax_owed` field/column from IFTA reports and calculations.
+
+### Maintenance
+- [ ] Make `mileage_at_service` field not required in the Maintenance model and form.
+- [ ] Make `next_service_mileage` field not required in the Maintenance model and form.
+- [ ] Make `next_service_due` field not required in the Maintenance model and form.
+
+### Shipments
+- [ ] Make `vehicle` field not required in the Shipment model and form.
+- [ ] Make `driver` field not required in the Shipment model and form.
+- [ ] Make `rate` field not required; auto-populate from Customer's default rate when available.
+
+### Invoices
+- [ ] Auto-populate invoice line items from shipments matching the selected date range (from/to).
+- [ ] Pre-fill invoice line item fields from corresponding shipment data.
+- [ ] Allow removing individual line items that are not needed before saving.
+- [ ] Add a separate "Change Status" action (independent from the edit form).
+- [ ] Add `paid_at` date field to the Invoice model; display in reports when set.
+- [ ] **PDF Redesign:** Make each invoice field a separate column in the table.
+- [ ] **PDF Redesign:** Reorder columns to: Date, Booking, Container, Seal, Location, Description, Amount.
+- [ ] **PDF Redesign:** Remove tax row/column from the invoice PDF.
+- [ ] **PDF Redesign:** Add customer info block (address, phone number, email) to the PDF header.
+- [ ] **PDF Redesign:** Remove notes section from the PDF.
+- [ ] **PDF Redesign:** Adjust layout to fill the full page width.
+
+### Expenses
+- [ ] Fix expense reports to correctly assign categories (not only "Driver Pay").
+- [ ] Update expense categories to: IRP, PARKING, Maintenance, TRUCK, CHECK CHARGE, INSURANCE, TOLL, FUEL, OTHER, CHASSIS.
+
+### Reports
+- [ ] Build an in-app UI for migrating/importing data from external CSV files (user-facing, not management command).

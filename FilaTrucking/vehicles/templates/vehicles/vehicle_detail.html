@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}Vehicle: {{ vehicle.name }} — FilaTrucking{% endblock %}
+{% block title %}Vehicle: {{ vehicle.chassis_number }} — FilaTrucking{% endblock %}
 
 {% block content %}
 <div class="mb-6 flex justify-between items-start">
   <div>
     <div class="flex items-center gap-3">
-      <h1 class="text-2xl font-bold text-slate-100">{{ vehicle.name }}</h1>
+      <h1 class="text-2xl font-bold text-slate-100">{{ vehicle.chassis_number }}</h1>
       {% if vehicle.status == 'active' %}
       <span
         class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-emerald-400/10 text-emerald-400 border border-emerald-400/20">Active</span>
@@ -54,10 +54,6 @@
         <dd class="text-base text-slate-200 font-mono">{{ vehicle.chassis_number|default:"-" }}</dd>
       </div>
       <div>
-        <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Engine Number</dt>
-        <dd class="text-base text-slate-200 font-mono">{{ vehicle.engine_number|default:"-" }}</dd>
-      </div>
-      <div>
         <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Ownership</dt>
         <dd class="text-base text-slate-200">{{ vehicle.get_ownership_type_display }}</dd>
       </div>
@@ -65,7 +61,8 @@
         <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Assigned Driver</dt>
         <dd class="text-base text-slate-200">
           {% if vehicle.driver %}
-          <a href="{% url 'driver_detail' vehicle.driver.pk %}" class="text-brand-light hover:underline">{{ vehicle.driver.name }}</a>
+          <a href="{% url 'driver_detail' vehicle.driver.pk %}" class="text-brand-light hover:underline">{{
+            vehicle.driver.name }}</a>
           {% else %}
           <span class="text-slate-500 italic">Unassigned</span>
           {% endif %}
@@ -80,7 +77,8 @@
 
   <!-- Image / GoMotive Sync Card -->
   <div class="bg-surface border border-slate-700/50 rounded-2xl p-6 shadow-xl shadow-black/20">
-    <h2 class="text-lg font-bold text-slate-200 border-b border-slate-700/50 pb-3 mb-4 flex items-center justify-between">
+    <h2
+      class="text-lg font-bold text-slate-200 border-b border-slate-700/50 pb-3 mb-4 flex items-center justify-between">
       <span class="flex items-center gap-2">
         <svg class="w-5 h-5 text-brand-light" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round"
@@ -93,7 +91,8 @@
       {% if vehicle.gomotive_id %}
       <form action="{% url 'sync_vehicle' vehicle.pk %}" method="post" class="inline">
         {% csrf_token %}
-        <button type="submit" class="text-xs bg-slate-800 hover:bg-slate-700 text-brand-light font-medium py-1 px-3 rounded border border-brand-light/20 transition-colors">
+        <button type="submit"
+          class="text-xs bg-slate-800 hover:bg-slate-700 text-brand-light font-medium py-1 px-3 rounded border border-brand-light/20 transition-colors">
           Sync GoMotive
         </button>
       </form>
@@ -101,8 +100,22 @@
     </h2>
 
     {% if vehicle.image %}
-    <div class="mb-4 rounded-xl overflow-hidden border border-slate-700">
-      <img src="{{ vehicle.image.url }}" alt="{{ vehicle.name }}" class="w-full h-auto object-cover">
+    <div class="mb-4 rounded-xl overflow-hidden border border-slate-700 bg-slate-800">
+      <img src="{{ vehicle.image.url }}" alt="{{ vehicle.chassis_number }}" class="w-full h-auto object-cover">
+    </div>
+    {% else %}
+    <div
+      class="mb-4 rounded-xl overflow-hidden border border-slate-700 bg-slate-800 h-48 flex items-center justify-center">
+      <div class="flex flex-col items-center justify-center text-slate-500 opacity-50">
+        <svg class="w-12 h-12 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path
+            d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.08 3.11H5.77L6.85 7zM19 17H5v-5h14v5z">
+          </path>
+          <circle cx="7.5" cy="14.5" r="1.5"></circle>
+          <circle cx="16.5" cy="14.5" r="1.5"></circle>
+        </svg>
+        <p class="text-sm font-medium">No Image Available</p>
+      </div>
     </div>
     {% endif %}
 
@@ -131,22 +144,23 @@
     <div class="bg-surface border border-slate-700/50 rounded-2xl p-6 shadow-xl shadow-black/20">
       <h3 class="text-lg font-bold text-slate-200 border-b border-slate-700/50 pb-3 mb-4">Recent Maintenance</h3>
       {% if maintenance_logs %}
-        <div class="space-y-3">
-          {% for log in maintenance_logs %}
-          <div class="flex items-center justify-between p-3 bg-surface-card rounded-xl border border-slate-700/50 text-sm">
-            <div>
-              <p class="font-medium text-slate-200">{{ log.type }}</p>
-              <p class="text-xs text-muted">{{ log.date|date:"Y-m-d" }} &bull; {{ log.service_provider }}</p>
-            </div>
-            <div class="text-right">
-              <p class="font-mono text-slate-200">${{ log.cost }}</p>
-              <p class="text-xs text-muted font-mono">{{ log.mileage_at_service }} mi</p>
-            </div>
+      <div class="space-y-3">
+        {% for log in maintenance_logs %}
+        <div
+          class="flex items-center justify-between p-3 bg-surface-card rounded-xl border border-slate-700/50 text-sm">
+          <div>
+            <p class="font-medium text-slate-200">{{ log.type }}</p>
+            <p class="text-xs text-muted">{{ log.date|date:"Y-m-d" }} &bull; {{ log.service_provider }}</p>
           </div>
-          {% endfor %}
+          <div class="text-right">
+            <p class="font-mono text-slate-200">${{ log.cost }}</p>
+            <p class="text-xs text-muted font-mono">{{ log.mileage_at_service }} mi</p>
+          </div>
         </div>
+        {% endfor %}
+      </div>
       {% else %}
-        <p class="text-sm text-muted text-center py-6">No maintenance records found.</p>
+      <p class="text-sm text-muted text-center py-6">No maintenance records found.</p>
       {% endif %}
     </div>
 
@@ -154,22 +168,23 @@
     <div class="bg-surface border border-slate-700/50 rounded-2xl p-6 shadow-xl shadow-black/20">
       <h3 class="text-lg font-bold text-slate-200 border-b border-slate-700/50 pb-3 mb-4">Recent IFTA Entries</h3>
       {% if ifta_logs %}
-        <div class="space-y-3">
-          {% for log in ifta_logs %}
-          <div class="flex items-center justify-between p-3 bg-surface-card rounded-xl border border-slate-700/50 text-sm">
-            <div>
-              <p class="font-medium text-slate-200">{{ log.state_code }}</p>
-              <p class="text-xs text-muted">Q{{ log.quarter }} {{ log.year }}</p>
-            </div>
-            <div class="text-right">
-              <p class="font-mono text-slate-200">{{ log.miles }} mi</p>
-              <p class="text-xs text-muted">{{ log.calculated_gallons|default:"-" }} gal</p>
-            </div>
+      <div class="space-y-3">
+        {% for log in ifta_logs %}
+        <div
+          class="flex items-center justify-between p-3 bg-surface-card rounded-xl border border-slate-700/50 text-sm">
+          <div>
+            <p class="font-medium text-slate-200">{{ log.state_code }}</p>
+            <p class="text-xs text-muted">Q{{ log.quarter }} {{ log.year }}</p>
           </div>
-          {% endfor %}
+          <div class="text-right">
+            <p class="font-mono text-slate-200">{{ log.miles }} mi</p>
+            <p class="text-xs text-muted">{{ log.calculated_gallons|default:"-" }} gal</p>
+          </div>
         </div>
+        {% endfor %}
+      </div>
       {% else %}
-        <p class="text-sm text-muted text-center py-6">No IFTA entries found.</p>
+      <p class="text-sm text-muted text-center py-6">No IFTA entries found.</p>
       {% endif %}
     </div>
   </div>

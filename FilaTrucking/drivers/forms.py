@@ -13,10 +13,12 @@ class DriverForm(TailwindFormMixin, forms.ModelForm):
             'phone_number',
             'license_number',
             'license_expiry',
+            'joined',
             'status',
         ]
         widgets = {
             'license_expiry': forms.DateInput(attrs={'type': 'date'}),
+            'joined': forms.DateInput(attrs={'type': 'date'}),
         }
 
 

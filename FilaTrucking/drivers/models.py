@@ -12,7 +12,7 @@ class Driver(models.Model):
     phone_number = PhoneNumberField(region="US")
     license_number = models.CharField(max_length=20, unique=True)
     license_expiry = models.DateField(null=True, blank=True)
-    joined_at = models.DateField(auto_now_add=True)
+    joined = models.DateField(null=True, blank=True, verbose_name="Date Joined")
     status = models.CharField(
         max_length=10,
         choices=DriverStatus,

@@ -2,9 +2,8 @@
 
 {% block content %}
 <div class="flex items-center justify-between mb-6">
-  <h1 class="text-2xl font-bold tracking-tight">IFTA Quarterly Report</h1>
-  <a href="{% url 'ifta_log_list' %}"
-     class="text-sm text-muted hover:text-slate-200 transition-colors">
+  <h1 class="text-2xl font-bold tracking-tight">IFTA Monthly Report</h1>
+  <a href="{% url 'ifta_log_list' %}" class="text-sm text-muted hover:text-slate-200 transition-colors">
     View Mileage Entries
   </a>
 </div>
@@ -13,88 +12,96 @@
   <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
     <div>
       <label class="block text-sm text-muted mb-1" for="id_year">Year</label>
-      <input id="id_year" type="number" name="year" value="{{ year }}"
-             min="2020" max="2035"
-             class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-slate-100
+      <input id="id_year" type="number" name="year" value="{{ year }}" min="2020" max="2035" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-slate-100
                     focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent">
     </div>
     <div>
-      <label class="block text-sm text-muted mb-1" for="id_quarter">Quarter</label>
-      <select id="id_quarter" name="quarter"
-              class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-slate-100
+      <label class="block text-sm text-muted mb-1" for="id_month">Month</label>
+      <select id="id_month" name="month" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-slate-100
                      focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent">
-        <option value="">Select quarter</option>
-        <option value="1" {% if quarter == "1" %}selected{% endif %}>Q1 (Jan–Mar)</option>
-        <option value="2" {% if quarter == "2" %}selected{% endif %}>Q2 (Apr–Jun)</option>
-        <option value="3" {% if quarter == "3" %}selected{% endif %}>Q3 (Jul–Sep)</option>
-        <option value="4" {% if quarter == "4" %}selected{% endif %}>Q4 (Oct–Dec)</option>
+        <option value="">Select month</option>
+        <option value="1" {% if month=="1" %}selected{% endif %}>January</option>
+        <option value="2" {% if month=="2" %}selected{% endif %}>February</option>
+        <option value="3" {% if month=="3" %}selected{% endif %}>March</option>
+        <option value="4" {% if month=="4" %}selected{% endif %}>April</option>
+        <option value="5" {% if month=="5" %}selected{% endif %}>May</option>
+        <option value="6" {% if month=="6" %}selected{% endif %}>June</option>
+        <option value="7" {% if month=="7" %}selected{% endif %}>July</option>
+        <option value="8" {% if month=="8" %}selected{% endif %}>August</option>
+        <option value="9" {% if month=="9" %}selected{% endif %}>September</option>
+        <option value="10" {% if month=="10" %}selected{% endif %}>October</option>
+        <option value="11" {% if month=="11" %}selected{% endif %}>November</option>
+        <option value="12" {% if month=="12" %}selected{% endif %}>December</option>
       </select>
     </div>
     <div class="md:col-span-2 flex gap-3">
       <button type="submit"
-              class="bg-accent hover:bg-accent-dark text-surface font-semibold px-4 py-2 rounded-xl min-h-[44px] transition-colors">
+        class="bg-accent hover:bg-accent-dark text-surface font-semibold px-4 py-2 rounded-xl min-h-[44px] transition-colors">
         Run Report
       </button>
-      <a href="{% url 'ifta_log_create' %}"
-         class="inline-flex items-center justify-center px-4 py-2 rounded-xl border border-slate-600 text-sm text-slate-200 min-h-[44px]">
-        Add Mileage Entry
+      <a href="{% url 'ifta_log_miles_create' %}"
+        class="inline-flex items-center justify-center px-4 py-2 rounded-xl border border-slate-600 text-sm text-slate-200 min-h-[44px]">
+        Add Miles
+      </a>
+      <a href="{% url 'ifta_log_gallons_create' %}"
+        class="inline-flex items-center justify-center px-4 py-2 rounded-xl border border-slate-600 text-sm text-slate-200 min-h-[44px]">
+        Add Gallons
       </a>
     </div>
   </form>
 </div>
 
 {% if summary %}
-  <div class="mb-4">
-    <p class="text-sm text-muted">
-      Showing IFTA totals for <span class="font-semibold text-slate-100">{{ quarter_label }} {{ year }}</span>.
-    </p>
-  </div>
+<div class="mb-4">
+  <p class="text-sm text-muted">
+    Showing IFTA totals for <span class="font-semibold text-slate-100">{{ month_label }} {{ year }}</span>.
+  </p>
+</div>
 
-  <div class="bg-surface-card rounded-2xl p-4 shadow-lg border border-slate-700/50">
-    <div class="overflow-x-auto">
-      <table class="min-w-full text-sm">
-        <thead>
-          <tr class="text-left text-xs uppercase tracking-wider text-muted border-b border-slate-700/60">
-            <th class="py-2 pr-4">Vehicle</th>
-            <th class="py-2 pr-4">State</th>
-            <th class="py-2 pr-4 text-right">Total Miles</th>
-            <th class="py-2 pr-4 text-right">Total Gallons</th>
-            <th class="py-2 pr-4 text-right">Rate ($/gal)</th>
-            <th class="py-2 pr-4 text-right">Tax Owed ($)</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for row in summary %}
-          <tr class="odd:bg-surface even:bg-surface-card border-b border-slate-800/60">
-            <td class="py-2 pr-4 whitespace-nowrap sticky left-0 bg-surface-card">
-              {{ row.vehicle__name }}
-            </td>
-            <td class="py-2 pr-4">{{ row.state_code }}</td>
-            <td class="py-2 pr-4 text-right font-mono">{{ row.total_miles }}</td>
-            <td class="py-2 pr-4 text-right font-mono">
-              {{ row.total_gallons|default:"—" }}
-            </td>
-            <td class="py-2 pr-4 text-right font-mono">
-              {% if row.rate %}{{ row.rate }}{% else %}—{% endif %}
-            </td>
-            <td class="py-2 pr-4 text-right font-mono">
-              {% if row.tax_owed %}{{ row.tax_owed }}{% else %}—{% endif %}
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+<div class="bg-surface-card rounded-2xl p-4 shadow-lg border border-slate-700/50">
+  <div class="overflow-x-auto">
+    <table class="min-w-full text-sm">
+      <thead>
+        <tr class="text-left text-xs uppercase tracking-wider text-muted border-b border-slate-700/60">
+          <th class="py-2 pr-4">Vehicle</th>
+          <th class="py-2 pr-4">State</th>
+          <th class="py-2 pr-4 text-right">Total Miles</th>
+          <th class="py-2 pr-4 text-right">Total Gallons</th>
+          <th class="py-2 pr-4 text-right">Rate ($/gal)</th>
+          <th class="py-2 pr-4 text-right">Tax Owed ($)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in summary %}
+        <tr class="odd:bg-surface even:bg-surface-card border-b border-slate-800/60">
+          <td class="py-2 pr-4 whitespace-nowrap sticky left-0 bg-surface-card">
+            {{ row.vehicle__chassis_number }}
+          </td>
+          <td class="py-2 pr-4">{{ row.state_code }}</td>
+          <td class="py-2 pr-4 text-right font-mono">{{ row.total_miles|default:"—" }}</td>
+          <td class="py-2 pr-4 text-right font-mono">
+            {{ row.total_gallons|default:"—" }}
+          </td>
+          <td class="py-2 pr-4 text-right font-mono">
+            {% if row.rate %}{{ row.rate }}{% else %}—{% endif %}
+          </td>
+          <td class="py-2 pr-4 text-right font-mono">
+            {% if row.tax_owed %}{{ row.tax_owed }}{% else %}—{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
-{% elif year and quarter %}
-  <div class="text-center py-16 text-muted">
-    <svg class="mx-auto h-10 w-10 text-slate-600" xmlns="http://www.w3.org/2000/svg" fill="none"
-         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-      <path stroke-linecap="round" stroke-linejoin="round"
-            d="M9 17v-2m3 2v-4m3 4v-6M3 3v18h18" />
-    </svg>
-    <p class="mt-3 font-medium">No data for this period</p>
-    <p class="text-sm mt-1">Adjust the year/quarter or add mileage entries first.</p>
-  </div>
+</div>
+{% elif year and month %}
+<div class="text-center py-16 text-muted">
+  <svg class="mx-auto h-10 w-10 text-slate-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+    stroke="currentColor" stroke-width="2">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6M3 3v18h18" />
+  </svg>
+  <p class="mt-3 font-medium">No data for this period</p>
+  <p class="text-sm mt-1">Adjust the year/month or add entries first.</p>
+</div>
 {% endif %}
 {% endblock %}

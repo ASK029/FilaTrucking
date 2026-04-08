@@ -16,16 +16,14 @@ class Ownership(models.TextChoices):
 # Create your models here.
 class Vehicle(models.Model):
     # Assigned Driver
-    driver = models.ForeignKey(Driver, on_delete=models.CASCADE, verbose_name='Driver')
+    driver = models.ForeignKey(Driver, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Driver')
     assigned_at = models.DateField(auto_now_add=True, verbose_name="Assigned At")
     # Vehicle Specification
     registration_number = models.CharField(max_length=20)
-    name = models.CharField(max_length=30)
-    Manufacturer = models.CharField(max_length=20)
+    Manufacturer = models.CharField(max_length=20, null=True, blank=True)
     model = models.CharField(max_length=30)
-    year = models.IntegerField(verbose_name="Year")
-    chassis_number = models.CharField(max_length=30)
-    engine_number = models.CharField(max_length=30)
+    year = models.IntegerField(verbose_name="Year", null=True, blank=True)
+    chassis_number = models.CharField(max_length=30, verbose_name="VIN (Chassis Number)")
     average_mpg = models.DecimalField(
         max_digits=6, decimal_places=2, null=True, blank=True,
         verbose_name="Average MPG (for IFTA)"
@@ -48,17 +46,28 @@ class Vehicle(models.Model):
     # Ownership
     ownership_type = models.CharField(max_length=2, choices=Ownership, default=Ownership.CompanyOwned)
     # Image
-    image = models.ImageField(upload_to='vehicle_images/', verbose_name="Vehicle Image")
+    image = models.ImageField(upload_to='vehicle_images/', verbose_name="Vehicle Image", null=True, blank=True)
+
+    def __str__(self) -> str:
+        return self.chassis_number
 
 
 class IFTAMileage(models.Model):
     """Quarterly mileage per state for IFTA reporting."""
 
-    QUARTER_CHOICES = (
-        (1, "Q1 (Jan–Mar)"),
-        (2, "Q2 (Apr–Jun)"),
-        (3, "Q3 (Jul–Sep)"),
-        (4, "Q4 (Oct–Dec)"),
+    MONTH_CHOICES = (
+        (1, "January"),
+        (2, "February"),
+        (3, "March"),
+        (4, "April"),
+        (5, "May"),
+        (6, "June"),
+        (7, "July"),
+        (8, "August"),
+        (9, "September"),
+        (10, "October"),
+        (11, "November"),
+        (12, "December"),
     )
 
     vehicle = models.ForeignKey(
@@ -67,35 +76,32 @@ class IFTAMileage(models.Model):
         verbose_name="Vehicle",
         related_name="ifta_mileage_entries",
     )
-    state_code = models.CharField(max_length=2, verbose_name="State")
-    quarter = models.IntegerField(choices=QUARTER_CHOICES, verbose_name="Quarter")
+    state_code = models.CharField(max_length=2, verbose_name="State", default="IL")
+    month = models.IntegerField(choices=MONTH_CHOICES, verbose_name="Month", default=1)
     year = models.IntegerField(verbose_name="Year")
     miles = models.DecimalField(
         max_digits=12,
         decimal_places=2,
+        null=True,
+        blank=True,
         verbose_name="Miles Driven",
     )
-    calculated_gallons = models.DecimalField(
+    gallons = models.DecimalField(
         max_digits=12,
         decimal_places=2,
         null=True,
         blank=True,
-        verbose_name="Computed Gallons (from MPG)",
+        verbose_name="Gallons Consumed",
     )
 
     class Meta:
-        verbose_name = "IFTA Mileage Entry"
-        verbose_name_plural = "IFTA Mileage Entries"
-        ordering = ["-year", "-quarter", "state_code"]
-        unique_together = [["vehicle", "state_code", "quarter", "year"]]
-
-    def save(self, *args, **kwargs):
-        if self.vehicle.average_mpg and self.vehicle.average_mpg > 0:
-            self.calculated_gallons = self.miles / self.vehicle.average_mpg
-        super().save(*args, **kwargs)
+        verbose_name = "IFTA Entry"
+        verbose_name_plural = "IFTA Entries"
+        ordering = ["-year", "-month", "state_code"]
+        unique_together = [["vehicle", "state_code", "month", "year"]]
 
     def __str__(self) -> str:
-        return f"{self.vehicle.name} – Q{self.quarter} {self.year} – {self.state_code}"
+        return f"{self.vehicle.chassis_number} – {self.get_month_display()} {self.year} – {self.state_code}"
 
 
 class Maintenance(models.Model):
@@ -118,5 +124,21 @@ class Maintenance(models.Model):
     next_service_due = models.DateField(null=True, verbose_name="Next Service Due")
     # GoMotive sync metadata
     gomotive_alert_id = models.CharField(max_length=64, null=True, blank=True, unique=True, verbose_name="GoMotive Alert ID")
+
+    @property
+    def status_group(self):
+        from datetime import date
+        if self.next_service_due:
+            days_left = (self.next_service_due - date.today()).days
+            if days_left < 0: return ("1_OVERDUE", "Overdue")
+            if days_left <= 7: return ("2_SOON", "Due Soon")
+            if days_left <= 30: return ("3_NEXT_30_DAYS", "Next 30 Days")
+            return ("4_SAFE", "Safe")
+        if self.next_service_mileage and self.vehicle.current_odometer:
+            miles_left = self.next_service_mileage - self.vehicle.current_odometer
+            if miles_left < 0: return ("1_OVERDUE", "Overdue")
+            if miles_left <= 500: return ("2_SOON", "Due Soon")
+            if miles_left <= 2000: return ("3_NEXT_30_DAYS", "Next 30 Days")
+        return ("4_SAFE", "Safe")
 
 

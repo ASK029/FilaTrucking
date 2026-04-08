@@ -1,8 +1,8 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Q
 from django.urls import reverse_lazy
 from django.views.generic import (
     CreateView,
-    DeleteView,
     DetailView,
     ListView,
     UpdateView,
@@ -16,6 +16,17 @@ class CustomerListView(LoginRequiredMixin, ListView):
     model = Customer
     template_name = "customers/customer_list.html"
     context_object_name = "customers"
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        query = self.request.GET.get("q")
+        if query:
+            qs = qs.filter(
+                Q(name__icontains=query) |
+                Q(abbreviation__icontains=query) |
+                Q(email__icontains=query)
+            )
+        return qs
 
 
 class CustomerDetailView(LoginRequiredMixin, DetailView):
@@ -37,8 +48,3 @@ class CustomerUpdateView(LoginRequiredMixin, UpdateView):
     form_class = CustomerForm
     success_url = reverse_lazy("customer_list")
 
-
-class CustomerDeleteView(LoginRequiredMixin, DeleteView):
-    model = Customer
-    template_name = "customers/customer_confirm_delete.html"
-    success_url = reverse_lazy("customer_list")

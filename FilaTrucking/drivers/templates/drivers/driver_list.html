@@ -43,6 +43,7 @@
           <th class="px-6 py-4 font-medium tracking-wide">Name</th>
           <th class="px-6 py-4 font-medium tracking-wide">Phone</th>
           <th class="px-6 py-4 font-medium tracking-wide">Status</th>
+          <th class="px-6 py-4 font-medium tracking-wide">Joined On</th>
           <th class="px-6 py-4 font-medium tracking-wide">License Expiry</th>
           <th class="px-6 py-4 font-medium tracking-wide text-right">Actions</th>
         </tr>
@@ -61,6 +62,7 @@
               class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-400/10 text-slate-400 border border-slate-400/20">Inactive</span>
             {% endif %}
           </td>
+          <td class="px-6 py-4 text-slate-400">{{ driver.joined|date:"M d, Y"|default:"-" }}</td>
           <td class="px-6 py-4 text-slate-400">{{ driver.license_expiry|date:"M d, Y"|default:"-" }}</td>
           <td class="px-6 py-4 text-right">
             <a href="{% url 'driver_detail' driver.pk %}"

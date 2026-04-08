@@ -25,6 +25,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("auth/", include("django.contrib.auth.urls")),
     path("", project_views.dashboard, name="dashboard"),
+    path("test-report/", project_views.test_report, name="test_report"),
+    path("test-sync-schedule/", project_views.test_sync_schedule, name="test_sync_schedule"),
     path("customers/", include("customers.urls")),
     path("drivers/", include("drivers.urls")),
     path("shipments/", include("shipments.shipment_urls")),

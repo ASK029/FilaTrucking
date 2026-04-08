@@ -99,9 +99,15 @@
 <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
     {# Schedule Overview #}
     <div class="bg-surface-card rounded-2xl border border-slate-700/50 shadow-xl overflow-hidden">
-        <div class="px-5 py-4 border-b border-slate-700/50 bg-slate-800/30">
-            <h2 class="text-base font-bold text-slate-100 uppercase tracking-wide">Report & Sync Schedule</h2>
-            <p class="text-xs text-muted mt-1">Automated background tasks and reports</p>
+        <div class="px-5 py-4 border-b border-slate-700/50 bg-slate-800/30 flex items-center justify-between">
+            <div>
+                <h2 class="text-base font-bold text-slate-100 uppercase tracking-wide">Report & Sync Schedule</h2>
+                <p class="text-xs text-muted mt-1">Automated background tasks and reports</p>
+            </div>
+            <div class="flex gap-2">
+                <a href="{% url 'test_report' %}" class="px-3 py-1.5 bg-brand-light/10 text-brand-light hover:bg-brand-light/20 rounded-lg text-xs font-semibold transition-colors border border-brand-light/20 flex flex-row items-center justify-center">Test Report</a>
+                <a href="{% url 'test_sync_schedule' %}" class="px-3 py-1.5 bg-brand-light/10 text-brand-light hover:bg-brand-light/20 rounded-lg text-xs font-semibold transition-colors border border-brand-light/20 flex flex-row items-center justify-center">Sync Schedule</a>
+            </div>
         </div>
         <div class="p-0">
             <div class="overflow-x-auto">

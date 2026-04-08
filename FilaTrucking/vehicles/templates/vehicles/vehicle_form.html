@@ -1,14 +1,15 @@
 {% extends "base.html" %}
 
 {% block title %}
-{% if object.pk %}Edit Vehicle: {{ object.name }}{% else %}Add Vehicle{% endif %} — FilaTrucking
+{% if object.pk %}Edit Vehicle: {{ object.chassis_number }}{% else %}Add Vehicle{% endif %} — FilaTrucking
 {% endblock %}
 
 {% block content %}
 <div class="max-w-4xl mx-auto">
   <div class="mb-6">
     <h1 class="text-2xl font-bold text-slate-100">{% if object.pk %}Edit Vehicle{% else %}Add Vehicle{% endif %}</h1>
-    <p class="text-sm text-slate-400 mt-1">{% if object.pk %}Update the details for {{ object.name }}.{% else %}Add a
+    <p class="text-sm text-slate-400 mt-1">{% if object.pk %}Update the details for {{ object.chassis_number }}.{% else
+      %}Add a
       new truck to your fleet.{% endif %}</p>
   </div>
 
@@ -23,11 +24,11 @@
       {% endif %}
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Most fields span 1 column, driver/name span wider -->
+        <!-- Most fields span 1 column, driver/image span wider -->
         {% for field in form %}
-        <div
-          class="{% if field.name == 'driver' or field.name == 'name' or field.name == 'image' %}md:col-span-2 lg:col-span-3{% endif %}">
-          <label class="block text-sm text-slate-400 mb-1.5 font-medium" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        <div class="{% if field.name == 'driver' or field.name == 'image' %}md:col-span-2 lg:col-span-3{% endif %}">
+          <label class="block text-sm text-slate-400 mb-1.5 font-medium" for="{{ field.id_for_label }}">{{ field.label
+            }}</label>
           {{ field }}
           {% if field.errors %}
           <div class="text-red-400 text-xs mt-1.5">{{ field.errors|join:", " }}</div>
