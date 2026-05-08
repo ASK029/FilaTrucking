@@ -42,7 +42,18 @@ def ingest_whatsapp_message(request):
         sender_phone=sender_phone
     )
     
-    # Parser rules
+    # Get message timestamp for fallback date
+    message_timestamp = data.get("timestamp")
+    fallback_date = None
+    if message_timestamp:
+        try:
+            fallback_date = datetime.fromisoformat(message_timestamp.replace("+0000", "")).date()
+        except:
+            fallback_date = datetime.now().date()
+    else:
+        fallback_date = datetime.now().date()
+
+    # Parser rules - try key:value format first (backward compatibility)
     lines = raw_text.strip().split('\n')
     parsed_data = {}
     for line in lines:
@@ -50,34 +61,122 @@ def ingest_whatsapp_message(request):
             key, val = line.split(':', 1)
             parsed_data[key.strip().lower()] = val.strip()
 
-    # Required keys mapping
-    required_keys = ['date', 'booking', 'container', 'seal', 'customer', 'rate', 'driver', 'truck']
-    missing_keys = [k for k in required_keys if k not in parsed_data or not parsed_data[k]]
+    # Check if it's key:value format with all required fields
+    key_value_format = all(k in parsed_data and parsed_data[k] for k in ['booking', 'container', 'seal'])
 
-    if missing_keys:
-        msg_log.is_flagged = True
-        msg_log.error_message = f"Missing required fields: {', '.join(missing_keys)}"
-        msg_log.save()
-        return JsonResponse({
-            "status": "flagged", 
-            "message": "Missing fields, flagged for manual review.",
-            "message_id": msg_log.id
-        })
+    if key_value_format:
+        # Use key:value format
+        required_keys = ['date', 'booking', 'container', 'seal', 'customer', 'rate', 'driver', 'truck']
+        missing_keys = [k for k in required_keys if k not in parsed_data or not parsed_data[k]]
+
+        if missing_keys:
+            msg_log.is_flagged = True
+            msg_log.error_message = f"Missing required fields: {', '.join(missing_keys)}"
+            msg_log.save()
+            return JsonResponse({
+                "status": "flagged", 
+                "message": "Missing fields, flagged for manual review.",
+                "message_id": msg_log.id
+            })
+    else:
+        # New flexible format: values in specific order
+        # Expected order: booking, container, seal, [customer], [date]
+        # Each value can be on its own line or space-separated
+        
+        # Clean and extract non-empty lines
+        clean_lines = [line.strip() for line in lines if line.strip()]
+        
+        # Try to extract values from non-key:value lines
+        extracted_values = []
+        for line in clean_lines:
+            # Skip lines that look like key:value pairs
+            if ':' in line:
+                continue
+            # Extract non-empty values (skip very short strings that might be artifacts)
+            val = line.strip()
+            if val and len(val) > 1:
+                extracted_values.append(val)
+        
+        # Expected positions (first 3 are required)
+        if len(extracted_values) < 3:
+            msg_log.is_flagged = True
+            msg_log.error_message = f"Missing required fields. Found {len(extracted_values)} values, need at least 3 (booking, container, seal)."
+            msg_log.save()
+            return JsonResponse({
+                "status": "flagged", 
+                "message": "Missing fields, flagged for manual review.",
+                "message_id": msg_log.id
+            })
+        
+        # Extract required fields
+        parsed_data['booking'] = extracted_values[0]  # First value = booking
+        parsed_data['container'] = extracted_values[1]  # Second value = container
+        parsed_data['seal'] = extracted_values[2]  # Third value = seal
+        
+        # Optional: customer (4th value if it looks like a customer name/abbreviation)
+        if len(extracted_values) >= 4:
+            potential_customer = extracted_values[3]
+            # Check if it could be a customer (not a date format)
+            date_formats = ['%m/%d/%y', '%m/%d/%Y', '%Y-%m-%d']
+            is_date = False
+            for fmt in date_formats:
+                try:
+                    datetime.strptime(potential_customer, fmt)
+                    is_date = True
+                    break
+                except ValueError:
+                    continue
+            if not is_date:
+                parsed_data['customer'] = potential_customer
+                # If there's a 5th value, check if it's a date
+                if len(extracted_values) >= 5:
+                    potential_date = extracted_values[4]
+                    for fmt in date_formats:
+                        try:
+                            parsed_data['date'] = datetime.strptime(potential_date, fmt).strftime('%m/%d/%Y')
+                            break
+                        except ValueError:
+                            continue
+            else:
+                # 4th value is a date
+                for fmt in date_formats:
+                    try:
+                        parsed_data['date'] = datetime.strptime(potential_customer, fmt).strftime('%m/%d/%Y')
+                        break
+                    except ValueError:
+                        continue
+        
+        # If date not found, will use fallback_date later
+        # Still need customer, rate, driver, truck - mark as missing
+        missing_keys = ['customer', 'rate', 'driver', 'truck']
+        if missing_keys:
+            msg_log.is_flagged = True
+            msg_log.error_message = f"Missing required fields: {', '.join(missing_keys)}. Parsed booking={parsed_data.get('booking')}, container={parsed_data.get('container')}, seal={parsed_data.get('seal')}"
+            msg_log.save()
+            return JsonResponse({
+                "status": "flagged", 
+                "message": "Missing fields, flagged for manual review.",
+                "message_id": msg_log.id
+            })
 
     # Data transformation
     try:
         # Date parsing (expecting MM/DD/YY or YYYY-MM-DD or MM/DD/YYYY)
-        # We will try a few formats
-        date_str = parsed_data['date']
+        # Use fallback_date if no date provided in message
         parsed_date_obj = None
-        for fmt in ('%m/%d/%y', '%m/%d/%Y', '%Y-%m-%d'):
-            try:
-                parsed_date_obj = datetime.strptime(date_str, fmt).date()
-                break
-            except ValueError:
-                continue
-        if not parsed_date_obj:
-            raise ValueError(f"Invalid date format: {date_str}. Expected MM/DD/YY")
+        if parsed_data.get('date'):
+            date_str = parsed_data['date']
+            for fmt in ('%m/%d/%y', '%m/%d/%Y', '%Y-%m-%d'):
+                try:
+                    parsed_date_obj = datetime.strptime(date_str, fmt).date()
+                    break
+                except ValueError:
+                    continue
+            if not parsed_date_obj:
+                raise ValueError(f"Invalid date format: {date_str}. Expected MM/DD/YY")
+        else:
+            # Use fallback date (message timestamp or current date)
+            parsed_date_obj = fallback_date
 
         # FK Lookups
         customer_name = parsed_data['customer']
@@ -93,9 +192,11 @@ def ingest_whatsapp_message(request):
             raise ValueError(f"Driver not found: {driver_name}")
 
         truck_plate = parsed_data['truck']
+        print(f"DEBUG: truck_plate='{truck_plate}'")
         vehicle = Vehicle.objects.filter(registration_number__icontains=truck_plate).first()
         if not vehicle:
-            vehicle = Vehicle.objects.filter(name__icontains=truck_plate).first()
+            print(f"DEBUG: vehicle not found by registration, trying chassis_number")
+            vehicle = Vehicle.objects.filter(chassis_number__icontains=truck_plate).first()
         if not vehicle:
             raise ValueError(f"Vehicle not found: {truck_plate}")
 

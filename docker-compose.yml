@@ -1,4 +1,70 @@
 services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: fila-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: filatrucking
+      MYSQL_USER: filatrucking
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    # ports:
+    #   - "3306:3306"  # MySQL port - disabled, using local MySQL
+    networks:
+      - fila-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for Celery
+  redis:
+    image: redis:7-alpine
+    container_name: fila-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - fila-network
+    volumes:
+      - redis_data:/data
+
+  # Django Application
+  django:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fila-django
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=mysql://filatrucking:${MYSQL_PASSWORD}@mysql:3306/filatrucking
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG:-True}
+      - WHATSAPP_INGEST_SECRET=fila_secret_2026
+      - WHATSAPP_SIDECAR_URL=http://sidecar:3001
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    volumes:
+      - ./FilaTrucking/media:/app/FilaTrucking/media
+      - ./.env:/app/.env:ro
+    ports:
+      - "8000:8000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - fila-network
+    stdin_open: true
+    tty: true
+    command: python manage.py runserver 0.0.0.0:8000
+
+  # WhatsApp Sidecar (Node.js)
   whatsapp-sidecar:
     build:
       context: ./sidecar
@@ -6,25 +72,20 @@ services:
     container_name: fila-whatsapp-sidecar
     restart: unless-stopped
     environment:
-      - NODE_ENV=production
-      - DJANGO_API_URL=http://host.docker.internal:8000/shipments/api/ingest/
+      - NODE_ENV=development
+      - DJANGO_API_URL=http://django:8000/shipments/api/ingest/
       - DJANGO_SECRET=fila_secret_2026
     volumes:
-      # Use anonymous volume for auth to avoid file lock issues
       - auth_data:/app/sidecar/auth_info_baileys
-      # Share logs directory (optional)
-      - ./logs:/app/sidecar/logs
+      - ./sidecar/logs:/app/sidecar/logs
     ports:
-      # Express REST API on 3001
-      - "3001:3001"
-      # Optional: expose port if you add health checks or monitoring
-      - "3000:3000"
+      - "8888:3001"
     networks:
       - fila-network
-    # Keep container running and show logs
+    depends_on:
+      - django
     stdin_open: true
     tty: true
-    # Resource limits (adjust based on your system)
     deploy:
       resources:
         limits:
@@ -39,4 +100,6 @@ networks:
     driver: bridge
 
 volumes:
+  mysql_data:
+  redis_data:
   auth_data:

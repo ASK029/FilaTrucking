@@ -60,7 +60,7 @@ def dashboard(request):
     end_date = date(year, month, last_day)
 
     # Revenue for current month (sum of invoiced totals in range)
-    invoices = Invoice.objects.filter(invoice_date__range=(start_date, end_date))
+    invoices = _paid_invoices_in_range(start_date, end_date)
     revenue = invoices.aggregate(total=Sum("total_amount"))["total"] or Decimal("0")
 
     # Shipment stats
@@ -90,7 +90,7 @@ def dashboard(request):
     maintenance_qs = (
         Maintenance.objects.filter(id__in=latest_ids)
         .select_related("vehicle")
-        .order_by("vehicle__name")
+        .order_by("vehicle__registration_number")
     )
 
     for entry in maintenance_qs:
@@ -196,6 +196,13 @@ def _category_dict(expenses_qs) -> dict[str, Decimal]:
     }
 
 
+def _paid_invoices_in_range(start_date, end_date):
+    return Invoice.objects.filter(
+        status=InvoiceStatus.PAID,
+        paid_at__range=(start_date, end_date),
+    )
+
+
 @login_required
 def monthly_statement(request):
     """Monthly financial statement matching the CSV layout."""
@@ -208,7 +215,7 @@ def monthly_statement(request):
     end_date = date(year, month, last_day)
 
     # Revenue from invoices (deposits)
-    invoices = Invoice.objects.filter(invoice_date__range=(start_date, end_date))
+    invoices = _paid_invoices_in_range(start_date, end_date)
     revenue = invoices.aggregate(total=Sum("total_amount"))["total"] or Decimal("0")
 
     # Expenses
@@ -218,29 +225,16 @@ def monthly_statement(request):
     # Granular category breakdown (CSV columns)
     category_totals = _build_category_totals(expenses)
 
-    # Driver pay breakdown
-    driver_pay = (
-        expenses.filter(category=ExpenseCategory.DRIVER_PAY)
-        .aggregate(t=Sum("amount"))["t"]
-        or Decimal("0")
-    )
-    driver_pay_breakdown = (
-        expenses.filter(category=ExpenseCategory.DRIVER_PAY)
-        .values("driver__id", "driver__name")
-        .annotate(total=Sum("amount"))
-        .order_by("driver__name")
-    )
-
     net_profit = revenue - total_expenses
 
     # Transaction log: daily rows
     all_dates = sorted(
         set(expenses.values_list("date", flat=True))
-        | set(invoices.values_list("invoice_date", flat=True))
+        | set(invoices.values_list("paid_at", flat=True))
     )
     transaction_rows = []
     for d in all_dates:
-        day_invoices = invoices.filter(invoice_date=d)
+        day_invoices = invoices.filter(paid_at=d)
         deposit_total = day_invoices.aggregate(t=Sum("total_amount"))["t"] or Decimal("0")
         deposit_from = ", ".join(
             day_invoices.values_list("customer__name", flat=True).distinct()
@@ -250,19 +244,8 @@ def monthly_statement(request):
         row = {"date": d, "deposit": deposit_total, "deposit_from": deposit_from}
         for note_label, key, _ in CSV_CATEGORIES:
             row[key] = _sum_by_note_label(day_expenses, note_label)
-        day_pay = (
-            day_expenses.filter(category=ExpenseCategory.DRIVER_PAY)
-            .aggregate(t=Sum("amount"))["t"]
-            or Decimal("0")
-        )
-        pay_to = ", ".join(
-            day_expenses.filter(category=ExpenseCategory.DRIVER_PAY)
-            .exclude(driver__isnull=True)
-            .values_list("driver__name", flat=True)
-            .distinct()
-        ) or "-"
-        row["pay"] = day_pay
-        row["pay_to"] = pay_to
+        row["pay"] = Decimal("0")
+        row["pay_to"] = "-"
         transaction_rows.append(row)
 
     month_choices = [(m, month_name[m]) for m in range(1, 13)]
@@ -293,7 +276,7 @@ def yearly_statement(request):
     start_date = date(year, 1, 1)
     end_date = date(year, 12, 31)
 
-    invoices = Invoice.objects.filter(invoice_date__range=(start_date, end_date))
+    invoices = _paid_invoices_in_range(start_date, end_date)
     total_revenue = invoices.aggregate(total=Sum("total_amount"))["total"] or Decimal("0")
 
     expenses = Expense.objects.filter(date__range=(start_date, end_date))
@@ -311,11 +294,11 @@ def yearly_statement(request):
         ms = date(year, m, 1)
         me = date(year, m, ld)
         m_exp = expenses.filter(date__range=(ms, me))
-        m_inv = invoices.filter(invoice_date__range=(ms, me))
+        m_inv = invoices.filter(paid_at__range=(ms, me))
 
         deposit = m_inv.aggregate(t=Sum("total_amount"))["t"] or Decimal("0")
         pay = (
-            m_exp.filter(category=ExpenseCategory.DRIVER_PAY)
+            expenses.filter(category=ExpenseCategory.IRP)
             .aggregate(t=Sum("amount"))["t"]
             or Decimal("0")
         )
@@ -377,25 +360,13 @@ def monthly_statement_pdf(request):
     start_date = date(year, month, 1)
     end_date = date(year, month, last_day)
 
-    invoices = Invoice.objects.filter(invoice_date__range=(start_date, end_date))
+    invoices = _paid_invoices_in_range(start_date, end_date)
     revenue = invoices.aggregate(total=Sum("total_amount"))["total"] or Decimal("0")
 
     expenses = Expense.objects.filter(date__range=(start_date, end_date))
     total_expenses = expenses.aggregate(total=Sum("amount"))["total"] or Decimal("0")
     net_profit = revenue - total_expenses
     category_totals = _build_category_totals(expenses)
-
-    driver_pay = (
-        expenses.filter(category=ExpenseCategory.DRIVER_PAY)
-        .aggregate(t=Sum("amount"))["t"]
-        or Decimal("0")
-    )
-    driver_pay_breakdown = (
-        expenses.filter(category=ExpenseCategory.DRIVER_PAY)
-        .values("driver__id", "driver__name")
-        .annotate(total=Sum("amount"))
-        .order_by("driver__name")
-    )
 
     context = {
         "year": year,
@@ -441,7 +412,7 @@ def yearly_statement_pdf(request):
     start_date = date(year, 1, 1)
     end_date = date(year, 12, 31)
 
-    invoices = Invoice.objects.filter(invoice_date__range=(start_date, end_date))
+    invoices = _paid_invoices_in_range(start_date, end_date)
     total_revenue = invoices.aggregate(total=Sum("total_amount"))["total"] or Decimal("0")
 
     expenses = Expense.objects.filter(date__range=(start_date, end_date))
@@ -458,11 +429,11 @@ def yearly_statement_pdf(request):
         ms = date(year, m, 1)
         me = date(year, m, ld)
         m_exp = expenses.filter(date__range=(ms, me))
-        m_inv = invoices.filter(invoice_date__range=(ms, me))
+        m_inv = invoices.filter(paid_at__range=(ms, me))
 
         deposit = m_inv.aggregate(t=Sum("total_amount"))["t"] or Decimal("0")
         pay = (
-            m_exp.filter(category=ExpenseCategory.DRIVER_PAY)
+            expenses.filter(category=ExpenseCategory.IRP)
             .aggregate(t=Sum("amount"))["t"]
             or Decimal("0")
         )

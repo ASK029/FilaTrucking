@@ -8,7 +8,7 @@ from celery import shared_task
 from django.db import transaction
 from django.db.models import Sum
 
-from .models import Expense, ExpenseCategory, Invoice, InvoiceLineItem, Shipment, ShipmentStatus
+from .models import Expense, ExpenseCategory, Invoice, InvoiceLineItem, InvoiceStatus, Shipment, ShipmentStatus
 
 
 @shared_task
@@ -25,17 +25,14 @@ def generate_monthly_statement(year: int | None = None, month: int | None = None
     start_date = date(year, month, 1)
     end_date = date(year, month, last_day)
 
-    invoices = Invoice.objects.filter(invoice_date__range=(start_date, end_date))
+    invoices = Invoice.objects.filter(
+        status=InvoiceStatus.PAID,
+        paid_at__range=(start_date, end_date),
+    )
     revenue = invoices.aggregate(total=Sum("total_amount"))["total"] or Decimal("0")
 
     expenses = Expense.objects.filter(date__range=(start_date, end_date))
     total_expenses = expenses.aggregate(total=Sum("amount"))["total"] or Decimal("0")
-
-    driver_pay_total = (
-        expenses.filter(category=ExpenseCategory.DRIVER_PAY)
-        .aggregate(total=Sum("amount"))["total"]
-        or Decimal("0")
-    )
 
     net_profit = revenue - total_expenses
 
@@ -60,7 +57,10 @@ def generate_yearly_statement(year: int | None = None) -> dict:
     start_date = date(year, 1, 1)
     end_date = date(year, 12, 31)
 
-    invoices = Invoice.objects.filter(invoice_date__range=(start_date, end_date))
+    invoices = Invoice.objects.filter(
+        status=InvoiceStatus.PAID,
+        paid_at__range=(start_date, end_date),
+    )
     total_revenue = invoices.aggregate(total=Sum("total_amount"))["total"] or Decimal("0")
 
     expenses = Expense.objects.filter(date__range=(start_date, end_date))
@@ -133,6 +133,7 @@ def generate_recurring_invoices() -> int:
                     shipment=s,
                     date_incurred=s.date,
                     description=f"Shipment {s.container}",
+                    booking_no=s.booking,
                     container_no=s.container,
                     seal_no=s.seal,
                     location=s.location,

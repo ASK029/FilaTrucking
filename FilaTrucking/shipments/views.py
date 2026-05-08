@@ -1,3 +1,6 @@
+import json
+from datetime import date
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -12,7 +15,9 @@ from django.views.generic import (
     DetailView,
     ListView,
     UpdateView,
+    TemplateView,
 )
+from django.views import View
 
 try:
     from weasyprint import HTML
@@ -27,7 +32,7 @@ from .forms import (
     ShipmentForm,
     SystemSettingsForm,
 )
-from .models import Expense, Invoice, InvoiceLineItem, Shipment, ShipmentStatus, SystemSettings, WhatsAppConfig, WhatsAppGroup, WhatsAppLog
+from .models import Expense, Invoice, InvoiceLineItem, InvoiceStatus, Shipment, ShipmentStatus, SystemSettings, WhatsAppConfig, WhatsAppGroup, WhatsAppLog
 
 
 class ShipmentListView(LoginRequiredMixin, ListView):
@@ -76,7 +81,7 @@ class InvoiceDetailView(LoginRequiredMixin, DetailView):
 
 
 def invoice_create(request):
-    """Create invoice for a customer; then add line items (formset)."""
+    """Create invoice for a customer with line items in a single step."""
     if not request.user.is_authenticated:
         from django.contrib.auth.views import redirect_to_login
         return redirect_to_login(request.get_full_path())
@@ -84,12 +89,86 @@ def invoice_create(request):
     if request.method == "POST":
         form = InvoiceForm(request.POST)
         if form.is_valid():
-            invoice = form.save()
-            return redirect("invoice_add_lines", invoice_pk=invoice.pk)
+            invoice = form.save(commit=False)
+            invoice.save()
+            
+            start_date = form.cleaned_data.get("start_date")
+            end_date = form.cleaned_data.get("end_date")
+            
+            formset = InvoiceLineItemFormSet(request.POST, instance=invoice)
+            if formset.is_valid():
+                formset.save()
+                invoice.calculate_total()
+                
+                for item in invoice.line_items.all():
+                    if item.shipment and item.shipment.status == ShipmentStatus.CONFIRMED:
+                        item.shipment.status = ShipmentStatus.INVOICED
+                        item.shipment.save()
+                
+                messages.success(request, f"Invoice created for {invoice.customer.name}")
+                return redirect("invoice_detail", pk=invoice.pk)
     else:
         form = InvoiceForm()
 
-    return render(request, "shipments/invoice_form.html", {"form": form})
+    customer_id = request.GET.get("customer")
+    start_date = request.GET.get("start_date", "").strip()
+    end_date = request.GET.get("end_date", "").strip()
+    
+    customer_obj = None
+    if customer_id:
+        from .models import Customer
+        customer_obj = get_object_or_404(Customer, pk=customer_id)
+        form.fields["customer"].initial = customer_obj
+    
+    if start_date:
+        form.fields["start_date"].initial = start_date
+    if end_date:
+        form.fields["end_date"].initial = end_date
+    
+    formset = InvoiceLineItemFormSet()
+    
+    if customer_obj and start_date and end_date:
+        shipments = Shipment.objects.filter(
+            customer=customer_obj,
+            status=ShipmentStatus.CONFIRMED,
+            date__gte=start_date,
+            date__lte=end_date,
+        ).order_by("date")
+        
+        if shipments.exists():
+            initial_data = []
+            for s in shipments:
+                initial_data.append({
+                    "shipment": s,
+                    "date_incurred": s.date,
+                    "description": f"Shipment {s.container}",
+                    "booking_no": s.booking,
+                    "container_no": s.container,
+                    "seal_no": s.seal,
+                    "location": s.location,
+                    "amount": s.amount,
+                })
+            
+            from django.forms import inlineformset_factory
+            DynamicFormSet = inlineformset_factory(
+                Invoice,
+                InvoiceLineItem,
+                form=InvoiceLineItemForm,
+                extra=len(initial_data) + 1,
+                can_delete=True,
+            )
+            formset = DynamicFormSet(initial=initial_data)
+
+    return render(
+        request,
+        "shipments/invoice_form.html",
+        {
+            "form": form,
+            "formset": formset,
+            "start_date": start_date,
+            "end_date": end_date,
+        },
+    )
 
 
 def invoice_add_lines(request, invoice_pk):
@@ -100,9 +179,8 @@ def invoice_add_lines(request, invoice_pk):
 
     invoice = get_object_or_404(Invoice, pk=invoice_pk)
     
-    # Handle pre-population from confirmed shipments
-    start_date = request.GET.get('start_date')
-    end_date = request.GET.get('end_date')
+    start_date = request.GET.get("start_date", "").strip()
+    end_date = request.GET.get("end_date", "").strip()
     
     if request.method == "POST":
         formset = InvoiceLineItemFormSet(request.POST, instance=invoice)
@@ -116,45 +194,127 @@ def invoice_add_lines(request, invoice_pk):
                     item.shipment.save()
             return redirect("invoice_detail", pk=invoice.pk)
     else:
-        # If date range provided, fetch confirmed shipments
         formset = InvoiceLineItemFormSet(instance=invoice)
-        if (start_date or end_date) and invoice.line_items.count() == 0:
-            q = Shipment.objects.filter(customer=invoice.customer, status=ShipmentStatus.CONFIRMED)
+        if start_date or end_date:
+            q = Shipment.objects.filter(
+                customer=invoice.customer,
+                status=ShipmentStatus.CONFIRMED,
+            )
             if start_date:
                 q = q.filter(date__gte=start_date)
             if end_date:
                 q = q.filter(date__lte=end_date)
-            
-            shipments = q.order_by('date')
-            
-            # Create line items from shipments if none exist
+
+            shipments = q.order_by("date")
+            existing_shipment_ids = set(
+                invoice.line_items.exclude(shipment__isnull=True).values_list("shipment_id", flat=True)
+            )
             initial_data = []
-            for s in shipments:
-                initial_data.append({
-                    'shipment': s,
-                    'date_incurred': s.date,
-                    'description': f"Shipment {s.container}",
-                    'container_no': s.container,
-                    'seal_no': s.seal,
-                    'location': s.location,
-                    'amount': s.amount,
-                })
-            
+            for shipment in shipments:
+                if shipment.id in existing_shipment_ids:
+                    continue
+                initial_data.append(
+                    {
+                        "shipment": shipment,
+                        "date_incurred": shipment.date,
+                        "description": f"Shipment {shipment.container}",
+                        "booking_no": shipment.booking,
+                        "container_no": shipment.container,
+                        "seal_no": shipment.seal,
+                        "location": shipment.location,
+                        "amount": shipment.amount,
+                    }
+                )
+
             if initial_data:
-                # We use extra=len(initial_data) dynamically
                 from django.forms import inlineformset_factory
+
                 DynamicFormSet = inlineformset_factory(
-                    Invoice, InvoiceLineItem, form=InvoiceLineItemForm,
-                    extra=len(initial_data), can_delete=True
+                    Invoice,
+                    InvoiceLineItem,
+                    form=InvoiceLineItemForm,
+                    extra=len(initial_data),
+                    can_delete=True,
                 )
                 formset = DynamicFormSet(instance=invoice, initial=initial_data)
 
-    return render(request, "shipments/invoice_add_lines.html", {
-        "invoice": invoice,
-        "formset": formset,
-        "start_date": start_date,
-        "end_date": end_date,
-    })
+    shipment_data = {
+        s.id: {
+            "date_incurred": s.date.strftime("%Y-%m-%d"),
+            "description": f"Shipment {s.container}",
+            "booking_no": s.booking or "",
+            "container_no": s.container or "",
+            "seal_no": s.seal or "",
+            "location": s.location or "",
+            "amount": str(s.amount or ""),
+        }
+        for s in Shipment.objects.filter(customer=invoice.customer).order_by("-date")
+    }
+
+    return render(
+        request,
+        "shipments/invoice_add_lines.html",
+        {
+            "invoice": invoice,
+            "formset": formset,
+            "start_date": start_date,
+            "end_date": end_date,
+            "shipment_data_json": json.dumps(shipment_data),
+        },
+    )
+
+
+def invoice_change_status(request, pk):
+    """Update invoice status via dedicated action."""
+    if not request.user.is_authenticated:
+        from django.contrib.auth.views import redirect_to_login
+
+        return redirect_to_login(request.get_full_path())
+    if request.method != "POST":
+        return HttpResponseRedirect(reverse("invoice_detail", kwargs={"pk": pk}))
+
+    invoice = get_object_or_404(Invoice, pk=pk)
+    new_status = request.POST.get("status", "").strip()
+    valid_statuses = {choice[0] for choice in InvoiceStatus.choices}
+    if new_status not in valid_statuses:
+        messages.error(request, "Invalid invoice status selected.")
+        return redirect("invoice_detail", pk=invoice.pk)
+
+    invoice.status = new_status
+    if new_status == InvoiceStatus.PAID:
+        if not invoice.paid_at:
+            invoice.paid_at = date.today()
+    else:
+        invoice.paid_at = None
+    invoice.save(update_fields=["status", "paid_at"])
+    messages.success(request, "Invoice status updated.")
+    return redirect("invoice_detail", pk=invoice.pk)
+
+
+def invoice_delete(request, pk):
+    """Delete a draft invoice and restore linked shipments to confirmed."""
+    if not request.user.is_authenticated:
+        from django.contrib.auth.views import redirect_to_login
+        return redirect_to_login(request.get_full_path())
+
+    if request.method != "POST":
+        return HttpResponseRedirect(reverse("invoice_list"))
+
+    invoice = get_object_or_404(Invoice, pk=pk)
+    
+    if invoice.status != InvoiceStatus.DRAFT:
+        messages.error(request, "Only draft invoices can be deleted.")
+        return redirect("invoice_detail", pk=invoice.pk)
+
+    for item in invoice.line_items.all():
+        if item.shipment:
+            item.shipment.status = ShipmentStatus.CONFIRMED
+            item.shipment.save()
+
+    customer_name = invoice.customer.name
+    invoice.delete()
+    messages.success(request, f"Invoice deleted. Shipments restored for {customer_name}.")
+    return redirect("invoice_list")
 
 
 def invoice_pdf(request, pk):
@@ -234,7 +394,8 @@ def invoice_email(request, pk):
     try:
         email.send()
         invoice.status = "sent"
-        invoice.save()
+        invoice.paid_at = None
+        invoice.save(update_fields=["status", "paid_at"])
         messages.success(request, f"Invoice emailed to {customer.email}")
     except Exception as e:
         messages.error(request, f"Failed to send email: {str(e)}")
@@ -406,3 +567,97 @@ class TestEmailConnectionView(LoginRequiredMixin, View):
             return JsonResponse({'success': True, 'message': f'Test email sent to {request.user.email or from_email}'})
         except Exception as e:
             return JsonResponse({'success': False, 'message': f'Failed to send email: {str(e)}'})
+
+
+class CSVImportView(LoginRequiredMixin, TemplateView):
+    template_name = "settings/csv_import.html"
+
+
+class CSVImportProcessView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        csv_file = request.FILES.get("csv_file")
+        if not csv_file:
+            messages.error(request, "Please select a CSV file.")
+            return redirect("csv_import")
+
+        if not csv_file.name.endswith(".csv"):
+            messages.error(request, "Only CSV files are supported.")
+            return redirect("csv_import")
+
+        try:
+            import csv
+            from datetime import datetime
+            from decimal import Decimal, InvalidOperation
+            from shipments.models import Expense, ExpenseCategory, Invoice
+            from customers.models import Customer
+
+            decoded = csv_file.read().decode("utf-8-sig")
+            reader = csv.DictReader(decoded.splitlines())
+            rows = list(reader)
+
+            data_rows = []
+            for row in reader:
+                date_str = (row.get("DATE") or "").strip()
+                if not date_str:
+                    continue
+                try:
+                    parsed_date = datetime.strptime(date_str, "%m-%d-%Y").date()
+                except ValueError:
+                    try:
+                        parsed_date = datetime.strptime(date_str, "%m/%d/%Y").date()
+                    except ValueError:
+                        continue
+                data_rows.append((parsed_date, row))
+
+            if not data_rows:
+                messages.error(request, "No valid data rows found in CSV.")
+                return redirect("csv_import")
+
+            first_date = data_rows[0][0]
+            import_count = 0
+
+            EXPENSE_COLUMNS = {
+                "IRP": ExpenseCategory.IRP,
+                "PARKING": ExpenseCategory.PARKING,
+                "ON SITE": ExpenseCategory.MAINTENANCE,
+                "TRUCK": ExpenseCategory.TRUCK,
+                "CHECK CHARGE": ExpenseCategory.CHECK_CHARGE,
+                "INSURANS": ExpenseCategory.INSURANCE,
+                "TOLL": ExpenseCategory.TOLL,
+                "FUEL": ExpenseCategory.FUEL,
+                "OTHER": ExpenseCategory.OTHER,
+                "CHASSIS": ExpenseCategory.CHASSIS,
+            }
+
+            for parsed_date, row in data_rows:
+                amount_str = (row.get("Amount") or "").replace("$", "").replace(",", "").strip()
+                try:
+                    amount = Decimal(amount_str) if amount_str and amount_str != "-" else Decimal("0")
+                except InvalidOperation:
+                    amount = Decimal("0")
+
+                if amount == Decimal("0"):
+                    continue
+
+                category_label = (row.get("Category") or "").strip().upper()
+                category = EXPENSE_COLUMNS.get(category_label, ExpenseCategory.OTHER)
+
+                description = row.get("Description") or ""
+
+                Expense.objects.create(
+                    date=parsed_date,
+                    category=category,
+                    amount=amount,
+                    notes=f"Imported: {description}" if description else "",
+                )
+                import_count += 1
+
+            messages.success(
+                request,
+                f"Successfully imported {import_count} expenses from CSV for {first_date.strftime('%B %Y')}.",
+            )
+            return redirect("csv_import")
+
+        except Exception as e:
+            messages.error(request, f"Error processing CSV: {str(e)}")
+            return redirect("csv_import")

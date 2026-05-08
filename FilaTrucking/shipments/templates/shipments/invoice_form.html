@@ -3,7 +3,7 @@
 {% block title %}Create Invoice — FilaTrucking{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto py-8">
+<div class="max-w-5xl mx-auto py-8">
   <div class="mb-8 text-center sm:text-left">
     <a href="{% url 'invoice_list' %}"
       class="text-sm text-slate-500 hover:text-slate-300 flex items-center justify-center sm:justify-start gap-1 transition-colors group">
@@ -15,7 +15,7 @@
     </a>
     <h1 class="text-2xl font-bold text-slate-100 mt-4">Create New Invoice</h1>
     <p class="text-slate-400 mt-2 text-sm leading-relaxed">
-      Initial step for building a customer invoice. After creation, you will select the confirmed shipments to include.
+      Select a customer and date range. Confirmed shipments in that period will be auto-populated.
     </p>
   </div>
 
@@ -29,13 +29,12 @@
       </div>
       {% endif %}
 
-      <div>
-        <label class="block text-sm font-semibold text-slate-300 mb-2">Customer</label>
-        {{ form.customer }}
-        {% if form.customer.errors %}<p class="mt-1 text-xs text-red-400">{{ form.customer.errors.0 }}</p>{% endif %}
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
+          <label class="block text-sm font-semibold text-slate-300 mb-2">Customer</label>
+          {{ form.customer }}
+          {% if form.customer.errors %}<p class="mt-1 text-xs text-red-400">{{ form.customer.errors.0 }}</p>{% endif %}
+        </div>
         <div>
           <label class="block text-sm font-semibold text-slate-300 mb-2">Invoice Date</label>
           {{ form.invoice_date }}
@@ -48,13 +47,254 @@
         </div>
       </div>
 
-      <div class="pt-6 border-t border-slate-700/50 mt-8">
-        <button type="submit"
-          class="w-full bg-accent hover:bg-accent-dark text-surface font-extrabold px-6 py-4 rounded-xl transition-all shadow-lg shadow-accent/20 uppercase tracking-widest text-sm">
-          Next: Add Shipments & Items
-        </button>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+        <div>
+          <label class="block text-sm font-semibold text-slate-300 mb-2">Shipments From</label>
+          {{ form.start_date }}
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-slate-300 mb-2">Shipments To</label>
+          {{ form.end_date }}
+        </div>
+      </div>
+
+      {{ formset.management_form }}
+      {{ formset.non_form_errors }}
+
+      <div class="pt-6 border-t border-slate-700/50">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold text-slate-200">Invoice Line Items</h2>
+          <button type="button" onclick="addLineItem()" class="text-sm text-accent hover:text-accent-dark font-medium flex items-center gap-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Add Manual Item
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[700px]" id="line-items-table">
+            <thead>
+              <tr class="text-left text-xs uppercase tracking-widest text-slate-500 border-b border-slate-700">
+                <th class="pb-3 pr-4 w-8"></th>
+                <th class="pb-3 pr-4 w-24">Date</th>
+                <th class="pb-3 pr-4 w-40">Description</th>
+                <th class="pb-3 pr-4 w-24">Booking #</th>
+                <th class="pb-3 pr-4 w-24">Container #</th>
+                <th class="pb-3 pr-4 w-24">Seal #</th>
+                <th class="pb-3 pr-4">Location</th>
+                <th class="pb-3 text-right w-28">Amount</th>
+              </tr>
+            </thead>
+            <tbody id="line-items-body">
+              {% for form in formset %}
+              <tr class="border-b border-slate-700/50 group {% if form.initial.shipment %}bg-blue-500/5{% endif %}">
+                <td class="py-2 pr-4 align-top pt-3">
+                  {% if form.instance.pk %}
+                    {% if form.DELETE %}
+                      <label class="flex items-center cursor-pointer">
+                        {{ form.DELETE }}
+                        <span class="sr-only">Delete</span>
+                      </label>
+                    {% endif %}
+                  {% else %}
+                    <button type="button" onclick="removeLineItem(this)" class="text-slate-500 hover:text-red-400 p-1">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                      </svg>
+                    </button>
+                  {% endif %}
+                  {{ form.id }}
+                  {% if form.shipment %}{{ form.shipment }}{% endif %}
+                </td>
+                <td class="py-2 pr-4">
+                  {{ form.date_incurred }}
+                </td>
+                <td class="py-2 pr-4">
+                  {{ form.description }}
+                </td>
+                <td class="py-2 pr-4">
+                  {{ form.booking_no }}
+                </td>
+                <td class="py-2 pr-4">
+                  {{ form.container_no }}
+                </td>
+                <td class="py-2 pr-4">
+                  {{ form.seal_no }}
+                </td>
+                <td class="py-2 pr-4">
+                  {{ form.location }}
+                </td>
+                <td class="py-2 text-right">
+                  {{ form.amount }}
+                </td>
+              </tr>
+              {% empty %}
+              <tr id="empty-row" class="border-b border-slate-700/50">
+                <td colspan="8" class="py-8 text-center text-slate-500">
+                  No shipments in the selected date range. Select a customer and date range, then click "Load Shipments" to filter shipments.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="flex items-center gap-4 mt-4">
+          <button type="submit"
+            class="bg-accent hover:bg-accent-dark text-surface font-extrabold px-6 py-3 rounded-xl transition-all shadow-lg shadow-accent/20">
+            Create Invoice
+          </button>
+          <button type="button" onclick="reloadFiltered()"
+            class="bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold px-4 py-3 rounded-xl transition-colors">
+            Load Shipments
+          </button>
+        </div>
       </div>
     </form>
   </div>
 </div>
+
+<style>
+  #line-items-table input, #line-items-table select {
+    width: 100%;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 0.5rem;
+    padding: 0.375rem 0.5rem;
+    color: #e2e8f0;
+    font-size: 0.875rem;
+    transition: all 0.15s;
+  }
+  #line-items-table input:hover, #line-items-table select:hover {
+    background: rgba(51, 65, 85, 0.5);
+  }
+  #line-items-table input:focus, #line-items-table select:focus {
+    outline: none;
+    background: rgba(51, 65, 85, 0.8);
+    border-color: #f59e0b;
+  }
+  #line-items-table input::placeholder {
+    color: #64748b;
+  }
+  #line-items-table input[type="checkbox"] {
+    width: auto;
+    accent-color: #f59e0b;
+  }
+  #line-items-table input[type="number"] {
+    text-align: right;
+  }
+  #line-items-table input[type="hidden"] {
+    display: none;
+  }
+  #line-items-table select {
+    background: transparent;
+  }
+</style>
+
+<script>
+  let totalForms = {{ formset.total_form_count }};
+  
+  function addLineItem() {
+    const tbody = document.getElementById('line-items-body');
+    const emptyRow = document.getElementById('empty-row');
+    if (emptyRow) emptyRow.remove();
+    
+    const row = document.createElement('tr');
+    row.className = 'border-b border-slate-700/50';
+    row.innerHTML = `
+      <td class="py-2 pr-4">
+        <button type="button" onclick="removeLineItem(this)" class="text-slate-500 hover:text-red-400 p-1">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+        <input type="hidden" name="form-${totalForms}-id" id="id_form-${totalForms}-id">
+      </td>
+      <td class="py-2 pr-4">
+        <input type="date" name="form-${totalForms}-date_incurred" id="id_form-${totalForms}-date_incurred">
+      </td>
+      <td class="py-2 pr-4">
+        <input type="text" name="form-${totalForms}-description" id="id_form-${totalForms}-description" placeholder="Description">
+      </td>
+      <td class="py-2 pr-4">
+        <input type="text" name="form-${totalForms}-booking_no" id="id_form-${totalForms}-booking_no" placeholder="Booking #">
+      </td>
+      <td class="py-2 pr-4">
+        <input type="text" name="form-${totalForms}-container_no" id="id_form-${totalForms}-container_no" placeholder="Container #">
+      </td>
+      <td class="py-2 pr-4">
+        <input type="text" name="form-${totalForms}-seal_no" id="id_form-${totalForms}-seal_no" placeholder="Seal #">
+      </td>
+      <td class="py-2 pr-4">
+        <input type="text" name="form-${totalForms}-location" id="id_form-${totalForms}-location" placeholder="Location">
+      </td>
+      <td class="py-2 text-right">
+        <input type="number" name="form-${totalForms}-amount" id="id_form-${totalForms}-amount" step="0.01" min="0" placeholder="0.00">
+      </td>
+    `;
+    tbody.appendChild(row);
+    totalForms++;
+    updateManagementForm();
+  }
+
+  function removeLineItem(btn) {
+    const row = btn.closest('tr');
+    const tbody = document.getElementById('line-items-body');
+    const inputs = row.querySelectorAll('input[name$="-description"], input[name$="-amount"]');
+    const hasData = Array.from(inputs).some(i => i.value);
+    const idInput = row.querySelector('input[name$="-id"]');
+    
+    if (idInput && idInput.value) {
+      const deleteInput = document.createElement('input');
+      deleteInput.type = 'hidden';
+      deleteInput.name = idInput.name.replace('-id', '-DELETE');
+      deleteInput.value = 'on';
+      row.appendChild(deleteInput);
+      row.style.display = 'none';
+    } else {
+      row.remove();
+      if (tbody.querySelectorAll('tr').length === 0) {
+        tbody.innerHTML = '<tr id="empty-row" class="border-b border-slate-700/50"><td colspan="8" class="py-8 text-center text-slate-500">No line items. Click "Add Manual Item" to add one.</td></tr>';
+      }
+    }
+    updateManagementForm();
+  }
+
+  function updateManagementForm() {
+    document.getElementById('id_form-TOTAL_FORMS').value = document.querySelectorAll('#line-items-body tr:not([style*="display: none"])').length;
+  }
+
+  function reloadFiltered() {
+    const customer = document.querySelector('[name="customer"]').value;
+    const startDate = document.querySelector('[name="start_date"]').value;
+    const endDate = document.querySelector('[name="end_date"]').value;
+    
+    if (!customer) {
+      alert('Please select a customer first.');
+      return;
+    }
+    
+    const params = new URLSearchParams();
+    params.set('customer', customer);
+    if (startDate) params.set('start_date', startDate);
+    if (endDate) params.set('end_date', endDate);
+    
+    window.location.href = window.location.pathname + '?' + params.toString();
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const customer = document.querySelector('[name="customer"]');
+    const startDate = document.querySelector('[name="start_date"]');
+    const endDate = document.querySelector('[name="end_date"]');
+    
+    [customer, startDate, endDate].forEach(function(el) {
+      if (el) {
+        el.addEventListener('change', function() {
+          reloadFiltered();
+        });
+      }
+    });
+  });
+</script>
 {% endblock %}

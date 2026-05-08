@@ -113,7 +113,7 @@ class Maintenance(models.Model):
     type = models.CharField(max_length=40, verbose_name="Service Type")
     description = models.TextField()
     # Record
-    mileage_at_service = models.IntegerField()
+    mileage_at_service = models.IntegerField(null=True, blank=True)
     next_service_mileage = models.IntegerField(
         null=True,
         blank=True,
@@ -121,7 +121,7 @@ class Maintenance(models.Model):
         help_text="Mileage at which the next service should occur.",
     )
     date = models.DateField(auto_now_add=True, verbose_name="Service Date")
-    next_service_due = models.DateField(null=True, verbose_name="Next Service Due")
+    next_service_due = models.DateField(null=True, blank=True, verbose_name="Next Service Due")
     # GoMotive sync metadata
     gomotive_alert_id = models.CharField(max_length=64, null=True, blank=True, unique=True, verbose_name="GoMotive Alert ID")
 

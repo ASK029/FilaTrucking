@@ -55,10 +55,10 @@
               <th class="px-6 py-4 font-medium tracking-wide">Shipment Ref</th>
               <th class="px-6 py-4 font-medium tracking-wide">Date</th>
               <th class="px-6 py-4 font-medium tracking-wide">Description</th>
-              <th class="px-6 py-4 font-medium tracking-wide">Container / Seal</th>
+              <th class="px-6 py-4 font-medium tracking-wide">Booking / Container / Seal</th>
               <th class="px-6 py-4 font-medium tracking-wide">Location</th>
               <th class="px-6 py-4 font-medium tracking-wide">Amount ($)</th>
-              <th class="px-6 py-4 font-medium tracking-wide text-center">Del</th>
+              <th class="px-6 py-4 font-medium tracking-wide text-center">Remove</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-700/50 text-slate-200">
@@ -82,6 +82,7 @@
               </td>
               <td class="px-4 py-3">
                 <div class="flex flex-col gap-1 scale-90 origin-left">
+                  {{ f.booking_no }}
                   {{ f.container_no }}
                   {{ f.seal_no }}
                 </div>
@@ -98,7 +99,10 @@
               </td>
               <td class="px-4 py-3 text-center">
                 {% if f.DELETE %}
-                {{ f.DELETE }}
+                <label class="inline-flex items-center gap-2 text-xs text-slate-400">
+                  {{ f.DELETE }}
+                  Remove
+                </label>
                 {% endif %}
               </td>
             </tr>
@@ -115,8 +119,7 @@
       <div
         class="p-6 bg-slate-800/30 border-t border-slate-700/50 flex flex-col sm:flex-row justify-between items-center gap-4">
         <p class="text-xs text-slate-500 max-w-sm italic">
-          Tip: You can edit dates and amounts manually if needed. Linking a shipment will update its status to
-          'Invoiced' upon saving.
+          Tip: Choosing a shipment can prefill that row. Linked shipments will become 'Invoiced' after saving.
         </p>
         <div class="flex gap-3 w-full sm:w-auto">
           <a href="{% url 'invoice_detail' invoice.pk %}"
@@ -142,4 +145,42 @@
     @apply bg-slate-900 border-slate-700 rounded-lg text-xs py-1.5 focus:ring-accent !important;
   }
 </style>
+<script>
+  const shipmentData = {{ shipment_data_json|safe }};
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const rows = document.querySelectorAll("tbody tr");
+    rows.forEach((row) => {
+      const shipmentSelect = row.querySelector("select[name$='-shipment']");
+      if (!shipmentSelect) {
+        return;
+      }
+
+      shipmentSelect.addEventListener("change", function () {
+        const shipmentId = this.value;
+        if (!shipmentId || !shipmentData[shipmentId]) {
+          return;
+        }
+
+        const rowData = shipmentData[shipmentId];
+        const mappings = {
+          date_incurred: "date_incurred",
+          description: "description",
+          booking_no: "booking_no",
+          container_no: "container_no",
+          seal_no: "seal_no",
+          location: "location",
+          amount: "amount",
+        };
+
+        Object.entries(mappings).forEach(([fieldSuffix, dataKey]) => {
+          const input = row.querySelector(`[name$='-${fieldSuffix}']`);
+          if (input && !input.value) {
+            input.value = rowData[dataKey] || "";
+          }
+        });
+      });
+    });
+  });
+</script>
 {% endblock %}

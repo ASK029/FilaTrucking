@@ -16,16 +16,16 @@ from shipments.models import (
 
 # CSV column → (ExpenseCategory, friendly label)
 EXPENSE_COLUMNS = {
-    "IRP": (ExpenseCategory.OTHER, "IRP"),
-    "PARKING": (ExpenseCategory.OTHER, "Parking"),
-    "ON SITE": (ExpenseCategory.OTHER, "On Site"),
-    "TRUCK": (ExpenseCategory.OTHER, "Truck"),
-    "CHECK CHARGE": (ExpenseCategory.OTHER, "Check Charge"),
+    "IRP": (ExpenseCategory.IRP, "IRP"),
+    "PARKING": (ExpenseCategory.PARKING, "PARKING"),
+    "ON SITE": (ExpenseCategory.MAINTENANCE, "On Site"),
+    "TRUCK": (ExpenseCategory.TRUCK, "TRUCK"),
+    "CHECK CHARGE": (ExpenseCategory.CHECK_CHARGE, "CHECK CHARGE"),
     "INSURANS": (ExpenseCategory.INSURANCE, "Insurance"),
-    "TOLL": (ExpenseCategory.TOLLS, "Toll"),
+    "TOLL": (ExpenseCategory.TOLL, "Toll"),
     "FUEL": (ExpenseCategory.FUEL, "Fuel"),
-    "OTHER": (ExpenseCategory.OTHER, "Other"),
-    "CHASSIS": (ExpenseCategory.OTHER, "Chassis"),
+    "OTHER": (ExpenseCategory.OTHER, "OTHER"),
+    "CHASSIS": (ExpenseCategory.CHASSIS, "CHASSIS"),
 }
 
 
@@ -140,6 +140,7 @@ class Command(BaseCommand):
                     customer=customer if customer else Customer.objects.first(),
                     invoice_date=parsed_date,
                     status=InvoiceStatus.PAID,
+                    paid_at=parsed_date,
                     total_amount=deposit_amt,
                 )
                 invoice_count += 1
@@ -174,7 +175,7 @@ class Command(BaseCommand):
 
                 Expense.objects.create(
                     date=parsed_date,
-                    category=ExpenseCategory.DRIVER_PAY,
+                    category=ExpenseCategory.TRUCK,
                     amount=pay_amt,
                     driver=driver,
                     notes=f"Imported: Pay → {pay_to or 'Unknown'}",

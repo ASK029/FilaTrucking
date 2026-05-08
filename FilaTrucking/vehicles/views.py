@@ -28,7 +28,7 @@ class VehicleDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['ifta_logs'] = IFTAMileage.objects.filter(vehicle=self.object).order_by('-year', '-quarter')[:5]
+        context['ifta_logs'] = IFTAMileage.objects.filter(vehicle=self.object).order_by('-year', '-month')[:5]
         context['maintenance_logs'] = Maintenance.objects.filter(vehicle=self.object).order_by('-id')[:5]
         return context
 
@@ -133,13 +133,10 @@ def ifta_report(request):
                         quarter=q,
                     ).first()
                     rate = rate_obj.rate if rate_obj else None
-                    gallons = row["total_gallons"]
-                    tax_owed = gallons * rate if (gallons and rate) else None
                     summary.append(
                         {
                             **row,
                             "rate": rate,
-                            "tax_owed": tax_owed,
                         }
                     )
 

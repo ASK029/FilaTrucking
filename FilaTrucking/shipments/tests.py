@@ -31,7 +31,7 @@ class FinancialTasksTests(TestCase):
 
         Expense.objects.create(
             date=date(2026, 1, 5),
-            category=ExpenseCategory.DRIVER_PAY,
+            category=ExpenseCategory.TRUCK,
             amount=40,
         )
 

@@ -171,7 +171,7 @@ LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/auth/login/'
 
 # Session expires after 30 minutes of inactivity
-SESSION_COOKIE_AGE = 30 * 60  # seconds
+SESSION_COOKIE_AGE = 60 * 60  # seconds
 
 # Expire session when browser is closed
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True

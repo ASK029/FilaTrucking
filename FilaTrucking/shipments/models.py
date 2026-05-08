@@ -18,9 +18,9 @@ class ShipmentStatus(models.TextChoices):
 
 
 class Shipment(models.Model):
-    driver = models.ForeignKey(Driver, on_delete=models.CASCADE, verbose_name="Driver")
+    driver = models.ForeignKey(Driver, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Driver")
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, verbose_name="Customer")
-    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, verbose_name="Vehicle")
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Vehicle")
 
     date = models.DateField(verbose_name="Shipment Date")
     booking = models.CharField(max_length=50, verbose_name="Booking #")
@@ -28,7 +28,7 @@ class Shipment(models.Model):
     seal = models.CharField(max_length=50, verbose_name="Seal #")
     location = models.CharField(max_length=100, verbose_name="Location")
     amount = models.DecimalField(
-        max_digits=12, decimal_places=2, verbose_name="Rate ($)"
+        max_digits=12, decimal_places=2, null=True, blank=True, verbose_name="Rate ($)"
     )
     status = models.CharField(
         max_length=20,
@@ -87,6 +87,7 @@ class Invoice(models.Model):
     status = models.CharField(
         max_length=10, choices=InvoiceStatus, default=InvoiceStatus.DRAFT
     )
+    paid_at = models.DateField(null=True, blank=True)
     total_amount = models.DecimalField(
         max_digits=12, decimal_places=2, default=Decimal("0")
     )
@@ -113,6 +114,7 @@ class InvoiceLineItem(models.Model):
     )
     date_incurred = models.DateField()
     description = models.CharField(max_length=255)
+    booking_no = models.CharField(max_length=50, null=True, blank=True)
     container_no = models.CharField(max_length=50, null=True, blank=True)
     seal_no = models.CharField(max_length=50, null=True, blank=True)
     location = models.CharField(max_length=255)
@@ -130,12 +132,16 @@ class InvoiceLineItem(models.Model):
 # ---------------------------------------------------------------------------
 
 class ExpenseCategory(models.TextChoices):
-    DRIVER_PAY = "driver_pay", "Driver Pay"
-    REPAIRS = "repairs", "Repairs / Maintenance Parts"
-    INSURANCE = "insurance", "Insurance"
-    FUEL = "fuel", "Fuel"
-    TOLLS = "tolls", "Tolls"
-    OTHER = "other", "Other"
+    IRP = "irp", "IRP"
+    PARKING = "parking", "PARKING"
+    MAINTENANCE = "maintenance", "Maintenance"
+    TRUCK = "truck", "TRUCK"
+    CHECK_CHARGE = "check_charge", "CHECK CHARGE"
+    INSURANCE = "insurance", "INSURANCE"
+    TOLL = "toll", "TOLL"
+    FUEL = "fuel", "FUEL"
+    OTHER = "other", "OTHER"
+    CHASSIS = "chassis", "CHASSIS"
 
 
 class Expense(models.Model):

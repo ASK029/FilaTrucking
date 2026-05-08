@@ -68,7 +68,6 @@
           <th class="py-2 pr-4 text-right">Total Miles</th>
           <th class="py-2 pr-4 text-right">Total Gallons</th>
           <th class="py-2 pr-4 text-right">Rate ($/gal)</th>
-          <th class="py-2 pr-4 text-right">Tax Owed ($)</th>
         </tr>
       </thead>
       <tbody>
@@ -84,9 +83,6 @@
           </td>
           <td class="py-2 pr-4 text-right font-mono">
             {% if row.rate %}{{ row.rate }}{% else %}—{% endif %}
-          </td>
-          <td class="py-2 pr-4 text-right font-mono">
-            {% if row.tax_owed %}{{ row.tax_owed }}{% else %}—{% endif %}
           </td>
         </tr>
         {% endfor %}

@@ -82,7 +82,6 @@
 - [X] Remove the `status` column from the Customer list view.
 - [X] Remove `/ mile` display from the default rate field in the Customer list/detail views.
 - [X] Fix Customer list search functionality (not returning results).
-- [ ] Fix Customer list filter functionality (filters not applying correctly).
 
 ### Drivers
 - [X] Add `joined` (date joined) field to the Driver model.
@@ -106,34 +105,38 @@
 - [X] Create a separate form for entering miles driven per state/vehicle/month.
 - [X] Create a separate form for entering gallons consumed per state/vehicle/month.
 - [X] Display Vehicle VIN (instead of name/plate) as the vehicle identifier in IFTA reports.
-- [ ] Remove `tax_owed` field/column from IFTA reports and calculations.
+- [X] Remove `tax_owed` field/column from IFTA reports and calculations.
 
 ### Maintenance
-- [ ] Make `mileage_at_service` field not required in the Maintenance model and form.
-- [ ] Make `next_service_mileage` field not required in the Maintenance model and form.
-- [ ] Make `next_service_due` field not required in the Maintenance model and form.
+- [X] Make `mileage_at_service` field not required in the Maintenance model and form.
+- [X] Make `next_service_mileage` field not required in the Maintenance model and form.
+- [X] Make `next_service_due` field not required in the Maintenance model and form.
 
 ### Shipments
-- [ ] Make `vehicle` field not required in the Shipment model and form.
-- [ ] Make `driver` field not required in the Shipment model and form.
-- [ ] Make `rate` field not required; auto-populate from Customer's default rate when available.
+- [X] Make `vehicle` field not required in the Shipment model and form.
+- [X] Make `driver` field not required in the Shipment model and form.
+- [X] Make `rate` field not required; auto-populate from Customer's default rate when available.
 
 ### Invoices
-- [ ] Auto-populate invoice line items from shipments matching the selected date range (from/to).
-- [ ] Pre-fill invoice line item fields from corresponding shipment data.
-- [ ] Allow removing individual line items that are not needed before saving.
-- [ ] Add a separate "Change Status" action (independent from the edit form).
-- [ ] Add `paid_at` date field to the Invoice model; display in reports when set.
-- [ ] **PDF Redesign:** Make each invoice field a separate column in the table.
-- [ ] **PDF Redesign:** Reorder columns to: Date, Booking, Container, Seal, Location, Description, Amount.
-- [ ] **PDF Redesign:** Remove tax row/column from the invoice PDF.
-- [ ] **PDF Redesign:** Add customer info block (address, phone number, email) to the PDF header.
-- [ ] **PDF Redesign:** Remove notes section from the PDF.
-- [ ] **PDF Redesign:** Adjust layout to fill the full page width.
+- [X] Auto-populate invoice line items from shipments matching the selected date range (from/to).
+- [X] Pre-fill invoice line item fields from corresponding shipment data.
+- [X] Allow removing individual line items that are not needed before saving.
+- [X] Add a separate "Change Status" action (independent from the edit form).
+- [X] Add `paid_at` date field to the Invoice model; display in reports when set.
+- [X] **PDF Redesign:** Make each invoice field a separate column in the table.
+- [X] **PDF Redesign:** Reorder columns to: Date, Booking, Container, Seal, Location, Description, Amount.
+- [X] **PDF Redesign:** Remove tax row/column from the invoice PDF.
+- [X] **PDF Redesign:** Add customer info block (address, phone number, email) to the PDF header.
+- [X] **PDF Redesign:** Remove notes section from the PDF.
+- [X] **PDF Redesign:** Adjust layout to fill the full page width.
 
 ### Expenses
-- [ ] Fix expense reports to correctly assign categories (not only "Driver Pay").
-- [ ] Update expense categories to: IRP, PARKING, Maintenance, TRUCK, CHECK CHARGE, INSURANCE, TOLL, FUEL, OTHER, CHASSIS.
+- [X] Fix expense reports to correctly assign categories (not only "Driver Pay").
+- [X] Update expense categories to: IRP, PARKING, Maintenance, TRUCK, CHECK CHARGE, INSURANCE, TOLL, FUEL, OTHER, CHASSIS.
 
 ### Reports
-- [ ] Build an in-app UI for migrating/importing data from external CSV files (user-facing, not management command).
+- [X] Build an in-app UI for migrating/importing data from external CSV files (user-facing, not management command).
+
+### Sidbar
+- [X] Merge whatsapp setup option with system settings inside the sidebar
+

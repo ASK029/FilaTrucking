@@ -16,10 +16,6 @@ class Migration(migrations.Migration):
             name='iftamileage',
             options={'ordering': ['-year', '-month', 'state_code'], 'verbose_name': 'IFTA Entry', 'verbose_name_plural': 'IFTA Entries'},
         ),
-        migrations.AlterUniqueTogether(
-            name='iftamileage',
-            unique_together={('vehicle', 'state_code', 'month', 'year')},
-        ),
         migrations.RemoveField(
             model_name='vehicle',
             name='engine_number',
@@ -37,6 +33,10 @@ class Migration(migrations.Migration):
             model_name='iftamileage',
             name='month',
             field=models.IntegerField(choices=[(1, 'January'), (2, 'February'), (3, 'March'), (4, 'April'), (5, 'May'), (6, 'June'), (7, 'July'), (8, 'August'), (9, 'September'), (10, 'October'), (11, 'November'), (12, 'December')], default=1, verbose_name='Month'),
+        ),
+        migrations.AlterUniqueTogether(
+            name='iftamileage',
+            unique_together={('vehicle', 'state_code', 'month', 'year')},
         ),
         migrations.AlterField(
             model_name='iftamileage',

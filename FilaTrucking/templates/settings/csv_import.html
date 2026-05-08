@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Import Data - FilaTrucking{% endblock %}
+
+{% block content %}
+<main class="flex-1 pt-14 overflow-y-auto">
+    <div class="p-4 md:p-8 max-w-7xl mx-auto">
+        
+        {# Page Header #}
+        <div class="mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-slate-100 mb-2">Import Data</h1>
+            <p class="text-muted">Import expenses and deposits from CSV files exported from QuickBooks or similar</p>
+        </div>
+
+        {# Instructions Card #}
+        <div class="bg-surface-card rounded-2xl p-6 border border-slate-700/50 mb-6">
+            <h2 class="text-lg font-semibold text-slate-100 mb-4">CSV Format Requirements</h2>
+            <ul class="space-y-2 text-sm text-slate-300">
+                <li class="flex items-start gap-2">
+                    <svg class="w-5 h-5 text-accent flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>File must be in CSV format (.csv extension)</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <svg class="w-5 h-5 text-accent flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Required columns: <code class="text-accent">DATE</code>, <code class="text-accent">Amount</code>, <code class="text-accent">Category</code></span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <svg class="w-5 h-5 text-accent flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Date format: <code class="text-accent">MM-DD-YYYY</code> or <code class="text-accent">MM/DD/YYYY</code></span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <svg class="w-5 h-5 text-accent flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Optional column: <code class="text-accent">Description</code> (will be stored in notes)</span>
+                </li>
+            </ul>
+            
+            <h3 class="text-sm font-semibold text-slate-200 mt-6 mb-3">Supported Categories</h3>
+            <div class="flex flex-wrap gap-2">
+                <span class="px-3 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-300">IRP</span>
+                <span class="px-3 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-300">PARKING</span>
+                <span class="px-3 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-300">ON SITE</span>
+                <span class="px-3 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-300">TRUCK</span>
+                <span class="px-3 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-300">CHECK CHARGE</span>
+                <span class="px-3 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-300">INSURANCE</span>
+                <span class="px-3 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-300">TOLL</span>
+                <span class="px-3 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-300">FUEL</span>
+                <span class="px-3 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-300">OTHER</span>
+                <span class="px-3 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-300">CHASSIS</span>
+            </div>
+        </div>
+
+        {# Import Form #}
+        <div class="bg-surface-card rounded-2xl p-6 border border-slate-700/50">
+            <form method="post" enctype="multipart/form-data" action="{% url 'csv_import_process' %}" class="space-y-6">
+                {% csrf_token %}
+                
+                <div>
+                    <label class="block text-sm text-muted mb-2">Select CSV File</label>
+                    <input type="file" name="csv_file" accept=".csv" required
+                        class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-slate-100
+                               file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0
+                               file:text-sm file:font-semibold file:bg-accent file:text-surface
+                               hover:file:bg-accent-dark cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent">
+                </div>
+
+                <button type="submit"
+                    class="bg-accent hover:bg-accent-dark text-surface font-semibold px-6 py-3 rounded-xl transition-colors">
+                    Import Data
+                </button>
+            </form>
+        </div>
+
+    </div>
+</main>
+{% endblock %}
