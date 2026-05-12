@@ -20,7 +20,7 @@ class ShipmentStatus(models.TextChoices):
 class Shipment(models.Model):
     driver = models.ForeignKey(Driver, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Driver")
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, verbose_name="Customer")
-    vehicle = models.ForeignKey(Vehicle, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Vehicle")
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Truck Numbe")
 
     date = models.DateField(verbose_name="Shipment Date")
     booking = models.CharField(max_length=50, verbose_name="Booking #")
@@ -140,8 +140,9 @@ class ExpenseCategory(models.TextChoices):
     INSURANCE = "insurance", "INSURANCE"
     TOLL = "toll", "TOLL"
     FUEL = "fuel", "FUEL"
-    OTHER = "other", "OTHER"
     CHASSIS = "chassis", "CHASSIS"
+    DRIVER = "driver", "DRIVER"
+    OTHER = "other", "OTHER"
 
 
 class Expense(models.Model):
@@ -152,7 +153,7 @@ class Expense(models.Model):
     )
     amount = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Amount ($)")
     vehicle = models.ForeignKey(
-        Vehicle, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Vehicle"
+        Vehicle, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Truck Number"
     )
     driver = models.ForeignKey(
         Driver, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Driver"

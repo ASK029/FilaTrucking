@@ -19,7 +19,7 @@ class Vehicle(models.Model):
     driver = models.ForeignKey(Driver, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Driver')
     assigned_at = models.DateField(auto_now_add=True, verbose_name="Assigned At")
     # Vehicle Specification
-    registration_number = models.CharField(max_length=20)
+    registration_number = models.CharField(max_length=20, verbose_name="Truck Number")
     Manufacturer = models.CharField(max_length=20, null=True, blank=True)
     model = models.CharField(max_length=30)
     year = models.IntegerField(verbose_name="Year", null=True, blank=True)
@@ -49,7 +49,7 @@ class Vehicle(models.Model):
     image = models.ImageField(upload_to='vehicle_images/', verbose_name="Vehicle Image", null=True, blank=True)
 
     def __str__(self) -> str:
-        return self.chassis_number
+        return self.registration_number
 
 
 class IFTAMileage(models.Model):
@@ -73,7 +73,7 @@ class IFTAMileage(models.Model):
     vehicle = models.ForeignKey(
         Vehicle,
         on_delete=models.CASCADE,
-        verbose_name="Vehicle",
+        verbose_name="Truck Number",
         related_name="ifta_mileage_entries",
     )
     state_code = models.CharField(max_length=2, verbose_name="State", default="IL")
@@ -110,7 +110,7 @@ class Maintenance(models.Model):
 
     cost = models.DecimalField(max_digits=10, decimal_places=2)
     service_provider = models.CharField(max_length=40)
-    type = models.CharField(max_length=40, verbose_name="Service Type")
+    type = models.CharField(null=True, blank=True, max_length=40, verbose_name="Service Type")
     description = models.TextField()
     # Record
     mileage_at_service = models.IntegerField(null=True, blank=True)

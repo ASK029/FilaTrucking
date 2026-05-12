@@ -227,6 +227,18 @@ def monthly_statement(request):
 
     net_profit = revenue - total_expenses
 
+    # Driver pay from confirmed shipments
+    driver_pay_breakdown = (
+        Expense.objects.filter(
+            date__range=(start_date, end_date),
+            category=ExpenseCategory.DRIVER,
+        )
+        .values("driver__name")
+        .annotate(total=Sum("amount"))
+        .order_by("driver__name")
+    )
+    driver_pay = sum(row["total"] or Decimal("0") for row in driver_pay_breakdown)
+
     # Transaction log: daily rows
     all_dates = sorted(
         set(expenses.values_list("date", flat=True))
@@ -367,6 +379,17 @@ def monthly_statement_pdf(request):
     total_expenses = expenses.aggregate(total=Sum("amount"))["total"] or Decimal("0")
     net_profit = revenue - total_expenses
     category_totals = _build_category_totals(expenses)
+
+    driver_pay_breakdown = (
+        Expense.objects.filter(
+            date__range=(start_date, end_date),
+            category=ExpenseCategory.DRIVER,
+        )
+        .values("driver__name")
+        .annotate(total=Sum("amount"))
+        .order_by("driver__name")
+    )
+    driver_pay = sum(row["total"] or Decimal("0") for row in driver_pay_breakdown)
 
     context = {
         "year": year,

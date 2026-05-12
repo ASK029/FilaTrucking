@@ -73,10 +73,31 @@ def ingest_whatsapp_message(request):
             msg_log.is_flagged = True
             msg_log.error_message = f"Missing required fields: {', '.join(missing_keys)}"
             msg_log.save()
+            
+            format_help = """⚠️ Missing fields. Please use this format:
+
+BOOKING CONTAINER SEAL [CUSTOMER] [DATE]
+CUSTOMER: name or abbreviation
+RATE: amount
+DRIVER: driver name
+TRUCK: truck plate
+
+Example:
+TEST001
+CNTR12345
+SEAL99999
+AMSTAR
+05/01/2026
+CUSTOMER: AMSTAR
+RATE: 1500
+DRIVER: John Smith
+TRUCK: ABC-1234"""
+            
             return JsonResponse({
                 "status": "flagged", 
                 "message": "Missing fields, flagged for manual review.",
-                "message_id": msg_log.id
+                "message_id": msg_log.id,
+                "reply_message": format_help
             })
     else:
         # New flexible format: values in specific order
@@ -146,17 +167,39 @@ def ingest_whatsapp_message(request):
                     except ValueError:
                         continue
         
-        # If date not found, will use fallback_date later
-        # Still need customer, rate, driver, truck - mark as missing
-        missing_keys = ['customer', 'rate', 'driver', 'truck']
-        if missing_keys:
+        # Only booking, container, seal are required
+        # Customer, rate, driver, truck are optional
+        # Try to match customer/driver from sender phone if not provided
+        else:
+            # No recognizable shipment data - return format help
             msg_log.is_flagged = True
-            msg_log.error_message = f"Missing required fields: {', '.join(missing_keys)}. Parsed booking={parsed_data.get('booking')}, container={parsed_data.get('container')}, seal={parsed_data.get('seal')}"
+            msg_log.error_message = "Unrecognized message format"
             msg_log.save()
+            
+            format_help = """📋 Please use the correct shipment format:
+
+BOOKING CONTAINER SEAL [CUSTOMER] [DATE]
+CUSTOMER: name or abbreviation
+RATE: amount
+DRIVER: driver name
+TRUCK: truck plate
+
+Example:
+TEST001
+CNTR12345
+SEAL99999
+AMSTAR
+05/01/2026
+CUSTOMER: AMSTAR
+RATE: 1500
+DRIVER: John Smith
+TRUCK: ABC-1234"""
+            
             return JsonResponse({
                 "status": "flagged", 
-                "message": "Missing fields, flagged for manual review.",
-                "message_id": msg_log.id
+                "message": "Unrecognized message format",
+                "message_id": msg_log.id,
+                "reply_message": format_help
             })
 
     # Data transformation
@@ -178,27 +221,62 @@ def ingest_whatsapp_message(request):
             # Use fallback date (message timestamp or current date)
             parsed_date_obj = fallback_date
 
-        # FK Lookups
-        customer_name = parsed_data['customer']
-        customer = Customer.objects.filter(abbreviation__iexact=customer_name).first()
+        # FK Lookups - customer is required, driver/vehicle optional
+        customer = None
+        if parsed_data.get('customer'):
+            customer_name = parsed_data['customer']
+            customer = Customer.objects.filter(abbreviation__iexact=customer_name).first()
+            if not customer:
+                customer = Customer.objects.filter(name__icontains=customer_name).first()
+        
+        # If no customer found, flag for manual review
         if not customer:
-            customer = Customer.objects.filter(name__icontains=customer_name).first()
-        if not customer:
-            raise ValueError(f"Customer not found: {customer_name}")
+            msg_log.is_flagged = True
+            msg_log.error_message = f"Customer not found: {parsed_data.get('customer', 'Not provided')}"
+            msg_log.save()
+            
+            format_help = """⚠️ Customer not found.
 
-        driver_name = parsed_data['driver']
-        driver = Driver.objects.filter(name__icontains=driver_name).first()
-        if not driver:
-            raise ValueError(f"Driver not found: {driver_name}")
+Please provide customer name or abbreviation in your message:
 
-        truck_plate = parsed_data['truck']
-        print(f"DEBUG: truck_plate='{truck_plate}'")
-        vehicle = Vehicle.objects.filter(registration_number__icontains=truck_plate).first()
-        if not vehicle:
-            print(f"DEBUG: vehicle not found by registration, trying chassis_number")
-            vehicle = Vehicle.objects.filter(chassis_number__icontains=truck_plate).first()
-        if not vehicle:
-            raise ValueError(f"Vehicle not found: {truck_plate}")
+BOOKING CONTAINER SEAL CUSTOMER [DATE]
+
+Example:
+TEST001
+CNTR12345
+SEAL99999
+AMSTAR
+05/01/2026
+
+Or use key:value format:
+CUSTOMER: AMSTAR"""
+            
+            return JsonResponse({
+                "status": "flagged", 
+                "message": "Customer not found",
+                "message_id": msg_log.id,
+                "reply_message": format_help
+            })
+        
+        # Try to match driver from sender phone if not provided
+        driver = None
+        if parsed_data.get('driver'):
+            driver_name = parsed_data['driver']
+            driver = Driver.objects.filter(name__icontains=driver_name).first()
+        if not driver and sender_phone:
+            # Try to match driver by phone number
+            driver = Driver.objects.filter(phone_number__icontains=sender_phone).first()
+        
+        # Try to match vehicle from driver if not provided
+        vehicle = None
+        if parsed_data.get('truck'):
+            truck_plate = parsed_data['truck']
+            vehicle = Vehicle.objects.filter(registration_number__icontains=truck_plate).first()
+            if not vehicle:
+                vehicle = Vehicle.objects.filter(chassis_number__icontains=truck_plate).first()
+        elif driver:
+            # Try to get driver's default vehicle
+            vehicle = driver.vehicle if hasattr(driver, 'vehicle') else None
 
         # Duplicate checking
         container_no = parsed_data['container']
@@ -214,7 +292,7 @@ def ingest_whatsapp_message(request):
         )
         is_duplicate = duplicates.exists()
 
-        rate_val = re.sub(r'[^\d.]', '', parsed_data['rate'])
+        rate_val = re.sub(r'[^\d.]', '', parsed_data.get('rate', ''))
         
         shipment = Shipment.objects.create(
             date=parsed_date_obj,
@@ -235,21 +313,36 @@ def ingest_whatsapp_message(request):
         msg_log.shipment = shipment
         msg_log.save()
         
+        success_message = f"""✅ Shipment recorded!
+Booking: {shipment.booking}
+Container: {shipment.container}
+Date: {shipment.date.strftime('%m/%d/%Y')}
+Amount: ${shipment.amount}
+Status: Pending Review"""
+        
         return JsonResponse({
             "status": "success",
             "message": "Shipment created successfully",
             "shipment_id": shipment.id,
-            "flagged": is_duplicate
+            "flagged": is_duplicate,
+            "reply_message": success_message
         })
 
     except Exception as e:
         msg_log.is_flagged = True
         msg_log.error_message = str(e)
         msg_log.save()
+        
+        error_reply = f"""⚠️ Error: {str(e)}
+
+Please check your message format and try again.
+Contact dispatch if issue persists."""
+        
         return JsonResponse({
             "status": "flagged", 
             "message": f"Parse error: {str(e)}",
-            "message_id": msg_log.id
+            "message_id": msg_log.id,
+            "reply_message": error_reply
         })
 
 

@@ -221,41 +221,66 @@ async function startBot() {
 
             const sender = msg.key.participant || msg.key.remoteJid;
 
-            if (messageContent.toLowerCase().includes('booking:') || messageContent.toLowerCase().includes('container:')) {
-                addLog('info', `Received shipment payload from ${sender}`);
+            // Always send message to Django for processing
+            addLog('info', `Received message from ${sender}: ${messageContent.substring(0, 50)}...`);
 
-                try {
-                    const response = await axios.post(DJANGO_API_URL, {
-                        text: messageContent,
-                        sender: sender
-                    }, {
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${DJANGO_SECRET}`
-                        },
-                        timeout: 10000
-                    });
+            try {
+                const response = await axios.post(DJANGO_API_URL, {
+                    text: messageContent,
+                    sender: sender,
+                    timestamp: msg.messageTimestamp ? new Date(msg.messageTimestamp * 1000).toISOString() : new Date().toISOString()
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${DJANGO_SECRET}`
+                    },
+                    timeout: 10000
+                });
 
-                    addLog('info', `API response: ${response.data.status}`);
-                    
-                    if (response.data.status === 'success') {
-                        let replyText = `✅ Shipment processed successfully (ID: ${response.data.shipment_id}). Status: Pending confirmation.`;
-                        if (response.data.flagged) {
-                            replyText += `\n⚠️ Note: System flagged a potential duplicate container. Admin will review.`;
-                        }
-                        await sock.sendMessage(msg.key.remoteJid, { text: replyText });
-                    } else if (response.data.status === 'flagged') {
-                        await sock.sendMessage(msg.key.remoteJid, { text: `⚠️ System flagged the shipment: ${response.data.message}` });
+                addLog('info', `API response: ${response.data.status}`);
+                
+                // Use reply_message if provided by Django, otherwise use default messages
+                if (response.data.reply_message) {
+                    await sock.sendMessage(msg.key.remoteJid, { text: response.data.reply_message });
+                } else if (response.data.status === 'success') {
+                    let replyText = `✅ Shipment processed successfully (ID: ${response.data.shipment_id}). Status: Pending confirmation.`;
+                    if (response.data.flagged) {
+                        replyText += `\n⚠️ Note: System flagged a potential duplicate container. Admin will review.`;
                     }
-
-                } catch (error) {
-                    const errorMsg = error.response && error.response.data && error.response.data.message 
-                        ? error.response.data.message 
-                        : error.message;
-                    
-                    addLog('error', `Django API error: ${errorMsg}`);
-                    await sock.sendMessage(msg.key.remoteJid, { text: `❌ Could not process payload: ${errorMsg}` });
+                    await sock.sendMessage(msg.key.remoteJid, { text: replyText });
+                } else if (response.data.status === 'flagged') {
+                    await sock.sendMessage(msg.key.remoteJid, { text: `⚠️ System flagged the shipment: ${response.data.message}` });
                 }
+
+            } catch (error) {
+                // Check if it's a Django error response or a network error
+                const errorMsg = error.response && error.response.data && error.response.data.message 
+                    ? error.response.data.message 
+                    : error.message;
+                
+                addLog('error', `Django API error: ${errorMsg}`);
+                
+                // Send format help on any error
+const formatHelp = `📋 Please use the correct shipment format:
+
+BOOKING CONTAINER SEAL [CUSTOMER] [DATE]
+CUSTOMER: name or abbreviation
+RATE: amount
+DRIVER: driver name
+TRUCK: truck plate
+
+Example:
+TEST001
+CNTR12345
+SEAL99999
+AMSTAR
+05/01/2026
+CUSTOMER: AMSTAR
+RATE: 1500
+DRIVER: John Smith
+TRUCK: ABC-1234`;
+                
+                await sock.sendMessage(msg.key.remoteJid, { text: formatHelp });
             }
         }
     });

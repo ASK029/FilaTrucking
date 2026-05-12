@@ -49,6 +49,7 @@ services:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
     volumes:
+      - ./FilaTrucking:/app/FilaTrucking
       - ./FilaTrucking/media:/app/FilaTrucking/media
       - ./.env:/app/.env:ro
     ports:

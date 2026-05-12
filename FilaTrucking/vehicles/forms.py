@@ -36,6 +36,10 @@ class IFTAMilesLogForm(TailwindFormMixin, forms.ModelForm):
         label="State",
         initial="IL",
     )
+    year = forms.IntegerField(
+        label="Year",
+        min_value=2020,
+    )
 
     class Meta:
         model = IFTAMileage
@@ -47,7 +51,11 @@ class IFTAGallonsLogForm(TailwindFormMixin, forms.ModelForm):
         label="State",
         initial="IL",
     )
-
+    
+    year = forms.IntegerField(
+        label="Year",
+        min_value=2020,
+    )
     class Meta:
         model = IFTAMileage
         fields = ["vehicle", "state_code", "month", "year", "gallons"]

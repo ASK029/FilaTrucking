@@ -1,6 +1,7 @@
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Sum
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import (
     CreateView,
@@ -79,6 +80,18 @@ class IFTAMilesCreateView(LoginRequiredMixin, CreateView):
         context["log_type"] = "Miles Driven"
         return context
 
+    def form_valid(self, form):
+        obj, created = IFTAMileage.objects.update_or_create(
+            vehicle=form.cleaned_data["vehicle"],
+            state_code=form.cleaned_data["state_code"],
+            month=form.cleaned_data["month"],
+            year=form.cleaned_data["year"],
+            defaults={"miles": form.cleaned_data["miles"]},
+        )
+        msg = "IFTA miles entry created." if created else "IFTA miles entry updated."
+        messages.success(self.request, msg)
+        return redirect(self.success_url)
+
 class IFTAGallonsCreateView(LoginRequiredMixin, CreateView):
     model = IFTAMileage
     template_name = "vehicles/ifta_log_form.html"
@@ -89,6 +102,18 @@ class IFTAGallonsCreateView(LoginRequiredMixin, CreateView):
         context = super().get_context_data(**kwargs)
         context["log_type"] = "Gallons Consumed"
         return context
+
+    def form_valid(self, form):
+        obj, created = IFTAMileage.objects.update_or_create(
+            vehicle=form.cleaned_data["vehicle"],
+            state_code=form.cleaned_data["state_code"],
+            month=form.cleaned_data["month"],
+            year=form.cleaned_data["year"],
+            defaults={"gallons": form.cleaned_data["gallons"]},
+        )
+        msg = "IFTA gallons entry created." if created else "IFTA gallons entry updated."
+        messages.success(self.request, msg)
+        return redirect(self.success_url)
 
 
 class IFTALogListView(LoginRequiredMixin, ListView):
