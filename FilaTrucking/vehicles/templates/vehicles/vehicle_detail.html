@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}Vehicle: {{ vehicle.chassis_number }} — FilaTrucking{% endblock %}
+{% block title %}Vehicle: {{ vehicle.registration_number }} — FilaTrucking{% endblock %}
 
 {% block content %}
 <div class="mb-6 flex justify-between items-start">
   <div>
     <div class="flex items-center gap-3">
-      <h1 class="text-2xl font-bold text-slate-100">{{ vehicle.chassis_number }}</h1>
+      <h1 class="text-2xl font-bold text-slate-100">{{ vehicle.registration_number }}</h1>
       {% if vehicle.status == 'active' %}
       <span
         class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-emerald-400/10 text-emerald-400 border border-emerald-400/20">Active</span>
@@ -46,7 +46,7 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div>
-        <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Registration #</dt>
+        <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Truck Number #</dt>
         <dd class="text-base text-slate-200 font-mono">{{ vehicle.registration_number }}</dd>
       </div>
       <div>
