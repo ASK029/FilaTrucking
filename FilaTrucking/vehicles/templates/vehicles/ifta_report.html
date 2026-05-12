@@ -73,8 +73,8 @@
       <tbody>
         {% for row in summary %}
         <tr class="odd:bg-surface even:bg-surface-card border-b border-slate-800/60">
-          <td class="py-2 pr-4 whitespace-nowrap sticky left-0 bg-surface-card">
-            {{ row.vehicle__chassis_number }}
+          <td class="py-2 pr-4 whitespace-nowrap sticky left-0 ">
+            {{ row.vehicle__registration_number }}
           </td>
           <td class="py-2 pr-4">{{ row.state_code }}</td>
           <td class="py-2 pr-4 text-right font-mono">{{ row.total_miles|default:"—" }}</td>

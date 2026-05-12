@@ -41,7 +41,7 @@
           <td class="py-2.5 px-4 whitespace-nowrap">{{ log.date|date:"Y-m-d" }}</td>
           <td class="py-2.5 px-4">
             <a href="{% url 'vehicle_detail' log.vehicle.pk %}" class="text-accent hover:underline font-medium">
-              {{ log.vehicle.chassis_number }}
+              {{ log.vehicle.registration_number }}
             </a>
           </td>
           <td class="py-2.5 px-4">{{ log.service_provider }}</td>

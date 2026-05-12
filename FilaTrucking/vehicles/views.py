@@ -164,12 +164,12 @@ def ifta_report(request):
             if 1 <= m <= 12:
                 entries = (
                     IFTAMileage.objects.filter(year=year_int, month=m)
-                    .values("vehicle__id", "vehicle__chassis_number", "state_code")
+                    .values("vehicle__id", "vehicle__registration_number", "state_code")
                     .annotate(
                         total_miles=Sum("miles"),
                         total_gallons=Sum("gallons"),
                     )
-                    .order_by("vehicle__chassis_number", "state_code")
+                    .order_by("vehicle__registration_number", "state_code")
                 )
 
                 summary = []
