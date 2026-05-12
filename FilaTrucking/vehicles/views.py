@@ -81,14 +81,26 @@ class IFTAMilesCreateView(LoginRequiredMixin, CreateView):
         return context
 
     def form_valid(self, form):
-        obj, created = IFTAMileage.objects.update_or_create(
+        existing = IFTAMileage.objects.filter(
             vehicle=form.cleaned_data["vehicle"],
             state_code=form.cleaned_data["state_code"],
             month=form.cleaned_data["month"],
             year=form.cleaned_data["year"],
-            defaults={"miles": form.cleaned_data["miles"]},
-        )
-        msg = "IFTA miles entry created." if created else "IFTA miles entry updated."
+        ).first()
+
+        if existing:
+            existing.miles = form.cleaned_data["miles"]
+            existing.save()
+            msg = "IFTA miles entry updated."
+        else:
+            IFTAMileage.objects.create(
+                vehicle=form.cleaned_data["vehicle"],
+                state_code=form.cleaned_data["state_code"],
+                month=form.cleaned_data["month"],
+                year=form.cleaned_data["year"],
+                miles=form.cleaned_data["miles"],
+            )
+            msg = "IFTA miles entry created."
         messages.success(self.request, msg)
         return redirect(self.success_url)
 
@@ -104,14 +116,26 @@ class IFTAGallonsCreateView(LoginRequiredMixin, CreateView):
         return context
 
     def form_valid(self, form):
-        obj, created = IFTAMileage.objects.update_or_create(
+        existing = IFTAMileage.objects.filter(
             vehicle=form.cleaned_data["vehicle"],
             state_code=form.cleaned_data["state_code"],
             month=form.cleaned_data["month"],
             year=form.cleaned_data["year"],
-            defaults={"gallons": form.cleaned_data["gallons"]},
-        )
-        msg = "IFTA gallons entry created." if created else "IFTA gallons entry updated."
+        ).first()
+
+        if existing:
+            existing.gallons = form.cleaned_data["gallons"]
+            existing.save()
+            msg = "IFTA gallons entry updated."
+        else:
+            IFTAMileage.objects.create(
+                vehicle=form.cleaned_data["vehicle"],
+                state_code=form.cleaned_data["state_code"],
+                month=form.cleaned_data["month"],
+                year=form.cleaned_data["year"],
+                gallons=form.cleaned_data["gallons"],
+            )
+            msg = "IFTA gallons entry created."
         messages.success(self.request, msg)
         return redirect(self.success_url)
 

@@ -45,6 +45,9 @@ class IFTAMilesLogForm(TailwindFormMixin, forms.ModelForm):
         model = IFTAMileage
         fields = ["vehicle", "state_code", "month", "year", "miles"]
 
+    def validate_unique(self):
+        pass
+
 class IFTAGallonsLogForm(TailwindFormMixin, forms.ModelForm):
     state_code = forms.ChoiceField(
         choices=US_STATES,
@@ -59,6 +62,9 @@ class IFTAGallonsLogForm(TailwindFormMixin, forms.ModelForm):
     class Meta:
         model = IFTAMileage
         fields = ["vehicle", "state_code", "month", "year", "gallons"]
+
+    def validate_unique(self):
+        pass
 
 
 class MaintenanceForm(TailwindFormMixin, forms.ModelForm):
