@@ -36,6 +36,7 @@ services:
       - WHATSAPP_INGEST_SECRET=fila_secret_2026
       - WHATSAPP_SIDECAR_URL=http://sidecar:3001
     volumes:
+      - ./FilaTrucking:/app/FilaTrucking
       - ./FilaTrucking/media:/app/FilaTrucking/media
       - staticfiles:/app/FilaTrucking/staticfiles
       - ./.env:/app/.env:ro
