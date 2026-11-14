@@ -1,0 +1,12 @@
+{
+  "name": "filatrucking-frontend",
+  "private": true,
+  "description": "Builds FilaTrucking/static/css/app.css (Tailwind) so pages no longer compile CSS in the browser from a CDN script (QA-035)",
+  "scripts": {
+    "build": "tailwindcss -c tailwind.config.js -i input.css -o ../FilaTrucking/static/css/app.css --minify",
+    "watch": "tailwindcss -c tailwind.config.js -i input.css -o ../FilaTrucking/static/css/app.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "3.4.17"
+  }
+}

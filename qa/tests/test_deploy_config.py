@@ -285,6 +285,13 @@ def _deploy_check(**env):
     return r.returncode, r.stdout + r.stderr
 
 
+def _deploy_command(args, **env):
+    keep = {k: v for k, v in os.environ.items() if k in ("PATH", "SYSTEMROOT", "TEMP", "TMP", "PYTHONPATH", "HOME", "USERPROFILE")}
+    keep["DOTENV_PATH"] = str(ROOT / "qa" / ".no-such-env")
+    keep.update(env)
+    return subprocess.run([sys.executable, "manage.py", *args], env=keep, cwd=dj_settings.BASE_DIR, capture_output=True, text=True)
+
+
 PROD_ENV = dict(GOOD, DEBUG="False", ALLOWED_HOSTS="example.org", CSRF_TRUSTED_ORIGINS="https://example.org",
                 SECRET_KEY="Zq8!vXr3#Lm9@tWp2$Fj7&Hd5^Nb1*Kc4(Ys6)Ge0+Ua-Ox_RiTlEwQyPnMbVcXzAsDfGhJkLq")
 
@@ -365,3 +372,57 @@ class ContinuousIntegrationQA043(SimpleTestCase):
         for module in ("shipments.tests", "vehicles.tests", "vehicles.test_gomotive"):
             suite = unittest.defaultTestLoader.loadTestsFromName(module)
             self.assertGreater(suite.countTestCases(), 0, module)
+
+
+class FrontendDeliveryQA035(SimpleTestCase):
+    def test_pages_no_longer_load_code_or_styles_from_cdns(self):
+        """[QA-035] cdn.tailwindcss.com compiled CSS in every visitor's browser; Alpine came from a floating '3.x.x' URL."""
+        for path in ("FilaTrucking/templates/base.html", "FilaTrucking/templates/settings/whatsapp_settings.html"):
+            text = (ROOT / path).read_text(encoding="utf-8")
+            for host in ("cdn.tailwindcss.com", "cdn.jsdelivr.net", "cdnjs.cloudflare.com", "unpkg.com"):
+                self.assertNotIn(host, text, f"{path} still loads from {host}")
+        base = (ROOT / "FilaTrucking/templates/base.html").read_text(encoding="utf-8")
+        self.assertLess(base.index("alpine-collapse.min.js"), base.index("alpine.min.js"), "collapse plugin must load before Alpine")
+        for name in ("css/app.css", "vendor/alpine.min.js", "vendor/alpine-collapse.min.js", "vendor/qrcode.js"):
+            self.assertTrue((ROOT / "FilaTrucking" / "static" / name).is_file(), name)
+
+    def test_built_css_contains_the_design_tokens_the_templates_use(self):
+        css = (ROOT / "FilaTrucking" / "static" / "css" / "app.css").read_text(encoding="utf-8")
+        for needle in (".bg-surface", ".text-accent", ".bg-brand-light", ".min-h-\[44px\]", ".bg-surface-card"):
+            self.assertIn(needle, css)
+        self.assertNotIn("@apply", css)
+
+    def test_tailwind_config_keeps_the_agents_md_tokens(self):
+        cfg = (ROOT / "frontend" / "tailwind.config.js").read_text(encoding="utf-8")
+        for token in ("#1B3A6B", "#2A5298", "#F59E0B", "#0F172A", "#1E293B"):
+            self.assertIn(token, cfg)
+
+    def test_collectstatic_hashes_file_names_for_cache_busting(self):
+        import tempfile
+        with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as target:
+            r = _deploy_command(["collectstatic", "--noinput"], STATIC_ROOT=target, **PROD_ENV)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            names = os.listdir(os.path.join(target, "css"))
+            self.assertTrue(any(re.fullmatch(r"app\.[0-9a-f]{12}\.css", n) for n in names), names)
+
+    def test_static_files_reach_nginx_through_a_host_folder_refreshed_at_every_start(self):
+        """The old named volume was filled once on first start and never refreshed: new CSS/JS never reached nginx."""
+        services = compose("docker-compose.prod.yml")["services"]
+        self.assertTrue([v for v in services["nginx"]["volumes"] if v.startswith("./FilaTrucking/staticfiles:/staticfiles")])
+        self.assertIn("collectstatic --noinput", services["django"]["command"])
+        self.assertNotIn("staticfiles", compose("docker-compose.prod.yml").get("volumes", {}))
+        self.assertNotIn("collectstatic", (ROOT / "Dockerfile").read_text(encoding="utf-8").replace("# collectstatic is NOT run", ""))
+
+    def test_build_output_is_not_stale(self):
+        """Every Tailwind class used in a template must exist in the committed stylesheet (run 'npm run build' in frontend/)."""
+        css = (ROOT / "FilaTrucking" / "static" / "css" / "app.css").read_text(encoding="utf-8")
+        used = set()
+        for path in (ROOT / "FilaTrucking").rglob("*.html"):
+            if "staticfiles" in path.parts:
+                continue
+            used |= set(re.findall(r'class="([^"{}%]*)"', path.read_text(encoding="utf-8", errors="ignore")))
+        probes = {"sm:flex-row", "md:ml-60", "hover:bg-accent-dark", "focus:not-sr-only", "bg-surface/90", "min-h-[44px]"}
+        for cls in probes:
+            if any(cls in u.split() for u in used):
+                escaped = cls.replace(":", "\:").replace("[", "\[").replace("]", "\]").replace("/", "\/")
+                self.assertIn("." + escaped, css, f"class '{cls}' is used in a template but missing from app.css: rebuild it")

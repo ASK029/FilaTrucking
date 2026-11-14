@@ -6,8 +6,8 @@ const path = require('path');
 
 const BASE = process.env.BASE || 'http://127.0.0.1:18080';
 const ROOT = path.resolve(__dirname, '..');
-const SHOTS = path.join(ROOT, 'screenshots');
-const OUT = path.join(ROOT, 'evidence', 'ui_crawl.json');
+const SHOTS = process.env.SHOTS_DIR ? path.resolve(process.env.SHOTS_DIR) : path.join(ROOT, 'screenshots');
+const OUT = process.env.OUT_JSON ? path.resolve(process.env.OUT_JSON) : path.join(ROOT, 'evidence', 'ui_crawl.json');
 fs.mkdirSync(SHOTS, { recursive: true });
 const axeSrc = fs.readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
 

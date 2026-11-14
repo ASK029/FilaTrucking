@@ -136,15 +136,6 @@
   </div>
 </div>
 
-<style>
-  /* Standardizing input scaling for formsets in table rows to prevent overflow */
-  select,
-  input[type="text"],
-  input[type="date"],
-  input[type="number"] {
-    @apply bg-slate-900 border-slate-700 rounded-lg text-xs py-1.5 focus:ring-accent !important;
-  }
-</style>
 {# QA-005: json_script escapes <, > and & so shipment text (it comes from WhatsApp) can never close the tag #}
 {{ shipment_data|json_script:"shipment-data" }}
 <script>

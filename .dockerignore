@@ -47,6 +47,7 @@ sidecar/*.log
 
 # Uploaded files / business data never go into an image (QA-024); production mounts ./FilaTrucking/media
 FilaTrucking/media/
+FilaTrucking/staticfiles/
 gomotive_resp.json
 qa/
 

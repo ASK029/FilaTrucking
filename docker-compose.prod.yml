@@ -32,7 +32,6 @@ x-django-common: &django-common
   volumes:
     - ./FilaTrucking:/app/FilaTrucking
     - ./FilaTrucking/media:/app/FilaTrucking/media
-    - staticfiles:/app/FilaTrucking/staticfiles
     - ./.env:/app/.env:ro
   depends_on:
     mysql:
@@ -119,7 +118,9 @@ services:
     mem_limit: 1g
     expose:
       - "8000"
-    command: gunicorn FilaTrucking.wsgi:application --bind 0.0.0.0:8000 --workers 4 --timeout 60
+    # collectstatic first: the old named 'staticfiles' volume was filled once and never refreshed, so new CSS/JS from a
+    # deploy never reached nginx (QA-035). Files get content-hashed names, so browsers never keep a stale copy.
+    command: sh -c "python manage.py collectstatic --noinput && exec gunicorn FilaTrucking.wsgi:application --bind 0.0.0.0:8000 --workers 4 --timeout 60"
     healthcheck:
       # X-Forwarded-Proto keeps the probe working if Django's own HTTPS redirect is switched on
       test: ["CMD", "python", "-c", "import urllib.request as u,sys; r=u.Request('http://127.0.0.1:8000/auth/login/', headers={'X-Forwarded-Proto':'https'}); sys.exit(0 if u.urlopen(r, timeout=4).status == 200 else 1)"]
@@ -180,7 +181,7 @@ services:
     mem_limit: 256m
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - staticfiles:/staticfiles
+      - ./FilaTrucking/staticfiles:/staticfiles:ro   # written by the django container (collectstatic at start)
       - certbot_www:/var/www/certbot
       - certbot_conf:/etc/letsencrypt
     ports:
@@ -227,6 +228,5 @@ volumes:
   mysql_data:
   redis_data:
   auth_data:
-  staticfiles:
   certbot_www:
   certbot_conf:

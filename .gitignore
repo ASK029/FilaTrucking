@@ -23,6 +23,7 @@ node_modules/
 
 # Real business data and uploads must never be committed (the repository is public) (QA-024)
 FilaTrucking/media/
+FilaTrucking/staticfiles/
 docs/*.csv
 docs/*.xlsx
 docs/*.xls

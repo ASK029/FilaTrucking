@@ -7,59 +7,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Fila Trucking — Dispatch & Fleet Management System" />
     <title>{% block title %}FilaTrucking TMS{% endblock %}</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Design tokens -->
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brand: { DEFAULT: '#1B3A6B', light: '#2A5298' },
-                        accent: { DEFAULT: '#F59E0B', dark: '#D97706' },
-                        surface: { DEFAULT: '#0F172A', card: '#1E293B' },
-                        muted: '#64748B',
-                    },
-                    fontFamily: {
-                        sans: ['DM Sans', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace'],
-                    },
-                }
-            }
-        }
-    </script>
+    {% comment %}Stylesheet built from frontend/ (Tailwind CLI). It replaces the Play CDN script, which compiled CSS in every visitor's browser, needed the Tailwind CDN host to be reachable and logged 'should not be used in production' on every page (QA-035).{% endcomment %}
+    <link rel="stylesheet" href="{% static 'css/app.css' %}" />
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
         href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap"
         rel="stylesheet" />
-    <!-- Alpine.js for lightweight interactivity -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    {% comment %}Alpine.js, pinned and served from this server. The collapse plugin must be loaded BEFORE Alpine itself (x-collapse is used by the sidebar; without it the console showed 492 warnings).{% endcomment %}
+    <script defer src="{% static 'vendor/alpine-collapse.min.js' %}"></script>
+    <script defer src="{% static 'vendor/alpine.min.js' %}"></script>
     {% block extra_head %}{% endblock %}
-    <style>
-        /* Smooth scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #0F172A;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 3px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #475569;
-        }
-    </style>
 </head>
 
 <body class="bg-surface text-slate-100 min-h-screen font-sans antialiased" x-data="{ sidebarOpen: false }">
+    {# Keyboard users can jump past the navigation (QA-033/046) #}
+    <a href="#main-content"
+        class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-accent focus:text-surface focus:font-bold focus:px-4 focus:py-3 focus:rounded-xl">Skip to main content</a>
 
     {# ===================================================================== #}
     {# TOP BAR #}
@@ -221,12 +186,31 @@
             </div>
             {% endif %}
             {# Page content #}
-            <div class="p-4 md:p-8">
+            <div class="p-4 md:p-8" id="main-content" tabindex="-1">
                 {% block content %}{% endblock %}
             </div>
         </main>
     </div>
     {% block extra_scripts %}{% endblock %}
+    <script>
+        // Double-click guard (QA-046): a second click on a submit button while the first request is still running used to
+        // post the form twice (two invoices, two expenses, two e-mails). Opt out with data-no-guard on the form.
+        document.addEventListener('submit', function (event) {
+            const form = event.target;
+            if (!(form instanceof HTMLFormElement) || form.hasAttribute('data-no-guard') || event.defaultPrevented) return;
+            if (form.dataset.submitting === '1') { event.preventDefault(); return; }
+            form.dataset.submitting = '1';
+            form.querySelectorAll('button[type=submit], input[type=submit]').forEach(function (b) { b.setAttribute('aria-busy', 'true'); b.classList.add('opacity-60', 'pointer-events-none'); });
+        });
+        // coming back with the browser's Back button must not leave the form locked
+        window.addEventListener('pageshow', function (event) {
+            if (!event.persisted) return;
+            document.querySelectorAll('form[data-submitting]').forEach(function (f) {
+                delete f.dataset.submitting;
+                f.querySelectorAll('[aria-busy]').forEach(function (b) { b.removeAttribute('aria-busy'); b.classList.remove('opacity-60', 'pointer-events-none'); });
+            });
+        });
+    </script>
 </body>
 
 </html>

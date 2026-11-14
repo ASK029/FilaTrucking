@@ -28,8 +28,8 @@ COPY FilaTrucking/ ./FilaTrucking/
 # Change to Django project directory
 WORKDIR /app/FilaTrucking
 
-# Collect static files
-RUN python manage.py collectstatic --noinput
+# collectstatic is NOT run at build time any more: settings.py refuses to start without SECRET_KEY/DATABASE_URL (QA-006),
+# and in production the container collects into the shared ./FilaTrucking/staticfiles folder every time it starts.
 
 EXPOSE 8000
 

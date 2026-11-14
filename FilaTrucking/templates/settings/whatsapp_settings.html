@@ -4,11 +4,11 @@
 {% block title %}WhatsApp Settings - FilaTrucking{% endblock %}
 
 {% block extra_head %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="{% static 'vendor/qrcode.js' %}"></script>
 {% endblock %}
 
 {% block content %}
-<main class="flex-1 pt-14 overflow-y-auto">
+<div class="flex-1 overflow-y-auto">
     <div class="p-4 md:p-8 max-w-7xl mx-auto">
         
         {# Page Header #}
@@ -237,7 +237,7 @@
         </div>
 
     </div>
-</main>
+</div>
 
 <script>
 // CSRF token for the POST calls below (the API views also accept a session, so they check it themselves).

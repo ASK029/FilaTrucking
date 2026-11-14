@@ -153,7 +153,17 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = os.environ.get('STATIC_ROOT') or os.path.join(BASE_DIR, 'staticfiles')
+
+# Project-level static files: the Tailwind build (css/app.css) and the vendored JS libraries (vendor/) (QA-035)
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    # collectstatic writes app.<content hash>.css etc., so a changed file can never be served stale from a browser cache
+    # (nginx marks /static/ as immutable for 30 days)
+    "staticfiles": {"BACKEND": "FilaTrucking.storage.LenientManifestStaticFilesStorage"},
+}
 
 # This tells Django to look for a "static" folder inside each app (like /drivers/)
 STATICFILES_FINDERS = [
