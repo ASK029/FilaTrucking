@@ -28,6 +28,7 @@ x-django-common: &django-common
     - WHATSAPP_SIDECAR_URL=http://sidecar:3001
     - CELERY_BROKER_URL=redis://redis:6379/0
     - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    - CACHE_URL=redis://redis:6379/1
   volumes:
     - ./FilaTrucking:/app/FilaTrucking
     - ./FilaTrucking/media:/app/FilaTrucking/media

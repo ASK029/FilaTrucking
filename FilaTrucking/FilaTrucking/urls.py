@@ -20,9 +20,12 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 from . import views as project_views
+from .throttle import ThrottledLoginView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    # login is throttled (QA-030); the remaining auth views (logout, password reset/change) come from Django
+    path("auth/login/", ThrottledLoginView.as_view(), name="login"),
     path("auth/", include("django.contrib.auth.urls")),
     path("", project_views.dashboard, name="dashboard"),
     path("test-report/", project_views.test_report, name="test_report"),

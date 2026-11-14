@@ -192,6 +192,16 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+# Cache (login throttling counters). Production points CACHE_URL at Redis so every gunicorn worker shares the counters;
+# without it each process keeps its own in memory (fine for development and tests).
+CACHES = {
+    'default': (
+        {'BACKEND': 'django.core.cache.backends.redis.RedisCache', 'LOCATION': os.environ['CACHE_URL']}
+        if os.environ.get('CACHE_URL')
+        else {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache', 'LOCATION': 'fila-default'}
+    )
+}
+
 # Celery / Redis configuration
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://127.0.0.1:6379/0")
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", CELERY_BROKER_URL)

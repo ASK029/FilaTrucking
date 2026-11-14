@@ -167,3 +167,55 @@ class UploadsQA023(QABase):
         self.assertNotIn("alias /media/", conf)
         services = compose("docker-compose.prod.yml")["services"]
         self.assertFalse([v for v in services["nginx"]["volumes"] if "/media" in v])
+
+
+from django.core.cache import cache
+
+
+@override_settings(PASSWORD_HASHERS=["django.contrib.auth.hashers.MD5PasswordHasher"])  # fast: dozens of logins
+class LoginThrottleQA030(QABase):
+    def setUp(self):
+        super().setUp()
+        cache.clear()
+
+    def attempt(self, password, username="qa_admin", **meta):
+        return self.client.post("/auth/login/", {"username": username, "password": password}, **meta)
+
+    def test_five_wrong_passwords_lock_the_pair_even_for_the_right_password(self):
+        for i in range(5):
+            self.assertEqual(self.attempt(f"wrong{i}").status_code, 200)
+        r = self.attempt("qa-pass-123")  # the CORRECT password, but the account is locked from this address
+        self.assertEqual(r.status_code, 429)
+        self.assertEqual(r["Retry-After"], "900")
+        self.assertContains(r, "Too many failed sign-in attempts", status_code=429)
+        self.assertNotIn("_auth_user_id", self.client.session)
+
+    def test_another_address_can_still_sign_in_so_an_attacker_cannot_lock_the_admin_out(self):
+        for i in range(6):
+            self.attempt(f"wrong{i}", HTTP_X_FORWARDED_FOR="203.0.113.9")
+        r = self.attempt("qa-pass-123", HTTP_X_FORWARDED_FOR="198.51.100.7")
+        self.assertEqual(r.status_code, 302)
+
+    def test_spoofed_forwarded_for_prefix_does_not_dodge_the_lock(self):
+        for i in range(5):  # nginx appends the real peer (right-most); the client-supplied prefix changes every time
+            self.attempt(f"wrong{i}", HTTP_X_FORWARDED_FOR=f"10.0.0.{i}, 203.0.113.9")
+        self.assertEqual(self.attempt("x", HTTP_X_FORWARDED_FOR="10.9.9.9, 203.0.113.9").status_code, 429)
+
+    def test_successful_login_resets_the_counter(self):
+        for i in range(4):
+            self.attempt(f"wrong{i}")
+        self.assertEqual(self.attempt("qa-pass-123").status_code, 302)
+        self.client.logout()
+        for i in range(4):
+            self.assertEqual(self.attempt(f"again{i}").status_code, 200)
+
+    def test_one_address_is_limited_across_usernames(self):
+        for i in range(20):
+            self.attempt("nope", username=f"user{i}")
+        self.assertEqual(self.attempt("qa-pass-123").status_code, 429)
+
+    def test_nginx_also_rate_limits_the_login_form(self):
+        conf = (ROOT / "nginx.conf").read_text(encoding="utf-8")
+        self.assertIn("limit_req_zone", conf)
+        self.assertRegex(conf, r"location = /auth/login/ \{\s*limit_req zone=login")
+        self.assertIn("CACHE_URL=redis://redis:6379/1", " ".join(compose("docker-compose.prod.yml")["services"]["django"]["environment"]))
