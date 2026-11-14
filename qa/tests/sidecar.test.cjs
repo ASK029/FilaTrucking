@@ -123,3 +123,16 @@ test('QA-015 close + two restart calls leave a single pending start', () => {
   const { res } = run('no_stacking');
   assert.strictEqual(res.pending_restart_timers_after_close_plus_two_restarts, 1);
 });
+
+test('QA-016 the bot stays silent for chit-chat and while Django is down, and answers real shipments', () => {
+  const { res } = run('noise');
+  assert.strictEqual(res.replies_after_ignored, 0, 'ignored chit-chat must not be answered');
+  assert.strictEqual(res.replies_while_django_is_down, 0, 'no "please use the correct format" spam on Django errors');
+  assert.deepStrictEqual(res.replies_after_success, ['Shipment recorded!']);
+});
+
+test('QA-016 replies are rate limited (1 per chat per 2 s, 20 per minute overall)', () => {
+  const { res } = run('reply_limit');
+  assert.strictEqual(res.replies_to_5_messages_in_a_burst_same_chat, 1);
+  assert.ok(res.replies_to_30_chats_in_a_burst <= 19, `sent ${res.replies_to_30_chats_in_a_burst}`);
+});

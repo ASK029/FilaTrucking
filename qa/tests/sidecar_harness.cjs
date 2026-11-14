@@ -1,7 +1,7 @@
 // QA harness: loads the REAL sidecar/index.js with Baileys + axios + qrcode-terminal stubbed out.
 // No WhatsApp connection is ever made. Each scenario is run in its own process:
 //   node qa/tests/sidecar_harness.cjs <scenario>
-// Scenarios: version | noise | crash | restart_dup | interval_leak | noauth_api | reconnect_loop | close_codes |
+// Scenarios: version | noise | reply_limit | crash | restart_dup | interval_leak | noauth_api | reconnect_loop | close_codes |
 //            qr_timeouts | no_stacking | dedupe
 const Module = require('module');
 const path = require('path');
@@ -112,11 +112,37 @@ const groupMsg = (text, id = 'MSG1') => ({
   }
 
   if (scenario === 'noise') {
-    // Django's real answer to chit-chat (see qa/tests/test_whatsapp_ingest.py::test_chat_noise_*):
-    djangoPostImpl = async () => ({ data: { status: 'flagged', message: 'Missing fields, flagged for manual review.', message_id: 1 } });
+    // what Django answers (a) to chit-chat, (b) when it is down, (c) to a real shipment
+    djangoPostImpl = async () => ({ data: { status: 'ignored', message: 'Not a shipment message' } });
     s0.ev.emit('messages.upsert', groupMsg('ok thanks boss'));
+    await sleep(200);
+    out('replies_after_ignored', s0.sent.length);
+
+    djangoPostImpl = async () => { throw new Error('connect ECONNREFUSED'); };
+    for (const t of ['hello', 'where are you?', 'BK1\nCONT1\nSEAL1\nASL']) s0.ev.emit('messages.upsert', groupMsg(t));
     await sleep(300);
-    out('replies_sent_to_group', s0.sent.map((m) => m.content.text));
+    out('replies_while_django_is_down', s0.sent.length);
+
+    djangoPostImpl = async () => ({ data: { status: 'success', reply_message: 'Shipment recorded!' } });
+    s0.ev.emit('messages.upsert', groupMsg('BK1\nCONT1\nSEAL1\nASL'));
+    await sleep(200);
+    out('replies_after_success', s0.sent.map((m) => m.content.text));
+  }
+
+  if (scenario === 'reply_limit') {
+    djangoPostImpl = async () => ({ data: { status: 'flagged', reply_message: 'help' } });
+    for (let i = 0; i < 5; i++) s0.ev.emit('messages.upsert', groupMsg('BK1\nCONT1', 'M' + i));
+    await sleep(400);
+    out('replies_to_5_messages_in_a_burst_same_chat', s0.sent.length);
+    out('replies_to_30_chats_in_a_burst', await (async () => {
+      const before = s0.sent.length;
+      for (let i = 0; i < 30; i++) {
+        s0.ev.emit('messages.upsert', { type: 'notify', messages: [{ key: { remoteJid: `chat${i}@g.us`, participant: 'p@s.whatsapp.net', fromMe: false, id: 'X' + i },
+          message: { conversation: 'BK1\nCONT1' }, messageTimestamp: 1767225600 }] });
+      }
+      await sleep(600);
+      return s0.sent.length - before;
+    })());
   }
 
   if (scenario === 'crash') {

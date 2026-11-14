@@ -359,6 +359,24 @@ async function safeSend(jid, content) {
     }
 }
 
+// Reply budget: the bot must never look like a spammer to WhatsApp (account-ban risk): at most one reply per
+// chat every 2 s and 20 replies per minute overall; the rest are dropped (and logged).
+const REPLY_MIN_GAP_MS = 2000;
+const REPLY_MAX_PER_MINUTE = 20;
+const lastReplyAt = new Map();
+let replyTimes = [];
+async function reply(jid, text) {
+    const now = Date.now();
+    replyTimes = replyTimes.filter((t) => now - t < 60000);
+    if (replyTimes.length >= REPLY_MAX_PER_MINUTE || now - (lastReplyAt.get(jid) || 0) < REPLY_MIN_GAP_MS) {
+        addLog('warning', `Reply to ${jid} dropped (rate limit)`);
+        return false;
+    }
+    lastReplyAt.set(jid, now);
+    replyTimes.push(now);
+    return safeSend(jid, { text });
+}
+
 function attachMessageHandlers(socket, isCurrent) {
     socket.ev.on('groups.upsert', async (groupsUpserted) => {
         if (!isCurrent()) return;
@@ -428,48 +446,26 @@ async function handleIncomingMessage(msg) {
 
         addLog('info', `API response: ${response.data.status}`);
 
-        // Use reply_message if provided by Django, otherwise use default messages
-        if (response.data.reply_message) {
-            await safeSend(msg.key.remoteJid, { text: response.data.reply_message });
-        } else if (response.data.status === 'success') {
-            let replyText = `✅ Shipment processed successfully (ID: ${response.data.shipment_id}). Status: Pending confirmation.`;
-            if (response.data.flagged) {
-                replyText += `\n⚠️ Note: System flagged a potential duplicate container. Admin will review.`;
+        // Only answer when Django asks us to (a shipment was recorded, or an obvious attempt needs fixing).
+        // 'ignored' (chit-chat) and anything unknown stay silent (QA-016).
+        const data = response.data || {};
+        if (data.reply_message && (data.status === 'success' || data.status === 'flagged')) {
+            await reply(msg.key.remoteJid, data.reply_message);
+        } else if (data.status === 'success') {
+            let replyText = `✅ Shipment processed successfully (ID: ${data.shipment_id}). Status: Pending confirmation.`;
+            if (data.flagged) {
+                replyText += '\n⚠️ Note: System flagged a potential duplicate container. Admin will review.';
             }
-            await safeSend(msg.key.remoteJid, { text: replyText });
-        } else if (response.data.status === 'flagged') {
-            await safeSend(msg.key.remoteJid, { text: `⚠️ System flagged the shipment: ${response.data.message}` });
+            await reply(msg.key.remoteJid, replyText);
         }
 
     } catch (error) {
-        // Check if it's a Django error response or a network error
+        // Django down / rejected the request. This is not the driver's fault: log it, never answer with
+        // "please use the correct format" (that spammed the group on every chat message while Django was down).
         const errorMsg = error.response && error.response.data && error.response.data.message
             ? error.response.data.message
             : error.message;
-
         addLog('error', `Django API error: ${errorMsg}`);
-
-        // Send format help on any error
-        const formatHelp = `📋 Please use the correct shipment format:
-
-BOOKING CONTAINER SEAL [CUSTOMER] [DATE]
-CUSTOMER: name or abbreviation
-RATE: amount
-DRIVER: driver name
-TRUCK: truck plate
-
-Example:
-TEST001
-CNTR12345
-SEAL99999
-AMSTAR
-05/01/2026
-CUSTOMER: AMSTAR
-RATE: 1500
-DRIVER: John Smith
-TRUCK: ABC-1234`;
-
-        await safeSend(msg.key.remoteJid, { text: formatHelp });
     }
 }
 

@@ -33,6 +33,47 @@ def has_valid_bearer(request):
 def _sidecar_headers():
     return {"Authorization": f"Bearer {WHATSAPP_SECRET}"}
 
+FORMAT_HELP = """📋 Please use the correct shipment format:
+
+BOOKING CONTAINER SEAL [CUSTOMER] [DATE]
+CUSTOMER: name or abbreviation
+RATE: amount
+DRIVER: driver name
+TRUCK: truck plate
+
+Example:
+TEST001
+CNTR12345
+SEAL99999
+AMSTAR
+05/01/2026
+CUSTOMER: AMSTAR
+RATE: 1500
+DRIVER: John Smith
+TRUCK: ABC-1234"""
+
+SHIPMENT_KEYS = {"date", "booking", "container", "seal", "customer", "rate", "driver", "truck", "location"}
+
+
+def looks_like_shipment_message(text):
+    """Is this plausibly an attempt to report a shipment, as opposed to chat in the dispatch group? (QA-016)
+
+    True when at least two recognised 'key: value' lines are present (BOOKING:, SEAL:, ...), or at least two
+    one-word lines of which one contains a digit (booking/container/seal numbers). 'ok thanks boss' is neither.
+    """
+    keys, tokens = set(), []
+    for line in (ln.strip() for ln in text.splitlines()):
+        if not line:
+            continue
+        if ":" in line:
+            key = line.split(":", 1)[0].strip().lower()
+            if key in SHIPMENT_KEYS:
+                keys.add(key)
+        elif len(line) > 1 and len(line.split()) == 1:
+            tokens.append(line)
+    return len(keys) >= 2 or (len(tokens) >= 2 and any(ch.isdigit() for t in tokens for ch in t))
+
+
 @csrf_exempt
 @require_POST
 def ingest_whatsapp_message(request):
@@ -49,6 +90,11 @@ def ingest_whatsapp_message(request):
     if not raw_text:
         return JsonResponse({"error": "No text provided"}, status=400)
     
+    if not looks_like_shipment_message(raw_text):
+        # Chit-chat in the group: no error row (it would keep personal chat forever), and no reply (the sidecar
+        # only answers when Django sends a reply_message) (QA-016).
+        return JsonResponse({"status": "ignored", "message": "Not a shipment message"})
+
     msg_log = WhatsAppMessage.objects.create(
         raw_text=raw_text,
         sender_phone=sender_phone
@@ -136,9 +182,10 @@ TRUCK: ABC-1234"""
             msg_log.error_message = f"Missing required fields. Found {len(extracted_values)} values, need at least 3 (booking, container, seal)."
             msg_log.save()
             return JsonResponse({
-                "status": "flagged", 
+                "status": "flagged",
                 "message": "Missing fields, flagged for manual review.",
-                "message_id": msg_log.id
+                "message_id": msg_log.id,
+                "reply_message": FORMAT_HELP,
             })
         
         # Extract required fields

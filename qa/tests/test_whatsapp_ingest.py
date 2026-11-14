@@ -106,3 +106,26 @@ class IngestBusinessRules(QABase):
         self.ingest(POSITIONAL, timestamp="2026-01-05T15:00:00.000Z")
         self.ingest(POSITIONAL, timestamp="2026-01-05T15:00:00.000Z")
         self.assertEqual(Shipment.objects.count(), 1)
+
+
+class NoiseClassifierQA016(QABase):
+    def test_what_counts_as_a_shipment_attempt(self):
+        from shipments.api import looks_like_shipment_message as f
+        for text in ("ok thanks boss", "hello everyone", "👍", "On my way, 20 min", "Truck: 5 broke down", "customer: ASL",
+                     "yes\nthanks", "Call me\nplease", "https://example.org/x"):
+            with self.subTest(text=text):
+                self.assertFalse(f(text))
+        for text in (POSITIONAL, KV, "BK123\nCNT456", "booking: B1\nseal: 9", "  BK1  \n\n  CONT1  "):
+            with self.subTest(text=text):
+                self.assertTrue(f(text))
+
+    def test_ignored_messages_are_not_stored_at_all(self):
+        self.ingest("ok thanks boss")
+        self.ingest("Where are you?")
+        self.assertEqual(WhatsAppMessage.objects.count(), 0)
+
+    def test_a_real_but_incomplete_attempt_is_flagged_and_stored(self):
+        j = self.ingest("BK123\nCNT456").json()
+        self.assertEqual(j["status"], "flagged")
+        self.assertIn("BOOKING CONTAINER SEAL", j["reply_message"])  # the driver is told what is missing
+        self.assertEqual(WhatsAppMessage.objects.filter(is_flagged=True).count(), 1)
