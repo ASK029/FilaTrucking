@@ -150,3 +150,25 @@ class PythonDependencies(SimpleTestCase):
     def test_dockerfile_installs_only_from_the_pinned_file(self):
         text = (ROOT / "Dockerfile").read_text(encoding="utf-8")
         self.assertRegex(text, r"pip install --no-cache-dir -r requirements.txt\s*\n")
+
+
+class NoBusinessDataInGit(SimpleTestCase):
+    """[QA-024] the repository is public: uploads, statements and exports must not be tracked or baked into images."""
+
+    def tracked(self):
+        return subprocess.run(["git", "ls-files"], cwd=ROOT, capture_output=True, text=True).stdout.splitlines()
+
+    def test_no_uploads_exports_or_spreadsheets_are_tracked(self):
+        bad = [f for f in self.tracked() if f.startswith("FilaTrucking/media/") or f == "gomotive_resp.json"
+               or (f.startswith("docs/") and f.lower().endswith((".csv", ".xlsx", ".xls")))]
+        self.assertEqual(bad, [])
+
+    def test_gitignore_blocks_them_again(self):
+        text = (ROOT / ".gitignore").read_text(encoding="utf-8")
+        for rule in ("FilaTrucking/media/", "docs/*.csv", "docs/*.xlsx", "gomotive_resp.json"):
+            self.assertIn(rule, text)
+
+    def test_docker_build_context_excludes_media_and_secrets(self):
+        text = (ROOT / ".dockerignore").read_text(encoding="utf-8")
+        for rule in ("FilaTrucking/media/", ".env"):
+            self.assertIn(rule, text)

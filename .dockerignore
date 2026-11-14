@@ -1,0 +1,60 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv
+venv/
+ENV/
+.pytest_cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+
+# Docker
+docker-compose*.yml
+docker-compose*.yaml
+Dockerfile
+.dockerignore
+
+# Documentation
+docs/
+*.md
+README*
+LICENSE
+
+# Development files
+.env
+.env.local
+*.example
+
+# Sidecar (node_modules is built separately)
+sidecar/node_modules
+sidecar/*.log
+
+# Uploaded files / business data never go into an image (QA-024); production mounts ./FilaTrucking/media
+FilaTrucking/media/
+gomotive_resp.json
+qa/
+
+# Temporary
+tmp/
+*.tmp
+*.bak
+
+# OS
+.DS_Store
+Thumbs.db

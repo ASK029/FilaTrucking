@@ -17,3 +17,11 @@ env
 
 # Dependencies are installed from lockfiles, never committed (QA-022)
 node_modules/
+
+# Real business data and uploads must never be committed (the repository is public) (QA-024)
+FilaTrucking/media/
+docs/*.csv
+docs/*.xlsx
+docs/*.xls
+gomotive_resp.json
+*.sqlite3
