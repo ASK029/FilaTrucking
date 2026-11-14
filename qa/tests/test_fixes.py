@@ -507,3 +507,16 @@ class MobileAndAccessibilityQA032QA033(QABase):
                 if "text-slate-500" in line and not (path.name == "invoice_detail.html" and i >= 124):  # the white invoice sheet is light
                     offenders.append(f"{path.name}:{i}")
         self.assertEqual(offenders, [], "text-slate-500 is 3.7:1 on the dark background (needs 4.5:1)")
+
+
+@override_settings(PASSWORD_HASHERS=["django.contrib.auth.hashers.MD5PasswordHasher"])
+class LoginThrottleCacheOutageQA030(QABase):
+    def test_login_still_works_when_the_cache_backend_is_down(self):
+        """If Redis is unreachable the lockout must not turn into a 500 on the login page."""
+        from unittest import mock
+        boom = ConnectionError("redis down")
+        with mock.patch("django.core.cache.cache.get", side_effect=boom), mock.patch("django.core.cache.cache.add", side_effect=boom), \
+                mock.patch("django.core.cache.cache.incr", side_effect=boom), mock.patch("django.core.cache.cache.delete", side_effect=boom):
+            bad = self.client.post("/auth/login/", {"username": "qa_admin", "password": "wrong"})
+            good = self.client.post("/auth/login/", {"username": "qa_admin", "password": "qa-pass-123"})
+        self.assertEqual((bad.status_code, good.status_code), (200, 302))
