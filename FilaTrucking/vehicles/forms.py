@@ -76,11 +76,13 @@ class MaintenanceForm(TailwindFormMixin, forms.ModelForm):
             "service_provider",
             "type",
             "description",
+            "date",
             "mileage_at_service",
             "next_service_mileage",
             "next_service_due",
             "gomotive_alert_id",
         ]
         widgets = {
+            "date": forms.DateInput(attrs={"type": "date"}),
             "next_service_due": forms.DateInput(attrs={"type": "date"}),
         }

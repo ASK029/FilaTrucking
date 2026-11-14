@@ -277,7 +277,7 @@ def sync_vehicle_gomotive(request, pk):
     vehicle = get_object_or_404(Vehicle, pk=pk)
     
     if not vehicle.gomotive_id:
-        messages.error(request, f"Vehicle {vehicle.name} has no GoMotive ID set.")
+        messages.error(request, f"Truck {vehicle.registration_number} has no GoMotive ID set. Add it on the truck's edit page first.")
         return redirect("vehicle_detail", pk=pk)
 
     try:

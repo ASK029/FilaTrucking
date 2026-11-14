@@ -124,7 +124,8 @@ class Maintenance(models.Model):
         verbose_name="Next Service Mileage",
         help_text="Mileage at which the next service should occur.",
     )
-    date = models.DateField(auto_now_add=True, verbose_name="Service Date")
+    # editable with a default (was auto_now_add, which made it impossible to enter a past service with its real date) (QA-040)
+    date = models.DateField(default=timezone.localdate, verbose_name="Service Date")
     next_service_due = models.DateField(null=True, blank=True, verbose_name="Next Service Due")
     # GoMotive sync metadata
     gomotive_alert_id = models.CharField(max_length=64, null=True, blank=True, unique=True, verbose_name="GoMotive Alert ID")

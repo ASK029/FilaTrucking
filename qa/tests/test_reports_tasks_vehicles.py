@@ -250,3 +250,44 @@ class ProtectedHistoryQA039(QABase):
         self.assertContains(self.client.get(f"/vehicles/{self.vehicle.pk}/"), "In Use")
         Vehicle.objects.filter(pk=self.vehicle.pk).update(status="RE")
         self.assertContains(self.client.get("/vehicles/"), "Retired")
+
+
+class VehicleFixesQA040(QABase):
+    def setUp(self):
+        super().setUp()
+        self.login()
+
+    def maintenance_post(self, **over):
+        data = {"vehicle": self.vehicle.pk, "cost": "120.00", "service_provider": "Joe's Garage", "type": "Oil change",
+                "description": "Done", "date": "2025-03-14", "mileage_at_service": "100000", "next_service_mileage": "110000"}
+        data.update(over)
+        return self.client.post("/vehicles/maintenance/create/", data)
+
+    def test_a_past_service_keeps_the_date_that_was_entered(self):
+        self.assertEqual(self.maintenance_post().status_code, 302)
+        self.assertEqual(str(Maintenance.objects.get().date), "2025-03-14")
+
+    def test_date_defaults_to_today_in_business_time_when_left_empty_in_code(self):
+        from django.utils import timezone
+        m = Maintenance.objects.create(vehicle=self.vehicle, cost=1, service_provider="x", description="d")
+        self.assertEqual(m.date, timezone.localdate())
+
+    def test_form_shows_the_date_field_and_editing_keeps_the_stored_date(self):
+        self.maintenance_post()
+        m = Maintenance.objects.get()
+        self.assertContains(self.client.get(f"/vehicles/maintenance/{m.pk}/edit/"), 'name="date"')
+        self.client.post(f"/vehicles/maintenance/{m.pk}/edit/", dict(vehicle=self.vehicle.pk, cost="130", service_provider="x",
+                         type="Oil", description="d", date="2025-03-14", mileage_at_service="1"))
+        m.refresh_from_db()
+        self.assertEqual((str(m.date), m.cost), ("2025-03-14", Decimal("130.00")))
+
+    def test_sync_without_a_gomotive_id_explains_what_to_do(self):
+        r = self.client.post(f"/vehicles/{self.vehicle.pk}/sync/", follow=True)
+        self.assertEqual(r.status_code, 200)
+        text = " ".join(str(m) for m in r.context["messages"])
+        self.assertIn(self.vehicle.registration_number, text)
+        self.assertIn("no GoMotive ID", text)
+
+    def test_maintenance_delete_confirmation_names_the_truck(self):
+        m = Maintenance.objects.create(vehicle=self.vehicle, cost=1, service_provider="x", description="d")
+        self.assertContains(self.client.get(f"/vehicles/maintenance/{m.pk}/delete/"), self.vehicle.registration_number)
