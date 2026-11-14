@@ -255,3 +255,20 @@ class BackupsQA027(SimpleTestCase):
     def test_backups_are_not_committed(self):
         self.assertIn("backups/", (ROOT / ".gitignore").read_text(encoding="utf-8"))
         self.assertTrue((ROOT / "deploy" / "README.md").exists())
+
+
+class BaseImagesQA028(SimpleTestCase):
+    def test_dockerfiles_use_pinned_supported_distributions(self):
+        """[QA-028] 'python:3.12-slim' silently moved to a new Debian during the QA build; Node 20/Debian 11 are EOL."""
+        django_from = re.search(r"(?m)^FROM (\S+)", (ROOT / "Dockerfile").read_text(encoding="utf-8")).group(1)
+        self.assertEqual(django_from, "python:3.12-slim-bookworm")
+        froms = re.findall(r"(?m)^FROM (\S+)", (ROOT / "sidecar" / "Dockerfile").read_text(encoding="utf-8"))
+        self.assertEqual(froms, ["node:24-bookworm-slim", "node:24-bookworm-slim"])
+        for image in froms:
+            self.assertNotIn("bullseye", image)
+            self.assertNotRegex(image, r"node:20")
+
+    def test_mysql_upgrade_is_documented_not_automatic(self):
+        text = (ROOT / "deploy" / "README.md").read_text(encoding="utf-8")
+        self.assertIn("8.4", text)
+        self.assertIn("rehearse", text.lower())
