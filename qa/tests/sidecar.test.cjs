@@ -35,3 +35,30 @@ test('QA-001 falls back to the Baileys default (no version key) when the lookup 
   const { res } = run('version', { HARNESS_FETCH: 'fail' });
   assert.strictEqual(res.has_version_key, false);
 });
+
+test('QA-002 the sidecar REST API rejects every call without the shared secret', () => {
+  const { res } = run('noauth_api');
+  assert.strictEqual(res['GET /api/qr-code (no auth)'].status, 401);
+  assert.strictEqual(res['GET /api/qr-code (no auth)'].leaks_qr, false);
+  for (const k of ['GET /api/logs (no auth)', 'GET /api/groups (no auth)', 'GET /api/status (no auth)',
+                   'POST /api/restart (no auth)', 'DELETE /api/auth (no auth)',
+                   'DELETE /api/auth (wrong secret)', 'DELETE /api/auth (Basic scheme)']) {
+    assert.strictEqual(res[k], 401, k);
+  }
+  assert.deepStrictEqual(res.session_files_left_after_unauthenticated_calls, ['creds.json']);
+});
+
+test('QA-002 /health stays open but reveals nothing; the right secret is accepted', () => {
+  const { res } = run('noauth_api');
+  assert.strictEqual(res['GET /health (no auth)'].status, 200);
+  assert.deepStrictEqual(JSON.parse(res['GET /health (no auth)'].body), { status: 'ok' });
+  assert.deepStrictEqual(res['GET /api/qr-code (with secret)'], { status: 200, has_qr: true });
+});
+
+test('QA-004 the sidecar refuses to start without a real secret', () => {
+  for (const bad of ['', 'short', 'fila_secret_2026']) {
+    const { code, stderr } = run('version', { DJANGO_SECRET: bad });
+    assert.notStrictEqual(code, 0, `secret "${bad}" must not be accepted`);
+    assert.match(stderr, /DJANGO_SECRET/);
+  }
+});

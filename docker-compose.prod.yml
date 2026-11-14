@@ -62,8 +62,9 @@ services:
       - DJANGO_SECRET=${WHATSAPP_INGEST_SECRET:?set WHATSAPP_INGEST_SECRET in .env (see .env.example)}
     volumes:
       - auth_data:/app/sidecar/auth_data
-    ports:
-      - "3001:3001"
+    # No published port (QA-002): only Django, on the compose network, talks to the sidecar.
+    expose:
+      - "3001"
     depends_on:
       - django
     networks:

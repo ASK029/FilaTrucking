@@ -565,7 +565,7 @@ def trigger_sync_groups(request):
         
         # Get groups from sidecar
         sidecar_url = f"{WHATSAPP_SIDECAR_URL}/api/groups"
-        response = requests.get(sidecar_url, timeout=10)
+        response = requests.get(sidecar_url, headers=_sidecar_headers(), timeout=10)
         
         if response.status_code == 200:
             data = response.json()

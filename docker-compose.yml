@@ -80,7 +80,7 @@ services:
       - auth_data:/app/sidecar/auth_info_baileys
       - ./sidecar/logs:/app/sidecar/logs
     ports:
-      - "8888:3001"
+      - "127.0.0.1:3001:3001"  # loopback only (QA-002): the API controls the WhatsApp session
     networks:
       - fila-network
     depends_on:

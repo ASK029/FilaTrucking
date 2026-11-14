@@ -4,6 +4,7 @@ const axios = require('axios');
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 
 // ============================================================================
 // Configuration
@@ -377,6 +378,18 @@ async function fetchActiveGroupsFromDjango() {
 // ============================================================================
 
 const app = express();
+
+// QA-002: every route except the bare /health liveness probe needs the shared secret.
+// (Django already sends 'Authorization: Bearer <secret>' on its control calls.)
+const SECRET_DIGEST = crypto.createHash('sha256').update(DJANGO_SECRET).digest();
+function requireSharedSecret(req, res, next) {
+    if (req.method === 'GET' && req.path === '/health') return next();
+    const match = /^Bearer (.+)$/.exec(req.get('authorization') || '');
+    const supplied = crypto.createHash('sha256').update(match ? match[1] : '').digest();
+    if (match && crypto.timingSafeEqual(supplied, SECRET_DIGEST)) return next();
+    return res.status(401).json({ error: 'Unauthorized' });
+}
+app.use(requireSharedSecret);
 app.use(express.json());
 
 // GET /api/status - Connection status

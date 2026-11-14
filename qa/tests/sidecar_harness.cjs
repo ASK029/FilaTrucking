@@ -61,14 +61,16 @@ const intervals = [];
 const origSetInterval = global.setInterval;
 global.setInterval = function (fn, ms, ...a) { const h = origSetInterval(fn, ms, ...a); intervals.push({ ms, h }); return h; };
 
-function req(method, p, body) {
+const SECRET = process.env.DJANGO_SECRET;
+function req(method, p, body, headers = {}) {
   return new Promise((resolve, reject) => {
-    const r = http.request({ host: '127.0.0.1', port: PORT, path: p, method, headers: { 'Content-Type': 'application/json' } }, (res) => {
+    const r = http.request({ host: '127.0.0.1', port: PORT, path: p, method, headers: { 'Content-Type': 'application/json', ...headers } }, (res) => {
       let d = ''; res.on('data', (c) => (d += c)); res.on('end', () => resolve({ status: res.statusCode, body: d }));
     });
     r.on('error', reject); if (body) r.write(JSON.stringify(body)); r.end();
   });
 }
+const authed = (method, p, body) => req(method, p, body, { Authorization: `Bearer ${SECRET}` });
 const groupMsg = (text, id = 'MSG1') => ({
   type: 'notify',
   messages: [{ key: { remoteJid: '120363@g.us', participant: '13125550101@s.whatsapp.net', fromMe: false, id },
@@ -107,7 +109,7 @@ const groupMsg = (text, id = 'MSG1') => ({
     s0.ev.emit('connection.update', { connection: 'open' });
     await sleep(200);
     const before = sockets.length;
-    const r = await req('POST', '/api/restart');
+    const r = await authed('POST', '/api/restart');
     await sleep(5500);
     out('http_status', r.status);
     out('sockets_created_by_one_restart_call', sockets.length - before);
@@ -127,14 +129,18 @@ const groupMsg = (text, id = 'MSG1') => ({
     s0.ev.emit('connection.update', { qr: '2@FAKE-QR-PAYLOAD,abc,def' });
     await sleep(100);
     const qr = await req('GET', '/api/qr-code');
-    const logs = await req('GET', '/api/logs');
-    const groups = await req('GET', '/api/groups');
     out('GET /api/qr-code (no auth)', { status: qr.status, leaks_qr: qr.body.includes('FAKE-QR-PAYLOAD') });
-    out('GET /api/logs (no auth)', logs.status);
-    out('GET /api/groups (no auth)', groups.status);
-    const del = await req('DELETE', '/api/auth');
-    out('DELETE /api/auth (no auth)', del.status);
-    out('session_files_left_after_unauthenticated_DELETE', fs.readdirSync(path.join(work, 'auth_data')));
+    out('GET /api/logs (no auth)', (await req('GET', '/api/logs')).status);
+    out('GET /api/groups (no auth)', (await req('GET', '/api/groups')).status);
+    out('GET /api/status (no auth)', (await req('GET', '/api/status')).status);
+    out('POST /api/restart (no auth)', (await req('POST', '/api/restart')).status);
+    out('DELETE /api/auth (no auth)', (await req('DELETE', '/api/auth')).status);
+    out('DELETE /api/auth (wrong secret)', (await req('DELETE', '/api/auth', null, { Authorization: 'Bearer wrong-secret-value-123456' })).status);
+    out('DELETE /api/auth (Basic scheme)', (await req('DELETE', '/api/auth', null, { Authorization: `Basic ${SECRET}` })).status);
+    out('session_files_left_after_unauthenticated_calls', fs.readdirSync(path.join(work, 'auth_data')));
+    out('GET /health (no auth)', await req('GET', '/health').then((r) => ({ status: r.status, body: r.body })));
+    const ok = await authed('GET', '/api/qr-code');
+    out('GET /api/qr-code (with secret)', { status: ok.status, has_qr: ok.body.includes('FAKE-QR-PAYLOAD') });
   }
 
   if (scenario === 'reconnect_loop') {

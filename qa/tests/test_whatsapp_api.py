@@ -81,6 +81,18 @@ class TriggerEndpoints(QABase):
         g.refresh_from_db()
         self.assertFalse(g.is_active)
 
+    def test_every_django_to_sidecar_call_sends_the_shared_secret(self):
+        """[QA-002] the sidecar now rejects unauthenticated calls; Django must send the bearer on all three."""
+        ok = mock.Mock(status_code=200, text="")
+        ok.json.return_value = {"groups": []}
+        with mock.patch("requests.get", return_value=ok) as g, mock.patch("requests.post", return_value=ok) as p,                 mock.patch("requests.delete", return_value=ok) as d:
+            self.client.post(f"{BASE}/trigger-sync/")
+            self.client.post(f"{BASE}/trigger-restart/")
+            self.client.post(f"{BASE}/trigger-clear-auth/")
+        for name, m in (("sync", g), ("restart", p), ("clear-auth", d)):
+            with self.subTest(call=name):
+                self.assertEqual(m.call_args.kwargs["headers"], {"Authorization": f"Bearer {WHATSAPP_SECRET}"})
+
     def test_sidecar_down_returns_a_json_error(self):
         for path in ("trigger-sync/", "trigger-restart/", "trigger-clear-auth/"):
             with self.subTest(path=path), mock.patch("requests.get", side_effect=requests.ConnectionError), \
