@@ -145,7 +145,7 @@ def looks_like_shipment_message(text):
             key = line.split(":", 1)[0].strip().lower()
             if key in SHIPMENT_KEYS:
                 keys.add(key)
-        elif len(line) > 1 and len(line.split()) == 1:
+        elif any(ch.isalnum() for ch in line) and len(line.split()) == 1:
             tokens.append(line)
     return len(keys) >= 2 or (len(tokens) >= 2 and any(ch.isdigit() for t in tokens for ch in t))
 
@@ -259,7 +259,7 @@ TRUCK: ABC-1234"""
                 continue
             # Extract non-empty values (skip very short strings that might be artifacts)
             val = line.strip()
-            if val and len(val) > 1:
+            if any(ch.isalnum() for ch in val):  # a 1-character seal like "7" is a value; "." or an emoji is not (QA-048)
                 extracted_values.append(val)
         
         # Expected positions (first 3 are required)

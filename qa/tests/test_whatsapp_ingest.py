@@ -245,3 +245,20 @@ class IngestRobustnessQA018(QABase):
                 Shipment.objects.all().delete()
                 WhatsAppMessage.objects.all().delete()
                 self.assertEqual(self.ingest(POSITIONAL.rsplit("\n", 1)[0], timestamp=ts).json()["status"], "success")
+
+
+class ShortValuesQA048(QABase):
+    def test_a_one_character_seal_is_accepted(self):
+        j = self.ingest("BK123\nCNT456\n7\nASL").json()
+        self.assertEqual(j["status"], "success")
+        self.assertEqual(Shipment.objects.get().seal, "7")
+
+    def test_punctuation_and_emoji_lines_are_not_values(self):
+        j = self.ingest("BK123\n.\n👍\nCNT456\nSEAL9\nASL").json()
+        s = Shipment.objects.get()
+        self.assertEqual((j["status"], s.booking, s.container, s.seal), ("success", "BK123", "CNT456", "SEAL9"))
+
+    def test_chatter_made_of_single_characters_is_still_ignored(self):
+        for text in ("k", "👍", ".", "k\nok", "?\n!"):
+            with self.subTest(text=text):
+                self.assertEqual(self.ingest(text).json()["status"], "ignored")
