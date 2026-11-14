@@ -686,21 +686,25 @@ def whatsapp_update_status(request):
         
         sidecar_status = data.get("sidecar_status", config.sidecar_status)
         auth_status = data.get("auth_status", config.auth_status)
-        qr_code = data.get("qr_code", config.qr_code_data)
-        last_error = data.get("last_error", "")
-        
+        last_error = data.get("last_error") or ""
+        connected = sidecar_status == WhatsAppConfig.ConnectionStatus.CONNECTED
+
         config.sidecar_status = sidecar_status
         config.auth_status = auth_status
-        if qr_code:
-            config.qr_code_data = qr_code
+        # The QR is only valid while pairing: an explicit null from the sidecar, or being connected, clears it
+        # (it used to stay on the settings page forever) (QA-019).
+        if connected:
+            config.qr_code_data = ""
+        elif "qr_code" in data:
+            config.qr_code_data = data.get("qr_code") or ""
         if last_error:
             config.last_error = last_error
-            from django.utils import timezone
             config.last_error_time = timezone.now()
-        if sidecar_status == WhatsAppConfig.ConnectionStatus.CONNECTED:
-            from django.utils import timezone
+        elif connected:
+            config.last_error = ""  # a successful (re)connection ends the incident shown on the page
+        if connected:
             config.last_connection_time = timezone.now()
-        
+
         config.save()
         
         # Log the status update
@@ -750,7 +754,8 @@ def trigger_sync_groups(request):
                     defaults={
                         "group_name": group_data.get("name", "Unknown Group"),
                         "participant_count": group_data.get("participants", 0),
-                        "is_active": True,
+                        # is_active is NOT touched: "Sync" used to switch every group back on, so the bot
+                        # started listening in groups the admin had deliberately disabled (QA-019)
                     }
                 )
             
@@ -814,7 +819,8 @@ def trigger_clear_auth(request):
         response = requests.delete(sidecar_url, headers=headers, timeout=10)
         
         if response.status_code == 200:
-            WhatsAppGroup.objects.all().delete()
+            # Groups (and which of them are enabled) are kept: re-pairing the same account brings the same groups
+            # back, and deleting them silently dropped the admin's selection (QA-019).
             return JsonResponse({"status": "success"})
         else:
             return JsonResponse({

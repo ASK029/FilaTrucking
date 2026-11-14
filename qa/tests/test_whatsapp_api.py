@@ -205,3 +205,47 @@ class AccessControlQA003(QABase):
         r = c.post(f"{BASE}/update-status/", data=json.dumps({"sidecar_status": "connected"}),
                    content_type="application/json", **BEARER)
         self.assertEqual(r.status_code, 200)
+
+
+class StatusAndGroupsQA019(QABase):
+    def _post(self, payload):
+        return self.client.post(f"{BASE}/update-status/", data=json.dumps(payload),
+                                content_type="application/json", **BEARER)
+
+    def test_qr_is_kept_while_pairing_and_replaced_by_the_newest(self):
+        self._post({"sidecar_status": "connecting", "auth_status": "authenticating", "qr_code": "2@QR-1"})
+        self._post({"sidecar_status": "connecting", "auth_status": "authenticating"})  # no qr key: unchanged
+        self.assertEqual(WhatsAppConfig.get_instance().qr_code_data, "2@QR-1")
+        self._post({"sidecar_status": "connecting", "auth_status": "authenticating", "qr_code": "2@QR-2"})
+        self.assertEqual(WhatsAppConfig.get_instance().qr_code_data, "2@QR-2")
+        self._post({"sidecar_status": "disconnected", "auth_status": "not_authenticated", "qr_code": None})
+        self.assertEqual(WhatsAppConfig.get_instance().qr_code_data, "")
+
+    def test_error_is_shown_until_a_successful_connection(self):
+        self._post({"sidecar_status": "disconnected", "auth_status": "not_authenticated", "last_error": "405"})
+        self._post({"sidecar_status": "connecting", "auth_status": "authenticating"})
+        c = WhatsAppConfig.get_instance()
+        self.assertEqual(c.last_error, "405")  # still the open incident
+        self.assertIsNotNone(c.last_error_time)
+        self._post({"sidecar_status": "connected", "auth_status": "authenticated"})
+        c = WhatsAppConfig.get_instance()
+        self.assertEqual((c.last_error, c.qr_code_data), ("", ""))
+        self.assertIsNotNone(c.last_connection_time)
+
+    def test_clear_auth_keeps_the_admins_group_selection(self):
+        self.login()
+        WhatsAppGroup.objects.create(group_jid="1-2@g.us", group_name="Dispatch", is_active=True)
+        ok = mock.Mock(status_code=200, text="")
+        with mock.patch("requests.delete", return_value=ok):
+            r = self.client.post(f"{BASE}/trigger-clear-auth/")
+        self.assertEqual(r.json()["status"], "success")
+        self.assertEqual(WhatsAppGroup.objects.get().is_active, True)
+
+    def test_sidecar_group_sync_adds_new_groups_and_updates_names_without_touching_is_active(self):
+        g = WhatsAppGroup.objects.create(group_jid="1-2@g.us", group_name="Old", is_active=False)
+        r = self.client.post(f"{BASE}/sync-groups/", data=json.dumps({"groups": [
+            {"jid": "1-2@g.us", "name": "Renamed", "participants": 9}, {"jid": "3-4@g.us", "name": "New", "participants": 2}]}),
+            content_type="application/json", **BEARER)
+        self.assertEqual(r.json()["groups_synced"], 2)
+        g.refresh_from_db()
+        self.assertEqual((g.group_name, g.participant_count, g.is_active), ("Renamed", 9, False))
