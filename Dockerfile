@@ -1,5 +1,9 @@
 FROM python:3.12-slim
 
+ENV HOME=/tmp \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
 WORKDIR /app
 
 # Install system dependencies including pkg-config, MySQL client libraries, and WeasyPrint dependencies

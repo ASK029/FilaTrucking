@@ -172,3 +172,42 @@ class NoBusinessDataInGit(SimpleTestCase):
         text = (ROOT / ".dockerignore").read_text(encoding="utf-8")
         for rule in ("FilaTrucking/media/", ".env"):
             self.assertIn(rule, text)
+
+
+class ProductionHardeningQA025(SimpleTestCase):
+    def services(self):
+        return compose("docker-compose.prod.yml")["services"]
+
+    def test_only_nginx_publishes_ports(self):
+        """[QA-025] Django used to be reachable on host port 8888 over plain HTTP, bypassing nginx and TLS."""
+        published = {name: svc["ports"] for name, svc in self.services().items() if svc.get("ports")}
+        self.assertEqual(set(published), {"nginx"}, published)
+        self.assertEqual(sorted(published["nginx"]), ["443:443", "80:80"])
+
+    def test_django_containers_do_not_run_as_root(self):
+        for name in ("django", "celery-worker", "celery-beat"):
+            with self.subTest(service=name):
+                user = self.services()[name]["user"]
+                self.assertIn("APP_UID", user)
+                self.assertIn("APP_GID", user)
+
+    def test_sidecar_image_drops_root_before_running_the_bot(self):
+        text = (ROOT / "sidecar" / "docker-entrypoint.sh").read_text(encoding="utf-8")
+        self.assertIn("setpriv --reuid=node", text)
+        self.assertIn("chown -R node:node /app/sidecar/auth_data", text)  # old root-owned volumes keep working
+        dockerfile = (ROOT / "sidecar" / "Dockerfile").read_text(encoding="utf-8")
+        self.assertIn("ENTRYPOINT", dockerfile)
+        self.assertIn("HEALTHCHECK", dockerfile)
+        self.assertNotRegex(dockerfile, r"(?m)^USER root")
+
+    def test_every_long_running_service_has_a_healthcheck(self):
+        services = self.services()
+        for name in ("mysql", "redis", "django", "celery-worker", "nginx"):
+            self.assertIn("healthcheck", services[name], name)
+
+    def test_logs_are_rotated_and_memory_is_capped(self):
+        for name, svc in self.services().items():
+            with self.subTest(service=name):
+                self.assertEqual(svc["logging"]["options"]["max-size"], "10m")
+                if name != "certbot":
+                    self.assertIn("mem_limit", svc)

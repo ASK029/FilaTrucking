@@ -1,3 +1,15 @@
+# Production stack. Only nginx publishes ports (80/443); everything else is reachable on the compose network only.
+#
+# Required in .env (see .env.example): SECRET_KEY, MYSQL_ROOT_PASSWORD, MYSQL_PASSWORD, WHATSAPP_INGEST_SECRET,
+# APP_UID / APP_GID (the numeric id of the host user that owns this checkout: `id -u` / `id -g`).
+
+# Shared log rotation: without it the sidecar alone had written ~4 million log lines into one unbounded file (QA-025).
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 # Shared definition of every container that runs the Django code (web, worker, beat).
 x-django-common: &django-common
   image: filatrucking-django  # one image for web, worker and beat
@@ -5,6 +17,9 @@ x-django-common: &django-common
     context: .
     dockerfile: Dockerfile
   restart: unless-stopped
+  # Not root (QA-025): run as the owner of the bind-mounted checkout/media so uploads stay writable.
+  user: "${APP_UID:?set APP_UID in .env (run: id -u)}:${APP_GID:?set APP_GID in .env (run: id -g)}"
+  logging: *default-logging
   environment:
     - DATABASE_URL=mysql://filatrucking:${MYSQL_PASSWORD}@mysql:3306/filatrucking
     - SECRET_KEY=${SECRET_KEY}
@@ -32,6 +47,8 @@ services:
     image: mysql:8.0
     container_name: fila-mysql
     restart: unless-stopped
+    logging: *default-logging
+    mem_limit: 2g
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: filatrucking
@@ -55,6 +72,8 @@ services:
     image: redis:7-alpine
     container_name: fila-redis
     restart: unless-stopped
+    logging: *default-logging
+    mem_limit: 256m
     command: ["redis-server", "--appendonly", "yes", "--maxmemory", "128mb", "--maxmemory-policy", "noeviction"]
     volumes:
       - redis_data:/data
@@ -66,33 +85,52 @@ services:
       timeout: 3s
       retries: 5
 
-  # Django Application (web)
+  # Django Application (web). No published port (QA-025): it used to be reachable on host port 8888 over plain
+  # HTTP, bypassing nginx/TLS. nginx reaches it as django:8000 on the compose network.
   django:
     <<: *django-common
     container_name: fila-django
-    ports:
-      - "8888:8000"
-    command: gunicorn FilaTrucking.wsgi:application --bind 0.0.0.0:8000 --workers 4
+    mem_limit: 1g
+    expose:
+      - "8000"
+    command: gunicorn FilaTrucking.wsgi:application --bind 0.0.0.0:8000 --workers 4 --timeout 60
+    healthcheck:
+      # X-Forwarded-Proto keeps the probe working if Django's own HTTPS redirect is switched on
+      test: ["CMD", "python", "-c", "import urllib.request as u,sys; r=u.Request('http://127.0.0.1:8000/auth/login/', headers={'X-Forwarded-Proto':'https'}); sys.exit(0 if u.urlopen(r, timeout=4).status == 200 else 1)"]
+      interval: 30s
+      timeout: 6s
+      retries: 3
+      start_period: 40s
 
   # Celery worker: runs the tasks (statements, recurring invoices, GoMotive sync, ...)
   celery-worker:
     <<: *django-common
     container_name: fila-celery-worker
+    mem_limit: 1g
     command: celery -A FilaTrucking worker -l info --concurrency 2
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A FilaTrucking inspect ping -d celery@$$HOSTNAME --timeout 5 | grep -q pong"]
+      interval: 60s
+      timeout: 15s
+      retries: 3
+      start_period: 40s
 
   # Celery beat: the scheduler that fires the jobs listed in settings.CELERY_BEAT_SCHEDULE
   celery-beat:
     <<: *django-common
     container_name: fila-celery-beat
+    mem_limit: 256m
     command: celery -A FilaTrucking beat -l info --schedule /tmp/celerybeat-schedule
 
-  # WhatsApp Sidecar (Node.js)
+  # WhatsApp Sidecar (Node.js). Its image has its own HEALTHCHECK (sidecar/Dockerfile).
   sidecar:
     build:
       context: ./sidecar
       dockerfile: Dockerfile
     container_name: fila-whatsapp-sidecar
     restart: unless-stopped
+    logging: *default-logging
+    mem_limit: 1536m
     environment:
       - NODE_ENV=production
       - DJANGO_API_URL=http://django:8000/shipments/api/ingest/
@@ -107,11 +145,13 @@ services:
     networks:
       - fila-network
 
-  # Nginx Reverse Proxy (optional - for future HTTPS)
+  # Nginx Reverse Proxy (TLS termination)
   nginx:
     image: nginx:alpine
     container_name: fila-nginx
     restart: unless-stopped
+    logging: *default-logging
+    mem_limit: 256m
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - staticfiles:/staticfiles
@@ -119,15 +159,23 @@ services:
       - certbot_conf:/etc/letsencrypt
     ports:
       - "80:80"
-      - "443:443"  # Uncomment when you have SSL certificates
+      - "443:443"
     depends_on:
       - django
     networks:
       - fila-network
+    healthcheck:
+      # goes through to Django, so "healthy" means the whole web path works
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1/auth/login/"]
+      interval: 30s
+      timeout: 6s
+      retries: 3
+      start_period: 20s
 
   certbot:
     image: certbot/certbot
     container_name: fila-certbot
+    logging: *default-logging
     volumes:
       - certbot_www:/var/www/certbot
       - certbot_conf:/etc/letsencrypt
