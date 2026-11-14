@@ -5,6 +5,7 @@ set -u
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PY="$ROOT/.venv/Scripts/python"; [ -x "$PY" ] || PY="$ROOT/.venv/bin/python"
 export PYTHONPATH="$ROOT"
+export DOTENV_PATH="$ROOT/qa/.no-such-env"   # hermetic: never read a developer's real .env
 export DATABASE_URL="sqlite:///:memory:"
 export SECRET_KEY="qa-fake-secret-key-not-for-production-0123456789abcdef0123456789abcdef"
 export WHATSAPP_INGEST_SECRET="qa-fake-ingest-secret-0123456789"

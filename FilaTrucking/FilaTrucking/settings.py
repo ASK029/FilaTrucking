@@ -21,20 +21,35 @@ from django.core.exceptions import ImproperlyConfigured
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Load environment variables from project root
-load_dotenv(os.path.join(BASE_DIR.parent, '.env'))
+# DOTENV_PATH lets tests/CI point at another file (or a missing one) so they never depend on a developer's .env
+load_dotenv(os.environ.get('DOTENV_PATH') or os.path.join(BASE_DIR.parent, '.env'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-s#&j=fi^4pq(tc$vc4n&vi3uom#q$vf^g+_c68_7pk#nyn9k9*')
-
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+# Fail-safe default (QA-006): debug is OFF unless .env explicitly says DEBUG=True.
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,*.ngrok-free.app').split(',')
 
-CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'https:*.ngrok-free.app').split(',')
+def _required_env(name, dev_default=None):
+    """Read a mandatory setting. The repository is public, so no secret may have a default (QA-006).
+    Only DEBUG runs may fall back to a throw-away development value (never a credential)."""
+    value = os.environ.get(name, '').strip()
+    if value:
+        return value
+    if DEBUG and dev_default is not None:
+        return dev_default
+    raise ImproperlyConfigured(f"{name} is not set. Copy .env.example to .env and fill it in.")
+
+
+# SECURITY WARNING: keep the secret key used in production secret!
+# Note: Fernet-encrypted values in SystemSettings (Motive key, SMTP password) are derived from it.
+SECRET_KEY = _required_env('SECRET_KEY', dev_default='django-insecure-local-development-only-not-a-real-key')
+
+ALLOWED_HOSTS = [h.strip() for h in os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') if h.strip()]
+
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if o.strip()]
 
 # Production Security Settings
 if not DEBUG:
@@ -104,8 +119,10 @@ WSGI_APPLICATION = 'FilaTrucking.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL', 'mysql://root:ASK-hh-029@localhost:3306/filatrucking'),
+    # DATABASE_URL is mandatory: e.g. mysql://filatrucking:<password>@mysql:3306/filatrucking
+    # (use the application user, never root; QA-006)
+    'default': dj_database_url.parse(
+        _required_env('DATABASE_URL'),
         conn_max_age=600,
         conn_health_checks=True,
     )

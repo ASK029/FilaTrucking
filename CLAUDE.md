@@ -6,7 +6,7 @@ FilaTrucking is a single-user Trucking Management System (Django + MySQL) for a 
 
 ## Commands
 
-All Django commands run from `FilaTrucking/` (the folder containing `manage.py`), with `.venv` activated (`.venv\Scripts\activate` on Windows). MySQL must be reachable (`DATABASE_URL`, default `mysql://root:…@localhost:3306/filatrucking`).
+All Django commands run from `FilaTrucking/` (the folder containing `manage.py`), with `.venv` activated (`.venv\Scripts\activate` on Windows). MySQL must be reachable: `DATABASE_URL`, `SECRET_KEY` and `WHATSAPP_INGEST_SECRET` have no defaults and settings.py refuses to start without them (copy `.env.example` to `.env`).
 
 ```powershell
 python manage.py runserver

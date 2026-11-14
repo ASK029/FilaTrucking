@@ -1,4 +1,5 @@
 """Static checks of the deployment files (compose, nginx, env example). No Docker needed."""
+
 import re
 from pathlib import Path
 
@@ -41,3 +42,83 @@ class NoSecretsInTrackedConfig(SimpleTestCase):
             if path == "sidecar/index.js":
                 text = re.sub(r"COMPROMISED_SECRETS = new Set\(\[[^\]]*\]\)", "", text)
             self.assertNotIn("fila_secret_2026", text, path)
+
+
+import os
+import subprocess
+import sys
+
+from django.conf import settings as dj_settings
+
+
+def _import_settings(**env):
+    """Import FilaTrucking.settings in a clean subprocess with exactly the given environment."""
+    code = ("import os,django;os.environ['DJANGO_SETTINGS_MODULE']='FilaTrucking.settings';django.setup();"
+            "from django.conf import settings as s;"
+            "print('RESULT', s.DEBUG, ','.join(s.ALLOWED_HOSTS), ','.join(s.CSRF_TRUSTED_ORIGINS))")
+    keep = {k: v for k, v in os.environ.items() if k in ("PATH", "SYSTEMROOT", "TEMP", "TMP", "PYTHONPATH", "HOME", "USERPROFILE")}
+    keep["DOTENV_PATH"] = str(ROOT / "qa" / ".no-such-env")
+    keep.update(env)
+    return subprocess.run([sys.executable, "-c", code], env=keep, cwd=dj_settings.BASE_DIR, capture_output=True, text=True)
+
+
+GOOD = dict(SECRET_KEY="k" * 60, DATABASE_URL="sqlite:///:memory:", WHATSAPP_INGEST_SECRET="s" * 40,
+            CELERY_BROKER_URL="memory://")
+
+
+class SettingsFailFast(SimpleTestCase):
+    """[QA-006] the repository is public: no secret or credential may have a default value."""
+
+    def test_complete_environment_starts(self):
+        r = _import_settings(**GOOD)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("RESULT False localhost,127.0.0.1 ", r.stdout)  # debug off, no ngrok wildcard, no trusted origins
+
+    def test_missing_secret_key_or_database_url_stops_startup(self):
+        for missing in ("SECRET_KEY", "DATABASE_URL"):
+            with self.subTest(missing=missing):
+                env = {k: v for k, v in GOOD.items() if k != missing}
+                r = _import_settings(**env)
+                self.assertNotEqual(r.returncode, 0)
+                self.assertIn(missing, r.stderr)
+
+    def test_debug_never_rescues_a_missing_database_url(self):
+        env = {k: v for k, v in GOOD.items() if k != "DATABASE_URL"}
+        r = _import_settings(DEBUG="True", **env)
+        self.assertNotEqual(r.returncode, 0)
+
+    def test_dev_run_without_secret_key_uses_a_throwaway_key(self):
+        env = {k: v for k, v in GOOD.items() if k != "SECRET_KEY"}
+        self.assertEqual(_import_settings(DEBUG="True", **env).returncode, 0)
+
+
+class NoCredentialsInTrackedFiles(SimpleTestCase):
+    CRED_URL = re.compile(r"(?:mysql|postgres(?:ql)?)://([^:@\s/]+):([^@\s]+)@")
+
+    def tracked_text_files(self):
+        out = subprocess.run(["git", "ls-files"], cwd=ROOT, capture_output=True, text=True).stdout.splitlines()
+        for name in out:
+            if name.startswith(("qa/evidence/", "qa/screenshots/", "docs/")) or name.endswith(
+                    (".png", ".jpg", ".jpeg", ".pdf", ".xlsx", ".zip", ".woff2", ".ico")):
+                continue
+            path = ROOT / name
+            if path.is_file():
+                try:
+                    yield name, path.read_text(encoding="utf-8")
+                except UnicodeDecodeError:
+                    continue
+
+    def test_no_database_url_with_a_real_password_or_root_user(self):
+        placeholders = ("CHANGE_ME", "${", "<", "password", "test", "pass")
+        for name, text in self.tracked_text_files():
+            for user, password in self.CRED_URL.findall(text):
+                with self.subTest(file=name):
+                    self.assertNotEqual(user, "root", f"{name}: root database user in a URL")
+                    self.assertTrue(any(p in password for p in placeholders), f"{name}: literal DB password in a URL")
+
+    def test_no_insecure_django_secret_key_literal(self):
+        for name, text in self.tracked_text_files():
+            if name.startswith("qa/"):
+                continue
+            for m in re.finditer(r"django-insecure-[^\s'\"`]+", text):
+                self.assertTrue(m.group(0).startswith("django-insecure-local-development-only"), f"{name}: {m.group(0)[:20]}…")
