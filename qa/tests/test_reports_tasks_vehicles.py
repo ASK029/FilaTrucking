@@ -32,7 +32,7 @@ class StatementTasks(QABase):
 
     def test_scheduled_monthly_run_reports_the_month_that_just_ended(self):
         """[TASK-PERIOD] beat fires on the 1st at 01:00 with no args; the task then reports the *new, empty* month."""
-        with mock.patch("shipments.tasks.date", frozen(date(2026, 2, 1))):
+        with mock.patch("shipments.tasks.today_local", return_value=date(2026, 2, 1)):
             try:
                 r = tasks.generate_monthly_statement()
             except NameError:
@@ -40,7 +40,7 @@ class StatementTasks(QABase):
         self.assertEqual((r["year"], r["month"]), (2026, 1))
 
     def test_scheduled_yearly_run_reports_the_year_that_just_ended(self):
-        with mock.patch("shipments.tasks.date", frozen(date(2027, 1, 1))):
+        with mock.patch("shipments.tasks.today_local", return_value=date(2027, 1, 1)):
             r = tasks.generate_yearly_statement()
         self.assertEqual(r["year"], 2026)
 
@@ -66,12 +66,12 @@ class RecurringInvoices(QABase):
     def test_shipment_without_amount_does_not_abort_the_whole_run(self):
         """[TASK-NULL-AMOUNT] Shipment.amount is nullable, InvoiceLineItem.amount is not -> IntegrityError, task dies."""
         self.make(None)
-        with mock.patch("shipments.tasks.date", frozen(date(2026, 2, 3))):
+        with mock.patch("shipments.tasks.today_local", return_value=date(2026, 2, 3)):
             tasks.generate_recurring_invoices()
 
     def test_creates_one_draft_and_marks_shipments_invoiced(self):
         s = self.make(Decimal("400"))
-        with mock.patch("shipments.tasks.date", frozen(date(2026, 2, 3))):
+        with mock.patch("shipments.tasks.today_local", return_value=date(2026, 2, 3)):
             self.assertEqual(tasks.generate_recurring_invoices(), 1)
             self.assertEqual(tasks.generate_recurring_invoices(), 0)  # idempotent
         s.refresh_from_db()
@@ -125,17 +125,38 @@ class StatementPersistenceQA009(QABase):
         self.assertEqual(FinancialStatement.objects.count(), 1)
 
     def test_beat_run_in_january_reports_december_of_the_previous_year(self):
-        with mock.patch("shipments.tasks.date", frozen(date(2027, 1, 1))):
+        with mock.patch("shipments.tasks.today_local", return_value=date(2027, 1, 1)):
             r = tasks.generate_monthly_statement()
         self.assertEqual((r["year"], r["month"]), (2026, 12))
 
     def test_explicit_period_is_respected_and_current_month_is_the_fallback_for_one_missing_arg(self):
-        with mock.patch("shipments.tasks.date", frozen(date(2026, 5, 20))):
+        with mock.patch("shipments.tasks.today_local", return_value=date(2026, 5, 20)):
             self.assertEqual(tasks.generate_monthly_statement(2025, 3)["month"], 3)
             self.assertEqual(tasks.generate_monthly_statement(month=4)["year"], 2026)
 
     def test_yearly_task_stores_its_row(self):
         from shipments.models import FinancialStatement
-        with mock.patch("shipments.tasks.date", frozen(date(2027, 1, 1))):
+        with mock.patch("shipments.tasks.today_local", return_value=date(2027, 1, 1)):
             tasks.generate_yearly_statement()
         self.assertTrue(FinancialStatement.objects.filter(period_type="yearly", year=2026, month=0).exists())
+
+
+class TimeZoneQA044(QABase):
+    def test_business_time_zone_is_chicago(self):
+        from django.conf import settings
+        self.assertEqual(settings.TIME_ZONE, "America/Chicago")
+
+    def test_today_is_the_chicago_date_not_utc(self):
+        """At 02:30 UTC on 6 Jan it is still 5 Jan in Illinois: 'today' for the business must be the 5th."""
+        from datetime import datetime, timezone as tz
+        from django.utils import timezone
+        with mock.patch("django.utils.timezone.now", return_value=datetime(2026, 1, 6, 2, 30, tzinfo=tz.utc)):
+            self.assertEqual(tasks.today_local(), date(2026, 1, 5))
+            self.assertEqual(timezone.localdate(), date(2026, 1, 5))
+
+    def test_beat_run_just_after_local_midnight_on_the_first_reports_the_right_month(self):
+        from datetime import datetime, timezone as tz
+        # 1 Feb 00:30 in Chicago = 06:30 UTC; at 01:00 UTC on 1 Feb it is still 31 Jan in Chicago
+        with mock.patch("django.utils.timezone.now", return_value=datetime(2026, 2, 1, 1, 0, tzinfo=tz.utc)):
+            r = tasks.generate_monthly_statement()
+        self.assertEqual((r["year"], r["month"]), (2025, 12))  # still January 31st locally -> reports December

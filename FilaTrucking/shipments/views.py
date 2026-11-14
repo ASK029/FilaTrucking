@@ -10,6 +10,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
+from django.utils import timezone
 from django.views.generic import (
     CreateView,
     DeleteView,
@@ -295,7 +296,7 @@ def invoice_change_status(request, pk):
     invoice.status = new_status
     if new_status == InvoiceStatus.PAID:
         if not invoice.paid_at:
-            invoice.paid_at = date.today()
+            invoice.paid_at = timezone.localdate()
     else:
         invoice.paid_at = None
     invoice.save(update_fields=["status", "paid_at"])

@@ -4,6 +4,7 @@ from decimal import Decimal
 from unittest import mock
 
 from django.core import mail
+from django.utils import timezone
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from shipments.forms import InvoiceLineItemFormSet
@@ -108,7 +109,7 @@ class InvoiceLifecycle(InvoiceBase):
         inv = self.invoice_with(self.s1)
         self.client.post(f"/invoices/{inv.pk}/change-status/", {"status": "paid"})
         inv.refresh_from_db()
-        self.assertEqual((inv.status, inv.paid_at), ("paid", date.today()))
+        self.assertEqual((inv.status, inv.paid_at), ("paid", timezone.localdate()))
 
     def test_change_status_rejects_garbage(self):
         inv = self.invoice_with(self.s1)

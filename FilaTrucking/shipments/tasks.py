@@ -7,8 +7,14 @@ from decimal import Decimal
 from celery import shared_task
 from django.db import transaction
 from django.db.models import Sum
+from django.utils import timezone
 
 from .models import Expense, ExpenseCategory, FinancialStatement, Invoice, InvoiceLineItem, InvoiceStatus, Shipment, ShipmentStatus
+
+
+def today_local() -> date:
+    """Today in the business time zone (settings.TIME_ZONE), not the server's or UTC (QA-044)."""
+    return timezone.localdate()
 
 
 def _previous_month(today: date) -> tuple[int, int]:
@@ -44,9 +50,9 @@ def generate_monthly_statement(year: int | None = None, month: int | None = None
     The result is saved as a FinancialStatement row (one per month, updated on re-run) and returned as a dict.
     """
     if year is None and month is None:
-        year, month = _previous_month(date.today())
+        year, month = _previous_month(today_local())
     else:
-        today = date.today()
+        today = today_local()
         year = int(year or today.year)
         month = int(month or today.month)
 
@@ -72,7 +78,7 @@ def generate_monthly_statement(year: int | None = None, month: int | None = None
 @shared_task
 def generate_yearly_statement(year: int | None = None) -> dict:
     """Compute and store the financial figures of one year; with no argument: the year that just ended."""
-    year = int(year) if year else date.today().year - 1
+    year = int(year) if year else today_local().year - 1
 
     start_date = date(year, 1, 1)
     end_date = date(year, 12, 31)
@@ -103,7 +109,7 @@ def generate_recurring_invoices() -> int:
       create a draft invoice and line items for those shipments.
     - Mark the shipments as invoiced after creating the line items.
     """
-    today = date.today()
+    today = today_local()
     # Previous month period
     if today.month == 1:
         period_year = today.year - 1
@@ -170,7 +176,7 @@ def send_ifta_deadline_reminders() -> dict:
 
     This task returns which deadlines are currently within the reminder window.
     """
-    today = date.today()
+    today = today_local()
     current_year = today.year
 
     # Quarterly deadlines per PRD (Jan 31, Apr 30, Jul 31, Oct 31)

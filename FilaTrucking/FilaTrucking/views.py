@@ -17,6 +17,7 @@ from shipments.tasks import generate_monthly_statement
 from vehicles.tasks import sync_gomotive_data
 from django.shortcuts import redirect
 from django.contrib import messages
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +54,7 @@ def format_crontab(schedule):
 @login_required
 def dashboard(request):
     """Central dashboard with financial stats, shipment status, and maintenance alerts."""
-    today = date.today()
+    today = timezone.localdate()
     year = today.year
     month = today.month
 
@@ -157,7 +158,7 @@ def _queue_task(request, task, ok_message, **task_kwargs):
 @login_required
 def test_report(request):
     """Trigger the monthly report task manually."""
-    today = date.today()  # the scheduled run reports last month; the manual button reports the current one
+    today = timezone.localdate()  # the scheduled run reports last month; the manual button reports the current one
     return _queue_task(request, generate_monthly_statement, "Monthly statement generation triggered.",
                        year=today.year, month=today.month)
 
@@ -219,7 +220,7 @@ def _paid_invoices_in_range(start_date, end_date):
 @login_required
 def monthly_statement(request):
     """Monthly financial statement matching the CSV layout."""
-    today = date.today()
+    today = timezone.localdate()
     year = int(request.GET.get("year", today.year))
     month = int(request.GET.get("month", today.month))
 
@@ -295,7 +296,7 @@ def monthly_statement(request):
 @login_required
 def yearly_statement(request):
     """Yearly financial statement – per-month per-category grid matching the CSV."""
-    today = date.today()
+    today = timezone.localdate()
     year = int(request.GET.get("year", today.year))
 
     start_date = date(year, 1, 1)
@@ -377,7 +378,7 @@ def monthly_statement_pdf(request):
             {"error": "WeasyPrint not installed. Cannot generate PDF."},
         )
 
-    today = date.today()
+    today = timezone.localdate()
     year = int(request.GET.get("year", today.year))
     month = int(request.GET.get("month", today.month))
 
@@ -442,7 +443,7 @@ def yearly_statement_pdf(request):
             {"error": "WeasyPrint not installed. Cannot generate PDF."},
         )
 
-    today = date.today()
+    today = timezone.localdate()
     year = int(request.GET.get("year", today.year))
 
     start_date = date(year, 1, 1)

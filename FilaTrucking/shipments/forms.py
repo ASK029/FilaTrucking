@@ -1,5 +1,6 @@
 from django import forms
 from django.forms import inlineformset_factory
+from django.utils import timezone
 from datetime import date, timedelta
 
 from FilaTrucking.utils import TailwindFormMixin
@@ -43,7 +44,7 @@ class ExpenseForm(TailwindFormMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if not self.instance.pk and 'date' not in self.data:
-            self.fields['date'].widget.attrs['value'] = date.today().strftime('%Y-%m-%d')
+            self.fields['date'].widget.attrs['value'] = timezone.localdate().strftime('%Y-%m-%d')
 
 class InvoiceForm(TailwindFormMixin, forms.ModelForm):
     start_date = forms.DateField(
@@ -66,7 +67,7 @@ class InvoiceForm(TailwindFormMixin, forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        today = date.today()
+        today = timezone.localdate()
         week_ago = today - timedelta(days=7)
         
         if not self.instance.pk:

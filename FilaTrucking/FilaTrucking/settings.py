@@ -153,7 +153,9 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+# The business runs in Illinois (PRD). With UTC, "this month", invoice dates and WhatsApp message dates rolled over
+# at 6-7 pm local time (QA-044). Override with TIME_ZONE in .env if the business ever moves.
+TIME_ZONE = os.environ.get('TIME_ZONE', 'America/Chicago')
 
 USE_I18N = True
 

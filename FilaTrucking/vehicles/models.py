@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 from drivers.models import Driver
 # from shipments.models import IFTARate
@@ -129,7 +130,7 @@ class Maintenance(models.Model):
     def status_group(self):
         from datetime import date
         if self.next_service_due:
-            days_left = (self.next_service_due - date.today()).days
+            days_left = (self.next_service_due - timezone.localdate()).days
             if days_left < 0: return ("1_OVERDUE", "Overdue")
             if days_left <= 7: return ("2_SOON", "Due Soon")
             if days_left <= 30: return ("3_NEXT_30_DAYS", "Next 30 Days")
