@@ -67,6 +67,31 @@ services:
       timeout: 5s
       retries: 5
 
+  # Nightly MySQL dumps into ./backups (QA-027). Uses the mysql image so mysqldump matches the server version.
+  # One-off backup:   docker compose -f docker-compose.prod.yml run --rm backup once
+  # Rehearse restore: see deploy/README.md. Copy ./backups off this server too (OCI Object Storage, rclone, ...).
+  backup:
+    image: mysql:8.0
+    container_name: fila-backup
+    restart: unless-stopped
+    logging: *default-logging
+    mem_limit: 256m
+    entrypoint: ["/bin/sh", "/deploy/backup_mysql.sh"]
+    environment:
+      - MYSQL_HOST=mysql
+      - MYSQL_DATABASE=filatrucking
+      - MYSQL_USER=filatrucking
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - KEEP_DAYS=${BACKUP_KEEP_DAYS:-14}
+    volumes:
+      - ./deploy:/deploy:ro
+      - ./backups:/backups
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - fila-network
+
   # Redis: Celery broker for the scheduled jobs (QA-008). Internal only, never published.
   redis:
     image: redis:7-alpine

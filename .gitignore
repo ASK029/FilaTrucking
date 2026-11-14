@@ -26,3 +26,4 @@ docs/*.xlsx
 docs/*.xls
 gomotive_resp.json
 *.sqlite3
+backups/

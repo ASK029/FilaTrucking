@@ -231,3 +231,27 @@ class CertificateRenewalQA026(SimpleTestCase):
         conf = (ROOT / "nginx.conf").read_text(encoding="utf-8")
         self.assertNotIn("ssl http2", conf)
         self.assertIn("http2 on;", conf)
+
+
+class BackupsQA027(SimpleTestCase):
+    def test_prod_compose_has_a_backup_service_writing_to_the_host(self):
+        """[QA-027] production data lived in exactly one docker volume with no backup of any kind."""
+        svc = compose("docker-compose.prod.yml")["services"]["backup"]
+        self.assertIn("./backups:/backups", svc["volumes"])
+        self.assertIn("/deploy/backup_mysql.sh", " ".join(svc["entrypoint"]))
+        self.assertEqual(svc["image"], compose("docker-compose.prod.yml")["services"]["mysql"]["image"])  # same mysqldump version
+        self.assertEqual(svc["depends_on"]["mysql"]["condition"], "service_healthy")
+
+    def test_backup_script_verifies_and_rotates(self):
+        text = (ROOT / "deploy" / "backup_mysql.sh").read_text(encoding="utf-8")
+        for needle in ("--single-transaction", "gzip -t", "Dump completed", "-mtime +", ".partial"):
+            self.assertIn(needle, text)
+        self.assertNotRegex(text, r"-p[A-Za-z0-9]", "the password must go through MYSQL_PWD, not the command line")
+
+    def test_restore_script_defaults_to_a_scratch_database(self):
+        text = (ROOT / "deploy" / "restore_mysql.sh").read_text(encoding="utf-8")
+        self.assertIn("filatrucking_restore_test", text)
+
+    def test_backups_are_not_committed(self):
+        self.assertIn("backups/", (ROOT / ".gitignore").read_text(encoding="utf-8"))
+        self.assertTrue((ROOT / "deploy" / "README.md").exists())
