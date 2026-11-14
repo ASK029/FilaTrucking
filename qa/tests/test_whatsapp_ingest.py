@@ -192,3 +192,56 @@ class DriverAndRateQA017(QABase):
             r = self.client.get(url)
             self.assertEqual(r.status_code, 200)
             self.assertNotContains(r, "$None")
+
+
+class IngestRobustnessQA018(QABase):
+    def test_same_message_id_never_creates_two_shipments_even_if_text_differs(self):
+        a = self.ingest(POSITIONAL, message_id="3EB0AAA").json()
+        b = self.ingest(POSITIONAL.replace("RICG02390500", "RICG77777777"), message_id="3EB0AAA").json()
+        self.assertEqual((a["status"], b["status"]), ("success", "duplicate"))
+        self.assertEqual(b["shipment_id"], a["shipment_id"])
+        self.assertNotIn("reply_message", b)  # the group was answered the first time
+        self.assertEqual(Shipment.objects.count(), 1)
+
+    def test_two_different_ids_are_two_shipments(self):
+        self.ingest(POSITIONAL, message_id="A1")
+        self.ingest(POSITIONAL.replace("RICG02390500", "RICG77777777"), message_id="A2")
+        self.assertEqual(Shipment.objects.count(), 2)
+
+    def test_without_id_or_timestamp_nothing_is_deduplicated(self):
+        self.ingest(POSITIONAL)
+        self.ingest(POSITIONAL)
+        self.assertEqual(Shipment.objects.count(), 2)  # (the second is flagged as a duplicate container)
+
+    def test_dedupe_hash_depends_on_the_sender(self):
+        self.ingest(POSITIONAL, timestamp="2026-01-05T15:00:00.000Z", sender="13125550101@s.whatsapp.net")
+        self.ingest(POSITIONAL, timestamp="2026-01-05T15:00:00.000Z", sender="13125550102@s.whatsapp.net")
+        self.assertEqual(Shipment.objects.count(), 2)
+
+    def test_payload_type_errors_are_400(self):
+        for body in ({"text": ["a"]}, {"text": "A\nB\nC", "sender": 5}, {"text": "A\nB\nC", "message_id": 7},
+                     {"text": "A\nB\nC", "timestamp": 12345}, {"text": "x" * 5000}, {"text": "   "}):
+            with self.subTest(body=str(body)[:40]):
+                self.assertEqual(self.ingest(raw=json.dumps(body)).status_code, 400)
+
+    def test_overlong_values_are_flagged_with_a_clear_message_not_stored(self):
+        j = self.ingest("B" * 80 + "\nCONT1\nSEAL1\nASL").json()
+        self.assertEqual(j["status"], "flagged")
+        self.assertIn("Booking is too long", j["reply_message"])
+        self.assertEqual(Shipment.objects.count(), 0)
+
+    def test_unexpected_errors_do_not_leak_internals_to_the_group(self):
+        from unittest import mock
+        with mock.patch("shipments.api.Shipment.objects.create", side_effect=RuntimeError("SELECT secret FROM t /srv/app.py")):
+            j = self.ingest(POSITIONAL).json()
+        self.assertEqual(j["status"], "flagged")
+        self.assertNotIn("SELECT", json.dumps(j))
+        self.assertNotIn("/srv", json.dumps(j))
+        self.assertNotIn("SELECT", WhatsAppMessage.objects.get().error_message)
+
+    def test_naive_and_offset_timestamps_are_accepted(self):
+        for ts in ("2026-01-05T15:00:00", "2026-01-05T15:00:00+00:00", "2026-01-05T09:00:00-06:00", "garbage"):
+            with self.subTest(ts=ts):
+                Shipment.objects.all().delete()
+                WhatsAppMessage.objects.all().delete()
+                self.assertEqual(self.ingest(POSITIONAL.rsplit("\n", 1)[0], timestamp=ts).json()["status"], "success")

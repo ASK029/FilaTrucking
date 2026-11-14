@@ -1,14 +1,18 @@
+import hashlib
 import hmac
 import json
+import logging
 import re
 import requests
-from datetime import datetime
+from datetime import datetime, timezone as dt_timezone
 from decimal import Decimal, InvalidOperation
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST, require_http_methods
-from django.utils.dateparse import parse_date
+from django.db import IntegrityError
+from django.utils import timezone
+from django.utils.dateparse import parse_date, parse_datetime
 
 from .models import (
     WhatsAppMessage, Shipment, ShipmentStatus,
@@ -18,6 +22,7 @@ from customers.models import Customer
 from drivers.models import Driver
 from vehicles.models import Vehicle
 
+logger = logging.getLogger(__name__)
 WHATSAPP_SECRET = settings.WHATSAPP_INGEST_SECRET  # no default: see settings.py (QA-004)
 WHATSAPP_SIDECAR_URL = getattr(settings, 'WHATSAPP_SIDECAR_URL', 'http://localhost:3001')
 
@@ -93,6 +98,36 @@ def find_driver(name, sender):
     return None
 
 
+MAX_MESSAGE_CHARS = 4000
+
+
+def _dedupe_key(message_id, sender, timestamp, text):
+    if message_id:
+        return ("id:" + message_id)[:80]
+    if timestamp:
+        return "h:" + hashlib.sha256(f"{sender}|{timestamp}|{text}".encode()).hexdigest()
+    return None
+
+
+def _duplicate_response(earlier):
+    return JsonResponse({
+        "status": "duplicate",
+        "message": "Message already processed",
+        "message_id": earlier.id,
+        "shipment_id": earlier.shipment_id,
+    })  # deliberately no reply_message: the group was already answered the first time
+
+
+def _message_local_date(timestamp):
+    """Business-local date of the WhatsApp message (a 20:30 Chicago message is the 5th, not the 6th UTC)."""
+    parsed = parse_datetime(timestamp) if timestamp else None
+    if parsed is None:
+        return timezone.localdate()
+    if timezone.is_naive(parsed):
+        parsed = timezone.make_aware(parsed, dt_timezone.utc)
+    return timezone.localtime(parsed).date()
+
+
 SHIPMENT_KEYS = {"date", "booking", "container", "seal", "customer", "rate", "driver", "truck", "location"}
 
 
@@ -123,34 +158,44 @@ def ingest_whatsapp_message(request):
     
     try:
         data = json.loads(request.body)
-        raw_text = data.get("text", "")
-        sender_phone = data.get("sender", "")
-    except json.JSONDecodeError:
+    except (json.JSONDecodeError, UnicodeDecodeError):
         return JsonResponse({"error": "Invalid JSON"}, status=400)
+    if not isinstance(data, dict):
+        return JsonResponse({"error": "Expected a JSON object"}, status=400)
 
-    if not raw_text:
+    raw_text = data.get("text", "")
+    sender_phone = data.get("sender", "")
+    message_timestamp = data.get("timestamp")
+    message_id = data.get("message_id")
+    if not isinstance(raw_text, str) or not isinstance(sender_phone, str)             or not (message_timestamp is None or isinstance(message_timestamp, str))             or not (message_id is None or isinstance(message_id, str)):
+        return JsonResponse({"error": "text, sender, timestamp and message_id must be strings"}, status=400)
+
+    if not raw_text.strip():
         return JsonResponse({"error": "No text provided"}, status=400)
-    
+    if len(raw_text) > MAX_MESSAGE_CHARS:
+        return JsonResponse({"error": "Text too long"}, status=400)
+    sender_phone = sender_phone[:50]
+
     if not looks_like_shipment_message(raw_text):
         # Chit-chat in the group: no error row (it would keep personal chat forever), and no reply (the sidecar
         # only answers when Django sends a reply_message) (QA-016).
         return JsonResponse({"status": "ignored", "message": "Not a shipment message"})
 
-    msg_log = WhatsAppMessage.objects.create(
-        raw_text=raw_text,
-        sender_phone=sender_phone
-    )
-    
-    # Get message timestamp for fallback date
-    message_timestamp = data.get("timestamp")
-    fallback_date = None
-    if message_timestamp:
-        try:
-            fallback_date = datetime.fromisoformat(message_timestamp.replace("+0000", "")).date()
-        except:
-            fallback_date = datetime.now().date()
-    else:
-        fallback_date = datetime.now().date()
+    # Idempotency: the same WhatsApp message must not create a second shipment (QA-018)
+    dedupe_key = _dedupe_key(message_id, sender_phone, message_timestamp, raw_text)
+    if dedupe_key:
+        earlier = WhatsAppMessage.objects.filter(dedupe_key=dedupe_key).first()
+        if earlier:
+            return _duplicate_response(earlier)
+    try:
+        msg_log = WhatsAppMessage.objects.create(raw_text=raw_text, sender_phone=sender_phone, dedupe_key=dedupe_key)
+    except IntegrityError:  # a concurrent worker stored the same message a moment ago
+        earlier = WhatsAppMessage.objects.filter(dedupe_key=dedupe_key).first()
+        if earlier:
+            return _duplicate_response(earlier)
+        raise
+
+    fallback_date = _message_local_date(message_timestamp)
 
     # Parser rules - try key:value format first (backward compatibility)
     lines = raw_text.strip().split('\n')
@@ -378,6 +423,11 @@ CUSTOMER: AMSTAR"""
         year_next = month_start.year + (month_start.month // 12)
         month_end = month_start.replace(year=year_next, month=next_month)
         
+        # Longer values would be a database error on MySQL (strict mode): refuse them with a clear message
+        for field_name, limit in (("booking", 50), ("container", 50), ("seal", 50), ("location", 100)):
+            if len(parsed_data.get(field_name, "")) > limit:
+                raise ValueError(f"{field_name.capitalize()} is too long (maximum {limit} characters)")
+
         duplicates = Shipment.objects.filter(
             container__iexact=container_no,
             date__gte=month_start,
@@ -427,21 +477,35 @@ Status: Pending Review"""
             "reply_message": success_message
         })
 
-    except Exception as e:
+    except ValueError as e:
+        # our own validation messages (bad date, value too long, ...): safe to show to the driver
         msg_log.is_flagged = True
         msg_log.error_message = str(e)
         msg_log.save()
-        
+
         error_reply = f"""⚠️ Error: {str(e)}
 
 Please check your message format and try again.
 Contact dispatch if issue persists."""
-        
+
         return JsonResponse({
-            "status": "flagged", 
+            "status": "flagged",
             "message": f"Parse error: {str(e)}",
             "message_id": msg_log.id,
             "reply_message": error_reply
+        })
+
+    except Exception:
+        # anything else is OUR bug: log it, keep internals (SQL, paths) out of the WhatsApp group
+        logger.exception("WhatsApp ingest failed for stored message %s", msg_log.id)
+        msg_log.is_flagged = True
+        msg_log.error_message = "Internal error while processing this message"
+        msg_log.save()
+        return JsonResponse({
+            "status": "flagged",
+            "message": "Internal error",
+            "message_id": msg_log.id,
+            "reply_message": "⚠️ Something went wrong while saving your message. Dispatch will review it manually.",
         })
 
 

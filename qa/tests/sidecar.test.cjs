@@ -125,14 +125,49 @@ test('QA-015 close + two restart calls leave a single pending start', () => {
 });
 
 test('QA-016 the bot stays silent for chit-chat and while Django is down, and answers real shipments', () => {
-  const { res } = run('noise');
+  const { res } = run('noise', { REPLY_GAP_MS: '50' });
   assert.strictEqual(res.replies_after_ignored, 0, 'ignored chit-chat must not be answered');
   assert.strictEqual(res.replies_while_django_is_down, 0, 'no "please use the correct format" spam on Django errors');
   assert.deepStrictEqual(res.replies_after_success, ['Shipment recorded!']);
 });
 
-test('QA-016 replies are rate limited (1 per chat per 2 s, 20 per minute overall)', () => {
-  const { res } = run('reply_limit');
-  assert.strictEqual(res.replies_to_5_messages_in_a_burst_same_chat, 1);
-  assert.ok(res.replies_to_30_chats_in_a_burst <= 19, `sent ${res.replies_to_30_chats_in_a_burst}`);
+test('QA-016 replies are paced (never a burst) but none is lost, and the pending queue is bounded', () => {
+  const { res } = run('reply_limit', { REPLY_GAP_MS: '120' });
+  assert.deepStrictEqual(res.replies_to_5_messages_in_a_burst, ['help M0', 'help M1', 'help M2', 'help M3', 'help M4']);
+  assert.ok(res.min_gap_ms_between_replies >= 100, `gap ${res.min_gap_ms_between_replies} ms`);
+  assert.ok(res.sent_in_first_900ms_of_flood <= 9, `a flood must be spread out, sent ${res.sent_in_first_900ms_of_flood}`);
+});
+
+const FAST_RETRY = { OUTBOX_INTERVAL_MS: '150', OUTBOX_RETRY_BASE_MS: '100', REPLY_GAP_MS: '30' };
+
+test('QA-018 messages sent while Django is down are queued on disk and delivered (once) when it returns', () => {
+  const { res } = run('retry', FAST_RETRY);
+  assert.strictEqual(res.replies_while_django_down, 0);
+  assert.strictEqual(res.queued_on_disk, 3);
+  assert.deepStrictEqual(res.delivered_message_ids, ['WA-ID-1', 'WA-ID-2', 'WA-ID-3']);
+  assert.deepStrictEqual(res.replies_after_recovery, ['Recorded WA-ID-1', 'Recorded WA-ID-2', 'Recorded WA-ID-3']);
+  assert.strictEqual(res.queue_empty_after_recovery, true);
+});
+
+test('QA-018 a 4xx answer from Django is final: no retry, no reply', () => {
+  const { res } = run('retry_4xx', FAST_RETRY);
+  assert.strictEqual(res.posts_for_a_400_answer, 1);
+  assert.strictEqual(res.replies, 0);
+});
+
+test('QA-018 unsent messages survive a sidecar restart', () => {
+  const { res } = run('outbox_restore', FAST_RETRY);
+  assert.deepStrictEqual(res.delivered_message_ids, ['OLD-1']);
+  assert.deepStrictEqual(res.replies, ['Recorded OLD-1']);
+  assert.strictEqual(res.queue_file_after, 0);
+});
+
+test('QA-018 clearing the WhatsApp session keeps the unsent-message queue', () => {
+  const { res } = run('clear_auth_keeps_queue', FAST_RETRY);
+  assert.deepStrictEqual(res.files_after_clear_auth, ['_outbox.json']);
+});
+
+test('QA-018 the WhatsApp message id is sent to Django (it deduplicates on it)', () => {
+  const { res } = run('dedupe');
+  assert.deepStrictEqual(res.message_id_sent_to_django, ['SAME-ID', 'SAME-ID']);
 });

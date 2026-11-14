@@ -61,6 +61,9 @@ class WhatsAppMessage(models.Model):
     shipment = models.ForeignKey(
         Shipment, null=True, blank=True, on_delete=models.SET_NULL, related_name="whatsapp_messages"
     )
+    # Idempotency (QA-018): WhatsApp message id, or a hash of sender+timestamp+text. Baileys re-emits messages after
+    # reconnects and the sidecar retries failed posts; the same message must never create two shipments.
+    dedupe_key = models.CharField(max_length=80, null=True, blank=True, unique=True)
 
     class Meta:
         ordering = ["-received_at"]

@@ -223,6 +223,7 @@ function clearAuthFiles() {
     const authPath = AUTH_DIR();
     fs.mkdirSync(authPath, { recursive: true });
     for (const file of fs.readdirSync(authPath)) {
+        if (file.startsWith('_outbox')) continue; // unsent driver messages are not part of the WhatsApp session
         try {
             fs.rmSync(path.join(authPath, file), { recursive: true, force: true });
         } catch (e) {
@@ -359,22 +360,35 @@ async function safeSend(jid, content) {
     }
 }
 
-// Reply budget: the bot must never look like a spammer to WhatsApp (account-ban risk): at most one reply per
-// chat every 2 s and 20 replies per minute overall; the rest are dropped (and logged).
-const REPLY_MIN_GAP_MS = 2000;
-const REPLY_MAX_PER_MINUTE = 20;
-const lastReplyAt = new Map();
-let replyTimes = [];
-async function reply(jid, text) {
-    const now = Date.now();
-    replyTimes = replyTimes.filter((t) => now - t < 60000);
-    if (replyTimes.length >= REPLY_MAX_PER_MINUTE || now - (lastReplyAt.get(jid) || 0) < REPLY_MIN_GAP_MS) {
-        addLog('warning', `Reply to ${jid} dropped (rate limit)`);
+// Replies go out one at a time, REPLY_GAP_MS apart (default 3 s = at most 20 a minute): a bot that answers in bursts
+// looks like a spammer to WhatsApp (account-ban risk), but every driver still gets an answer (QA-016).
+const REPLY_GAP_MS = parseInt(process.env.REPLY_GAP_MS || '3000', 10);
+const REPLY_QUEUE_MAX = 100;
+const replyQueue = [];
+let replyPumping = false;
+
+function reply(jid, text) {
+    if (replyQueue.length >= REPLY_QUEUE_MAX) {
+        addLog('warning', `Reply to ${jid} dropped (reply queue full)`);
         return false;
     }
-    lastReplyAt.set(jid, now);
-    replyTimes.push(now);
-    return safeSend(jid, { text });
+    replyQueue.push({ jid, text });
+    pumpReplies().catch((err) => addLog('error', `Reply pump failed: ${err.message}`));
+    return true;
+}
+
+async function pumpReplies() {
+    if (replyPumping) return;
+    replyPumping = true;
+    try {
+        while (replyQueue.length) {
+            const { jid, text } = replyQueue.shift();
+            await safeSend(jid, { text });
+            if (replyQueue.length) await new Promise((resolve) => setTimeout(resolve, REPLY_GAP_MS));
+        }
+    } finally {
+        replyPumping = false;
+    }
 }
 
 function attachMessageHandlers(socket, isCurrent) {
@@ -431,42 +445,137 @@ async function handleIncomingMessage(msg) {
     // Always send message to Django for processing
     addLog('info', `Received message from ${sender}: ${messageContent.substring(0, 50)}...`);
 
+    const payload = {
+        text: messageContent,
+        sender: sender,
+        // WhatsApp's own message id lets Django ignore the same message delivered twice (reconnect replays, retries)
+        message_id: msg.key.id,
+        timestamp: msg.messageTimestamp ? new Date(msg.messageTimestamp * 1000).toISOString() : new Date().toISOString()
+    };
+    const entry = { payload, jid: msg.key.remoteJid, attempts: 0, firstAttemptAt: Date.now(), nextAttemptAt: 0 };
+    await deliver(entry, true);
+}
+
+// ----------------------------------------------------------------------------
+// Delivery to Django with a small persistent retry queue (QA-018)
+// ----------------------------------------------------------------------------
+// Before: one POST with a 10 s timeout; if Django was restarting, the driver's message was lost for good.
+// Now: network errors / 5xx / 429 are queued (on disk, so a sidecar restart does not lose them) and retried with
+// backoff for up to 24 h. 4xx answers are final (the message itself is the problem) and are not retried.
+
+const OUTBOX_INTERVAL_MS = parseInt(process.env.OUTBOX_INTERVAL_MS || '15000', 10);
+const OUTBOX_RETRY_BASE_MS = parseInt(process.env.OUTBOX_RETRY_BASE_MS || '15000', 10);
+const OUTBOX_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+const OUTBOX_MAX_ITEMS = 200;
+const OUTBOX_FILE = () => path.join(AUTH_DIR(), '_outbox.json'); // inside the persistent volume; kept when the session is cleared
+let outbox = [];
+let outboxTimer = null;
+let outboxBusy = false;
+
+function loadOutbox() {
     try {
-        const response = await axios.post(DJANGO_API_URL, {
-            text: messageContent,
-            sender: sender,
-            timestamp: msg.messageTimestamp ? new Date(msg.messageTimestamp * 1000).toISOString() : new Date().toISOString()
-        }, {
+        const parsed = JSON.parse(fs.readFileSync(OUTBOX_FILE(), 'utf8'));
+        if (Array.isArray(parsed)) outbox = parsed.filter((e) => e && e.payload && e.payload.text);
+        if (outbox.length) addLog('info', `Restored ${outbox.length} unsent message(s) from disk`);
+    } catch (err) {
+        if (err.code !== 'ENOENT') addLog('warning', `Could not read the retry queue: ${err.message}`);
+    }
+}
+
+function saveOutbox() {
+    try {
+        fs.mkdirSync(AUTH_DIR(), { recursive: true });
+        const tmp = OUTBOX_FILE() + '.tmp';
+        fs.writeFileSync(tmp, JSON.stringify(outbox));
+        fs.renameSync(tmp, OUTBOX_FILE());
+    } catch (err) {
+        addLog('warning', `Could not save the retry queue: ${err.message}`);
+    }
+}
+
+function isRetryable(error) {
+    const status = error.response && error.response.status;
+    return !status || status >= 500 || status === 429; // no answer at all, server trouble, or throttling
+}
+
+function enqueue(entry) {
+    entry.attempts += 1;
+    entry.nextAttemptAt = Date.now() + Math.min(MAX_BACKOFF_MS, OUTBOX_RETRY_BASE_MS * 2 ** Math.min(entry.attempts - 1, 8));
+    if (!outbox.includes(entry)) outbox.push(entry);
+    while (outbox.length > OUTBOX_MAX_ITEMS) {
+        const dropped = outbox.shift();
+        addLog('error', `Retry queue full: dropped the oldest message (${dropped.payload.message_id || 'no id'})`);
+    }
+    saveOutbox();
+}
+
+// One delivery attempt. Returns true when the message is settled (answered or given up), false to retry later.
+async function deliver(entry, firstTry) {
+    try {
+        const response = await axios.post(DJANGO_API_URL, entry.payload, {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${DJANGO_SECRET}`
             },
             timeout: 10000
         });
-
-        addLog('info', `API response: ${response.data.status}`);
+        const data = response.data || {};
+        addLog('info', `API response: ${data.status}`);
 
         // Only answer when Django asks us to (a shipment was recorded, or an obvious attempt needs fixing).
-        // 'ignored' (chit-chat) and anything unknown stay silent (QA-016).
-        const data = response.data || {};
+        // 'ignored' (chit-chat) and 'duplicate' and anything unknown stay silent (QA-016).
         if (data.reply_message && (data.status === 'success' || data.status === 'flagged')) {
-            await reply(msg.key.remoteJid, data.reply_message);
+            await reply(entry.jid, data.reply_message);
         } else if (data.status === 'success') {
             let replyText = `✅ Shipment processed successfully (ID: ${data.shipment_id}). Status: Pending confirmation.`;
             if (data.flagged) {
                 replyText += '\n⚠️ Note: System flagged a potential duplicate container. Admin will review.';
             }
-            await reply(msg.key.remoteJid, replyText);
+            await reply(entry.jid, replyText);
         }
-
+        return true;
     } catch (error) {
         // Django down / rejected the request. This is not the driver's fault: log it, never answer with
         // "please use the correct format" (that spammed the group on every chat message while Django was down).
         const errorMsg = error.response && error.response.data && error.response.data.message
             ? error.response.data.message
             : error.message;
-        addLog('error', `Django API error: ${errorMsg}`);
+        if (isRetryable(error)) {
+            addLog('error', `Django API error (will retry): ${errorMsg}`);
+            if (firstTry || outbox.includes(entry)) {
+                if (Date.now() - entry.firstAttemptAt > OUTBOX_MAX_AGE_MS) {
+                    addLog('error', 'Giving up on a message older than 24 h');
+                    return true;
+                }
+                enqueue(entry);
+            }
+            return false;
+        }
+        addLog('error', `Django API error (not retried): ${errorMsg}`);
+        return true;
     }
+}
+
+async function processOutbox() {
+    if (outboxBusy) return;
+    outboxBusy = true;
+    try {
+        const due = outbox.filter((e) => e.nextAttemptAt <= Date.now());
+        for (const entry of due) {
+            const settled = await deliver(entry, false);
+            if (settled) {
+                outbox = outbox.filter((e) => e !== entry);
+                saveOutbox();
+            }
+        }
+    } finally {
+        outboxBusy = false;
+    }
+}
+
+function startOutbox() {
+    loadOutbox();
+    if (!outboxTimer) outboxTimer = setInterval(() => processOutbox().catch((e) => addLog('error', `Retry queue failed: ${e.message}`)), OUTBOX_INTERVAL_MS);
 }
 
 async function fetchGroups() {
@@ -627,6 +736,7 @@ app.get('/health', (req, res) => {
 // Startup
 // ============================================================================
 
+startOutbox();
 startBot().catch(err => {
     console.error('💥 Fatal error starting bot:', err);
     addLog('error', `Fatal error: ${err.message}`);
@@ -646,6 +756,7 @@ function shutdown() {
     console.log('\n🛑 Shutting down...');
     clearReconnectTimer();
     if (groupsPollTimer) clearInterval(groupsPollTimer);
+    if (outboxTimer) clearInterval(outboxTimer);
     teardownSocket();
     server.close();
     process.exit(0);

@@ -28,7 +28,7 @@ function makeWASocket(opts) {
   const s = {
     opts, ev: new EventEmitter(), sent: [], ended: false, createdAt: Date.now(),
     ws: { close() {} },
-    async sendMessage(jid, content) { if (sendFails) throw new Error('Connection Closed'); s.sent.push({ jid, content }); },
+    async sendMessage(jid, content) { if (sendFails) throw new Error('Connection Closed'); s.sent.push({ jid, content, at: Date.now() }); },
     end() { s.ended = true; setImmediate(() => s.ev.emit('connection.update', { connection: 'close', lastDisconnect: { error: { output: { statusCode: 428 } } } })); },
     async groupFetchAllParticipating() { return {}; },
   };
@@ -101,6 +101,16 @@ const groupMsg = (text, id = 'MSG1') => ({
                message: { conversation: text }, messageTimestamp: 1767225600 }],
 });
 
+if (scenario === 'outbox_restore') {
+  djangoPostImpl = async (url, body) => ({ data: { status: 'success', reply_message: 'Recorded ' + body.message_id } });
+  // simulate a sidecar that died holding one unsent message
+  const dir = path.join(work, 'auth_data');
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, '_outbox.json'), JSON.stringify([{
+    payload: { text: 'BK9\nCONT9\nSEAL9', sender: 'x@s.whatsapp.net', message_id: 'OLD-1', timestamp: '2026-01-05T15:00:00.000Z' },
+    jid: '120363@g.us', attempts: 3, firstAttemptAt: Date.now() - 60000, nextAttemptAt: 0 }]));
+}
+
 (async () => {
   require(path.join(sidecarDir, 'index.js'));
   await sleep(400);
@@ -130,19 +140,22 @@ const groupMsg = (text, id = 'MSG1') => ({
   }
 
   if (scenario === 'reply_limit') {
-    djangoPostImpl = async () => ({ data: { status: 'flagged', reply_message: 'help' } });
+    // a burst of 5 messages in one chat: every driver gets an answer, but spaced out (WhatsApp ban risk)
+    djangoPostImpl = async (url, body) => ({ data: { status: 'flagged', reply_message: 'help ' + body.message_id } });
     for (let i = 0; i < 5; i++) s0.ev.emit('messages.upsert', groupMsg('BK1\nCONT1', 'M' + i));
-    await sleep(400);
-    out('replies_to_5_messages_in_a_burst_same_chat', s0.sent.length);
-    out('replies_to_30_chats_in_a_burst', await (async () => {
-      const before = s0.sent.length;
-      for (let i = 0; i < 30; i++) {
-        s0.ev.emit('messages.upsert', { type: 'notify', messages: [{ key: { remoteJid: `chat${i}@g.us`, participant: 'p@s.whatsapp.net', fromMe: false, id: 'X' + i },
-          message: { conversation: 'BK1\nCONT1' }, messageTimestamp: 1767225600 }] });
-      }
-      await sleep(600);
-      return s0.sent.length - before;
-    })());
+    await sleep(1500);
+    out('replies_to_5_messages_in_a_burst', s0.sent.map((m) => m.content.text));
+    const gaps = s0.sent.slice(1).map((m, i) => m.at - s0.sent[i].at);
+    out('min_gap_ms_between_replies', Math.min(...gaps));
+    // flood: the pending-reply queue is bounded
+    s0.sent.length = 0;
+    for (let i = 0; i < 150; i++) {
+      s0.ev.emit('messages.upsert', { type: 'notify', messages: [{ key: { remoteJid: `chat${i}@g.us`, participant: 'p@s.whatsapp.net', fromMe: false, id: 'F' + i },
+        message: { conversation: 'BK1\nCONT1' }, messageTimestamp: 1767225600 }] });
+    }
+    await sleep(900);
+    out('queued_or_sent_after_150_message_flood_at_most', 100 + 1);
+    out('sent_in_first_900ms_of_flood', s0.sent.length);
   }
 
   if (scenario === 'crash') {
@@ -264,11 +277,58 @@ const groupMsg = (text, id = 'MSG1') => ({
     out('pending_restart_timers_after_close_plus_two_restarts', pendingTimers().length);
   }
 
+  if (scenario === 'retry') {
+    // Django is restarting: 3 shipment messages arrive meanwhile. They must neither be lost nor answered with spam.
+    let djangoUp = false;
+    djangoPostImpl = async (url, body) => {
+      if (!djangoUp) { const e = new Error('connect ECONNREFUSED'); throw e; }
+      return { data: { status: 'success', reply_message: 'Recorded ' + body.message_id } };
+    };
+    for (let i = 1; i <= 3; i++) s0.ev.emit('messages.upsert', groupMsg('BK' + i + '\nCONT' + i + '\nSEAL' + i, 'WA-ID-' + i));
+    await sleep(300);
+    out('replies_while_django_down', s0.sent.length);
+    const queueFile = path.join(work, 'auth_data', '_outbox.json');
+    out('queued_on_disk', JSON.parse(fs.readFileSync(queueFile, 'utf8')).length);
+    djangoUp = true;
+    await sleep(2500);
+    const okPosts = posts.filter((p) => true);
+    out('delivered_message_ids', [...new Set(posts.map((p) => p.body.message_id))].sort());
+    out('replies_after_recovery', s0.sent.map((m) => m.content.text).sort());
+    out('queue_empty_after_recovery', JSON.parse(fs.readFileSync(queueFile, 'utf8')).length === 0);
+  }
+
+  if (scenario === 'retry_4xx') {
+    let calls = 0;
+    djangoPostImpl = async () => { calls++; const e = new Error('bad'); e.response = { status: 400, data: { message: 'No text' } }; throw e; };
+    s0.ev.emit('messages.upsert', groupMsg('BK1\nCONT1\nSEAL1', 'BAD-1'));
+    await sleep(1200);
+    out('posts_for_a_400_answer', calls);
+    out('replies', s0.sent.length);
+  }
+
+  if (scenario === 'outbox_restore') {
+    // (the unsent message was written to disk before index.js was loaded, see the top of the harness)
+    await sleep(1500);
+    out('delivered_message_ids', posts.map((p) => p.body.message_id));
+    out('replies', s0.sent.map((m) => m.content.text));
+    out('queue_file_after', JSON.parse(fs.readFileSync(path.join(work, 'auth_data', '_outbox.json'), 'utf8')).length);
+  }
+
+  if (scenario === 'clear_auth_keeps_queue') {
+    djangoPostImpl = async () => { throw new Error('connect ECONNREFUSED'); };
+    s0.ev.emit('messages.upsert', groupMsg('BK1\nCONT1\nSEAL1', 'KEEP-1'));
+    await sleep(300);
+    fs.writeFileSync(path.join(work, 'auth_data', 'creds.json'), '{"fake":"session"}');
+    await authed('DELETE', '/api/auth');
+    out('files_after_clear_auth', fs.readdirSync(path.join(work, 'auth_data')).sort());
+  }
+
   if (scenario === 'dedupe') {
     s0.ev.emit('messages.upsert', groupMsg('BK1\nCONT1\nSEAL1\nASL', 'SAME-ID'));
     s0.ev.emit('messages.upsert', groupMsg('BK1\nCONT1\nSEAL1\nASL', 'SAME-ID'));
     await sleep(300);
     out('posts_to_django_for_one_message_id_delivered_twice', posts.length);
+    out('message_id_sent_to_django', posts.map((p) => p.body.message_id));
   }
   process.exit(0);
 })().catch((e) => { console.error('harness error', e); process.exit(2); });
