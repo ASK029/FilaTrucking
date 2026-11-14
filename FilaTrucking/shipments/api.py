@@ -366,6 +366,8 @@ Contact dispatch if issue persists."""
 @require_http_methods(["GET"])
 def whatsapp_status(request):
     """Get current WhatsApp sidecar connection status."""
+    if not check_auth(request):
+        return JsonResponse(UNAUTHORIZED, status=401)
     config = WhatsAppConfig.get_instance()
     return JsonResponse({
         "sidecar_status": config.sidecar_status,
@@ -380,6 +382,8 @@ def whatsapp_status(request):
 @require_http_methods(["GET"])
 def whatsapp_qr_code(request):
     """Get the latest QR code for WhatsApp authentication."""
+    if not check_auth(request):
+        return JsonResponse(UNAUTHORIZED, status=401)
     config = WhatsAppConfig.get_instance()
     return JsonResponse({
         "qr_code": config.qr_code_data,
@@ -391,6 +395,8 @@ def whatsapp_qr_code(request):
 @require_http_methods(["GET"])
 def whatsapp_logs(request):
     """Get recent WhatsApp logs with optional pagination."""
+    if not check_auth(request):
+        return JsonResponse(UNAUTHORIZED, status=401)
     limit = int(request.GET.get("limit", 100))
     offset = int(request.GET.get("offset", 0))
     
@@ -416,6 +422,8 @@ def whatsapp_logs(request):
 @require_http_methods(["GET"])
 def whatsapp_groups(request):
     """Get list of available WhatsApp groups."""
+    if not check_auth(request):
+        return JsonResponse(UNAUTHORIZED, status=401)
     groups = WhatsAppGroup.objects.all()
     return JsonResponse({
         "groups": [
@@ -433,12 +441,25 @@ def whatsapp_groups(request):
     })
 
 
+def _csrf_ok(request):
+    """Enforce Django's CSRF check by hand. These views are @csrf_exempt so the sidecar (no cookies) can call
+    them with a bearer token; a browser session must still prove it is not a cross-site request (QA-003)."""
+    if request.method in ("GET", "HEAD", "OPTIONS", "TRACE"):
+        return True
+    from django.middleware.csrf import CsrfViewMiddleware
+    check = CsrfViewMiddleware(lambda req: None)
+    check.process_request(request)
+    return check.process_view(request, None, (), {}) is None
+
+
 def check_auth(request):
-    """Check if request has valid Bearer token OR is from authenticated user."""
+    """True for the sidecar (valid Bearer secret) or for a logged-in browser session (+ CSRF on writes)."""
     if request.headers.get("Authorization", "").startswith("Bearer "):
         return has_valid_bearer(request)
-    # Allow authenticated Django users
-    return request.user.is_authenticated
+    return request.user.is_authenticated and _csrf_ok(request)
+
+
+UNAUTHORIZED = {"error": "Unauthorized"}
 
 
 @csrf_exempt

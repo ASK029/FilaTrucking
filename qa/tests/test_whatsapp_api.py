@@ -158,3 +158,50 @@ class SecretHandling(QABase):
         r = self.client.post(f"{BASE}/update-status/", data=json.dumps({"sidecar_status": "connected"}),
                              content_type="application/json", **old)
         self.assertEqual(r.status_code, 401)
+
+
+class AccessControlQA003(QABase):
+    """[QA-003] the status/QR/logs/groups routes accept a login or the bearer secret, nothing else."""
+
+    def test_logged_in_admin_can_read_all_four(self):
+        self.login()
+        WhatsAppGroup.objects.create(group_jid="1-2@g.us", group_name="Ops")
+        for path in ("status/", "qr-code/", "logs/", "groups/"):
+            with self.subTest(path=path):
+                self.assertEqual(self.client.get(f"{BASE}/{path}").status_code, 200)
+
+    def test_sidecar_bearer_can_read_the_group_list(self):
+        """The sidecar polls GET /groups/ with the bearer to learn which groups are enabled."""
+        WhatsAppGroup.objects.create(group_jid="1-2@g.us", group_name="Ops", is_active=True)
+        r = self.client.get(f"{BASE}/groups/", **BEARER)
+        self.assertEqual(r.status_code, 200)
+        self.assertTrue(r.json()["groups"][0]["is_active"])
+
+    def test_wrong_bearer_is_rejected_even_when_logged_in(self):
+        self.login()
+        r = self.client.get(f"{BASE}/groups/", HTTP_AUTHORIZATION="Bearer wrong")
+        self.assertEqual(r.status_code, 401)
+
+    def test_session_writes_need_a_csrf_token(self):
+        """Control endpoints are csrf_exempt (the sidecar has no cookies), so a cross-site form post from the admin's
+        browser would have restarted the bot / wiped the session. The session path must enforce CSRF itself."""
+        from django.test import Client
+        c = Client(enforce_csrf_checks=True, raise_request_exception=False)
+        c.force_login(self.user)
+        sidecar_ok = mock.Mock(status_code=200, text="")
+        with mock.patch("requests.post", return_value=sidecar_ok) as post:
+            r = c.post(f"{BASE}/trigger-restart/")
+            self.assertEqual(r.status_code, 401, "cross-site POST must be refused")
+            post.assert_not_called()
+            c.get("/auth/login/")  # sets the csrftoken cookie
+            token = c.cookies["csrftoken"].value
+            r = c.post(f"{BASE}/trigger-restart/", HTTP_X_CSRFTOKEN=token)
+            self.assertEqual(r.status_code, 200)
+            post.assert_called_once()
+
+    def test_bearer_calls_do_not_need_csrf(self):
+        from django.test import Client
+        c = Client(enforce_csrf_checks=True)
+        r = c.post(f"{BASE}/update-status/", data=json.dumps({"sidecar_status": "connected"}),
+                   content_type="application/json", **BEARER)
+        self.assertEqual(r.status_code, 200)

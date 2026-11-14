@@ -240,9 +240,18 @@
 </main>
 
 <script>
+// CSRF token for the POST calls below (the API views also accept a session, so they check it themselves).
+const CSRF_TOKEN = '{{ csrf_token }}';
+const postJSON = (url, body) => fetch(url, {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF_TOKEN },
+    body: body === undefined ? undefined : JSON.stringify(body),
+});
+
 // Render QR Code if data exists
 function renderQRCode() {
-    const qrData = `{{ config.qr_code_data }}`;
+    const qrData = '{{ config.qr_code_data|default:""|escapejs }}';
     const qrContainer = document.getElementById('qr-code');
     
     if (qrData && qrContainer && qrContainer.children.length === 0) {
@@ -267,7 +276,7 @@ document.getElementById('sync-groups-btn').addEventListener('click', function() 
     const originalHTML = this.innerHTML;
     this.innerHTML = '<svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Syncing...</span>';
     
-    fetch('{% url "api_trigger_sync_groups" %}', { method: 'POST' })
+    postJSON('{% url "api_trigger_sync_groups" %}')
         .then(r => r.json())
         .then(data => {
             if (data.status === 'success') {
@@ -293,7 +302,7 @@ document.getElementById('restart-btn').addEventListener('click', function() {
         const originalHTML = this.innerHTML;
         this.innerHTML = '<svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Restarting...</span>';
         
-        fetch('{% url "api_trigger_restart" %}', { method: 'POST' })
+        postJSON('{% url "api_trigger_restart" %}')
             .then(r => r.json())
             .then(data => {
                 alert('Connection restarting...');
@@ -314,7 +323,7 @@ document.getElementById('clear-auth-btn').addEventListener('click', function() {
         const originalHTML = this.innerHTML;
         this.innerHTML = '<svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Clearing...</span>';
         
-        fetch('{% url "api_trigger_clear_auth" %}', { method: 'POST' })
+        postJSON('{% url "api_trigger_clear_auth" %}')
             .then(r => r.json())
             .then(data => {
                 if (data.status === 'success') {
@@ -340,12 +349,8 @@ document.querySelectorAll('.toggle-group-checkbox').forEach(checkbox => {
         const groupId = this.getAttribute('data-group-id');
         const isActive = this.checked;
         
-        fetch('{% url "api_whatsapp_update_group_status" group_id=999 %}'.replace('/999/', '/' + groupId + '/'), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ is_active: isActive })
-        })
-        .then(r => r.json())
+        postJSON('{% url "api_whatsapp_update_group_status" group_id=999 %}'.replace('/999/', '/' + groupId + '/'), { is_active: isActive })
+        .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
         .catch(err => {
             console.error('Error updating group:', err);
             this.checked = !isActive;
@@ -353,12 +358,24 @@ document.querySelectorAll('.toggle-group-checkbox').forEach(checkbox => {
     });
 });
 
-// Auto-refresh status every 3 seconds
-setInterval(() => {
-    fetch('{% url "api_whatsapp_status" %}')
-        .then(r => r.json())
-        .catch(err => console.error('Status check error:', err));
-}, 3000);
+// Live status: the old code fetched the status every 3 s and threw the answer away. Reload the page when the
+// connection state or the pairing QR changes, so the QR appears and disappears without a manual refresh.
+let lastSignature = null;
+async function pollStatus() {
+    try {
+        const [st, qr] = await Promise.all([
+            fetch('{% url "api_whatsapp_status" %}', { credentials: 'same-origin' }).then(r => r.json()),
+            fetch('{% url "api_whatsapp_qr_code" %}', { credentials: 'same-origin' }).then(r => r.json()),
+        ]);
+        const signature = [st.sidecar_status, st.auth_status, qr.qr_code || ''].join('|');
+        if (lastSignature !== null && signature !== lastSignature) { location.reload(); return; }
+        lastSignature = signature;
+    } catch (err) {
+        console.error('Status check error:', err);
+    }
+}
+pollStatus();
+setInterval(pollStatus, 5000);
 
 // Render QR on load
 document.addEventListener('DOMContentLoaded', renderQRCode);
