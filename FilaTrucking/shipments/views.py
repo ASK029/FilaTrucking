@@ -588,15 +588,16 @@ class CSVImportProcessView(LoginRequiredMixin, View):
             import csv
             from datetime import datetime
             from decimal import Decimal, InvalidOperation
+            from django.db import transaction
             from shipments.models import Expense, ExpenseCategory, Invoice
             from customers.models import Customer
 
             decoded = csv_file.read().decode("utf-8-sig")
             reader = csv.DictReader(decoded.splitlines())
-            rows = list(reader)
+            rows = list(reader)  # a DictReader can only be consumed once: loop over this list (QA-010)
 
             data_rows = []
-            for row in reader:
+            for row in rows:
                 date_str = (row.get("DATE") or "").strip()
                 if not date_str:
                     continue
@@ -629,28 +630,29 @@ class CSVImportProcessView(LoginRequiredMixin, View):
                 "CHASSIS": ExpenseCategory.CHASSIS,
             }
 
-            for parsed_date, row in data_rows:
-                amount_str = (row.get("Amount") or "").replace("$", "").replace(",", "").strip()
-                try:
-                    amount = Decimal(amount_str) if amount_str and amount_str != "-" else Decimal("0")
-                except InvalidOperation:
-                    amount = Decimal("0")
+            with transaction.atomic():  # all rows or none: a failure half-way must not leave a partial import
+                for parsed_date, row in data_rows:
+                    amount_str = (row.get("Amount") or "").replace("$", "").replace(",", "").strip()
+                    try:
+                        amount = Decimal(amount_str) if amount_str and amount_str != "-" else Decimal("0")
+                    except InvalidOperation:
+                        amount = Decimal("0")
 
-                if amount == Decimal("0"):
-                    continue
+                    if amount == Decimal("0"):
+                        continue
 
-                category_label = (row.get("Category") or "").strip().upper()
-                category = EXPENSE_COLUMNS.get(category_label, ExpenseCategory.OTHER)
+                    category_label = (row.get("Category") or "").strip().upper()
+                    category = EXPENSE_COLUMNS.get(category_label, ExpenseCategory.OTHER)
 
-                description = row.get("Description") or ""
+                    description = row.get("Description") or ""
 
-                Expense.objects.create(
-                    date=parsed_date,
-                    category=category,
-                    amount=amount,
-                    notes=f"Imported: {description}" if description else "",
-                )
-                import_count += 1
+                    Expense.objects.create(
+                        date=parsed_date,
+                        category=category,
+                        amount=amount,
+                        notes=f"Imported: {description}" if description else "",
+                    )
+                    import_count += 1
 
             messages.success(
                 request,

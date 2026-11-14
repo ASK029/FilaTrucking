@@ -160,6 +160,34 @@ class CsvImport(QABase):
         msgs = [str(m) for m in r.context["messages"]]
         self.assertEqual(Expense.objects.count(), 2, f"messages shown to user: {msgs}")
 
+    def test_import_stores_category_amount_date_and_note(self):
+        self.login()
+        csv_bytes = (b"DATE,Category,Description,Amount\n"
+                     b'01-05-2026,FUEL,Pilot,"$1,250.50"\n'
+                     b"01/06/2026,toll,IPASS,12.50\n"
+                     b",FUEL,no date,5\n"
+                     b"01-07-2026,FUEL,zero,0\n")
+        self.client.post("/settings/import/process/", {"csv_file": SimpleUploadedFile("jan.csv", csv_bytes)})
+        got = sorted(Expense.objects.values_list("date", "category", "amount", "notes"))
+        self.assertEqual(got, [(date(2026, 1, 5), "fuel", Decimal("1250.50"), "Imported: Pilot"),
+                               (date(2026, 1, 6), "toll", Decimal("12.50"), "Imported: IPASS")])
+
+    def test_import_is_all_or_nothing(self):
+        self.login()
+        csv_bytes = b"DATE,Category,Description,Amount\n01-05-2026,FUEL,a,10\n01-06-2026,FUEL,b,20\n"
+        real_create = Expense.objects.create
+        calls = []
+
+        def flaky(**kw):
+            calls.append(kw)
+            if len(calls) == 2:
+                raise RuntimeError("disk full")
+            return real_create(**kw)
+
+        with mock.patch.object(Expense.objects, "create", side_effect=flaky):
+            self.client.post("/settings/import/process/", {"csv_file": SimpleUploadedFile("jan.csv", csv_bytes)})
+        self.assertEqual(Expense.objects.count(), 0)
+
     def test_non_csv_is_rejected(self):
         self.login()
         self.client.post("/settings/import/process/", {"csv_file": SimpleUploadedFile("x.exe", b"MZ")}, follow=True)
