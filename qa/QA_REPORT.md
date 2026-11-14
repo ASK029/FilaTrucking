@@ -1,4 +1,62 @@
-# FilaTrucking QA report (Phase 1: test and report, nothing fixed)
+# FilaTrucking QA report
+
+> **Phase 2 (fixes) is finished on branch `qa-fixes`** and nothing has been deployed. Sections 1 to 7 below are the original
+> Phase 1 report, kept as written; this block says what happened since. Server steps: `qa/DEPLOYMENT.md`.
+
+## Phase 2 results
+
+| | Phase 1 | Now |
+|---|---|---|
+| Tasks | 48 open | **49** (QA-049 found during the fixes): **43 DONE**, **6 PARTIAL** (what is left needs a decision or access only you have), 0 open |
+| Tests | 69 QA tests (42 failing = confirmed defects) + 14 existing (8 failing) | **269 tests, 0 failing**, on SQLite and on a real **MySQL 8.0.45** (0 skipped there), plus **23 sidecar behaviour tests** (`node --test`) |
+| `pip-audit` / `npm audit` | 167 advisories in 10 packages / 11 (2 critical) | **0 / 0** (sidecar and frontend build tooling) |
+| `manage.py check --deploy` | 3 warnings with the local `.env` | 0 warnings with the production-style environment |
+| Browser crawl, 43 pages x 375 px | 1 page answering 500, 1 JavaScript error, 207 console warnings, 545 of 608 tap targets under 44 px, 65 unlabeled controls, 31 distinct page titles | **0** pages answering 500, **0** JavaScript errors, **1** console message (the intentional 404 test page), **79** of 622 small targets, **0** unlabeled controls, **42** distinct titles |
+| Commits | | one per task, subject `QA-0xx: ...`, with its tests (52 commits on top of your `0bfa602`) |
+
+### What I verified for real (not just wrote)
+
+* **WhatsApp 405 root cause** (Phase 1) and the whole sidecar behaviour with a Node harness that runs the real `index.js`
+  with Baileys/Django stubbed: crash path, one socket per restart, backoff by status code, fail-closed group filter, retry
+  queue that survives a restart, secret enforcement on every route. No message was sent to anyone.
+* **MySQL 8.0.45 container:** all migrations apply from scratch; the whole suite passes; a seeded database (45 shipments,
+  4 invoices) was dumped by `deploy/backup_mysql.sh` and restored by `deploy/restore_mysql.sh` with identical row counts;
+  a wrong password leaves no partial dump.
+* **Real browser (Playwright/Chromium):** the stored-XSS payload no longer executes, "Add Manual Item" adds a form row and
+  posts it, the Logout button signs out, a double click creates one shipment, keyboard focus is visible, the mobile menu
+  opens, the 404 is the branded page. Before/after screenshots: `qa/screenshots` (Phase 1) vs `qa/screenshots_after`;
+  a pixel comparison of the 116 unchanged-URL pairs showed the median page identical, and caught a real regression
+  (a multi-line `{# #}` template comment printed my notes at the top of every page, fixed before it was committed).
+* `docker compose config` for both compose files, `nginx -t` in the real `nginx:alpine` image, `collectstatic` with hashed names.
+
+### What I could NOT verify, and what you must do
+
+| Item | Why | You |
+|---|---|---|
+| WhatsApp re-pairing with the new Baileys on the server | needs your QR scan and the server | `qa/DEPLOYMENT.md` section 7 |
+| WeasyPrint 68.1 -> 70.0 invoice/statement **PDFs** | native libraries are missing on this Windows machine, PDFs were stubbed | open one invoice PDF after deploying |
+| Docker image builds (Django, sidecar) | see the note on the two build logs in `qa/evidence/docker_build_*.log`, if they finished | `docker compose ... build` on the server |
+| The GitHub Actions workflow | it has not run on GitHub; every step was run locally | push and look |
+| Rotating the leaked secrets, DB passwords, firewall, off-server backups, purging the public git history | server/GitHub actions, or destructive | `qa/DEPLOYMENT.md` sections 0, 4, 8, 9 |
+
+### The 6 PARTIAL tasks
+
+* **QA-024** public history still contains the committed business data (needs a force-push you must decide on).
+* **QA-027** backups are automatic and the restore is rehearsed, but the copy to another machine needs your credentials.
+* **QA-028** MySQL 8.0 -> 8.4 needs a rehearsed maintenance window (runbook in `deploy/README.md`).
+* **QA-032 / QA-033** the phone layout and accessibility are much better (numbers above) but I did not run a screen reader, 24 px checkboxes in table cells remain, and two statement pages overflow by 7 px at 768 px.
+* **QA-042** the per-customer recurring-invoice schedule is a feature that needs your decisions; the job itself is now robust and stays opt-in.
+
+### Corrections to Phase 1
+
+* QA-015: production shows `RestartCount=3` with exit code 0 and no unhandled rejections, so the sidecar crash path did **not** cause those restarts (I had suspected it). The defect is real and fixed, the causal claim is withdrawn.
+* QA-049 (Logout returned 405) was already visible in my own Phase 1 browser evidence (`logout_via_GET_status = 405`) and I did not turn it into a task.
+* The prod diagnostics showed the bot has probably been offline since the container restart on 2026-06-09, not only this week (`WHATSAPP_INVESTIGATION.md` section 9).
+
+---
+
+# Phase 1 report (original, unchanged below)
+
 
 Date: 2026-11-14 · Scope: whole repo at commit `58fb468` · Production was **not** touched.
 

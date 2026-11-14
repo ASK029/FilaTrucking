@@ -31,8 +31,8 @@ const rec = (k, v) => { R[k] = v; console.log(k, '=>', JSON.stringify(v)); };
 
   // 1. Customer form: empty submit, invalid email, required-attribute usage
   await page.goto(BASE + '/customers/create/', { waitUntil: 'networkidle' });
-  const noValidate = await page.locator('form').first().getAttribute('novalidate');
-  await page.locator('form button[type=submit], form input[type=submit]').first().click();
+  const noValidate = await page.locator('form:not([action$="/auth/logout/"])').first().getAttribute('novalidate');
+  await page.locator('form:not([action$="/auth/logout/"]) button[type=submit], form:not([action$="/auth/logout/"]) input[type=submit]').first().click();
   await page.waitForTimeout(500);
   rec('customer_empty_submit', { stayedOnForm: page.url().includes('/customers/create/'), novalidateAttr: noValidate, visibleErrors: await page.locator('.errorlist, [class*=text-red]').count() });
   await page.screenshot({ path: path.join(SHOTS, 'form_customer_empty_submit_1440.png'), fullPage: true });
@@ -67,11 +67,11 @@ const rec = (k, v) => { R[k] = v; console.log(k, '=>', JSON.stringify(v)); };
   await page.fill('input[name=date]', '2026-11-01');
   await page.fill('input[name=booking]', 'QADOUBLE1'); await page.fill('input[name=container]', 'QADOUBLE-C1');
   await page.fill('input[name=seal]', '555'); await page.fill('input[name=location]', 'Chicago');
-  const submit = page.locator('form button[type=submit]').first();
+  const submit = page.locator('form:not([action$="/auth/logout/"]) button[type=submit]').first();
   const disabledAfterClick = await (async () => { await submit.click({ noWaitAfter: true }); try { await submit.click({ noWaitAfter: true, timeout: 800 }); } catch (e) {} return null; })();
   await page.waitForLoadState('networkidle');
   const after = await page.evaluate(async () => (await (await fetch('/shipments/')).text()));
-  rec('shipment_double_click_submit_rows_created', (after.match(/QADOUBLE-C1/g) || []).length);
+  rec('shipment_double_click_submit_rows_created', (after.match(/QADOUBLE-C1/g) || []).length - (before.match(/QADOUBLE-C1/g) || []).length);
 
   // 6. WhatsApp settings page: QR, status polling, console
   errors.length = 0;
