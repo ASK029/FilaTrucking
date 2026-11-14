@@ -35,7 +35,7 @@
 |---|---|---|
 | WhatsApp re-pairing with the new Baileys on the server | needs your QR scan and the server | `qa/DEPLOYMENT.md` section 7 |
 | WeasyPrint 68.1 -> 70.0 invoice/statement **PDFs** | native libraries are missing on this Windows machine, PDFs were stubbed | open one invoice PDF after deploying |
-| Docker image builds (Django, sidecar) | see the note on the two build logs in `qa/evidence/docker_build_*.log`, if they finished | `docker compose ... build` on the server |
+| Docker image builds (Django, sidecar) | I started both and stopped them after about 25 minutes: the Debian mirror was still downloading the first apt step at a few KB/s, as in Phase 1 (not a build failure; logs in `qa/evidence/docker_build_*.log`). The Dockerfiles, entrypoint and compose files were checked statically, by tests and with `docker compose config` / `nginx -t` | `docker compose ... build` on the server, then `docker compose ps` should show every service healthy |
 | The GitHub Actions workflow | it has not run on GitHub; every step was run locally | push and look |
 | Rotating the leaked secrets, DB passwords, firewall, off-server backups, purging the public git history | server/GitHub actions, or destructive | `qa/DEPLOYMENT.md` sections 0, 4, 8, 9 |
 
