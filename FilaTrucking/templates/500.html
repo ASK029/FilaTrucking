@@ -1,0 +1,20 @@
+{% load static %}<!doctype html>
+{# Standalone on purpose: the 500 handler renders this without a request context, so it must not depend on base.html, the session or the database. #}
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Something went wrong — FilaTrucking TMS</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}" />
+</head>
+<body class="bg-surface text-slate-100 min-h-screen font-sans antialiased flex items-center justify-center p-6">
+    <main class="max-w-lg text-center">
+        <p class="text-6xl font-bold text-accent font-mono">500</p>
+        <h1 class="mt-4 text-2xl font-bold">Something went wrong on our side</h1>
+        <p class="mt-2 text-slate-400">The error has been logged. Please try again in a moment; if it keeps happening, tell the administrator what you were doing.</p>
+        <div class="mt-8">
+            <a href="/" class="inline-flex items-center justify-center min-h-[44px] px-5 rounded-xl bg-accent hover:bg-accent-dark text-surface font-bold">Back to the dashboard</a>
+        </div>
+    </main>
+</body>
+</html>

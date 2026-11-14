@@ -55,7 +55,7 @@
             {% endif %}
           </td>
           <td class="px-6 py-4">
-            <div class="font-bold text-slate-100">${{ invoice.total_amount }}</div>
+            <div class="font-bold text-slate-100">${{ invoice.total_amount|floatformat:"2g" }}</div>
           </td>
           <td class="px-6 py-4 text-right">
             {% if invoice.status == 'draft' %}

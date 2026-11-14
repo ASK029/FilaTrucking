@@ -61,7 +61,7 @@
                         </div>
                     </td>
                     <td class="px-6 py-4">
-                        <div class="font-bold text-slate-100">${{ expense.amount }}</div>
+                        <div class="font-bold text-slate-100">${{ expense.amount|floatformat:"2g" }}</div>
                     </td>
                     <td class="px-6 py-4 text-right">
                         <a href="{% url 'expense_update' expense.pk %}"

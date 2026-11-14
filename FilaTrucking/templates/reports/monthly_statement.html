@@ -55,18 +55,18 @@
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
   <div class="bg-surface-card rounded-2xl p-5 border border-slate-700/50">
     <p class="text-muted text-xs uppercase tracking-widest">Gross Revenue</p>
-    <p class="text-3xl font-bold text-slate-100 mt-1 font-mono">${{ revenue|floatformat:2 }}</p>
+    <p class="text-3xl font-bold text-slate-100 mt-1 font-mono">${{ revenue|floatformat:"2g" }}</p>
     <p class="text-slate-500 text-xs mt-1">Deposits in this month</p>
   </div>
   <div class="bg-surface-card rounded-2xl p-5 border border-slate-700/50">
     <p class="text-muted text-xs uppercase tracking-widest">Total Spending</p>
-    <p class="text-3xl font-bold text-red-300 mt-1 font-mono">${{ total_expenses|floatformat:2 }}</p>
+    <p class="text-3xl font-bold text-red-300 mt-1 font-mono">${{ total_expenses|floatformat:"2g" }}</p>
     <p class="text-slate-500 text-xs mt-1">All expense categories</p>
   </div>
   <div class="bg-surface-card rounded-2xl p-5 border border-slate-700/50">
     <p class="text-muted text-xs uppercase tracking-widest">Profit</p>
     <p class="text-3xl font-bold {% if net_profit >= 0 %}text-emerald-300{% else %}text-red-300{% endif %} mt-1 font-mono">
-      ${{ net_profit|floatformat:2 }}
+      ${{ net_profit|floatformat:"2g" }}
     </p>
     <p class="text-slate-500 text-xs mt-1">Revenue minus expenses</p>
   </div>
@@ -88,12 +88,12 @@
           {% for label, amount in category_totals.items %}
           <tr class="odd:bg-surface even:bg-surface-card border-b border-slate-800/60">
             <td class="py-2 pr-4">{{ label }}</td>
-            <td class="py-2 pr-4 text-right font-mono">${{ amount|floatformat:2 }}</td>
+            <td class="py-2 pr-4 text-right font-mono">${{ amount|floatformat:"2g" }}</td>
           </tr>
           {% endfor %}
           <tr class="border-t border-slate-600">
             <td class="py-2 pr-4 font-semibold">Driver Pay</td>
-            <td class="py-2 pr-4 text-right font-mono font-semibold">${{ driver_pay|floatformat:2 }}</td>
+            <td class="py-2 pr-4 text-right font-mono font-semibold">${{ driver_pay|floatformat:"2g" }}</td>
           </tr>
         </tbody>
       </table>
@@ -116,7 +116,7 @@
             <td class="py-2 pr-4">
               {{ row.driver__name|default:"Unassigned" }}
             </td>
-            <td class="py-2 pr-4 text-right font-mono">${{ row.total|floatformat:2 }}</td>
+            <td class="py-2 pr-4 text-right font-mono">${{ row.total|floatformat:"2g" }}</td>
           </tr>
           {% empty %}
           <tr>
@@ -159,19 +159,19 @@
         {% for row in transaction_rows %}
         <tr class="odd:bg-surface even:bg-surface-card border-b border-slate-800/60">
           <td class="py-2 pr-3 sticky left-0 bg-inherit font-mono">{{ row.date|date:"m-d-Y" }}</td>
-          <td class="py-2 pr-3 text-right font-mono {% if row.deposit > 0 %}text-emerald-300{% endif %}">${{ row.deposit|floatformat:2 }}</td>
+          <td class="py-2 pr-3 text-right font-mono {% if row.deposit > 0 %}text-emerald-300{% endif %}">${{ row.deposit|floatformat:"2g" }}</td>
           <td class="py-2 pr-3">{{ row.deposit_from }}</td>
-          <td class="py-2 pr-3 text-right font-mono">${{ row.irp|floatformat:2 }}</td>
-          <td class="py-2 pr-3 text-right font-mono">${{ row.parking|floatformat:2 }}</td>
-          <td class="py-2 pr-3 text-right font-mono">${{ row.on_site|floatformat:2 }}</td>
-          <td class="py-2 pr-3 text-right font-mono">${{ row.truck|floatformat:2 }}</td>
-          <td class="py-2 pr-3 text-right font-mono">${{ row.check_charge|floatformat:2 }}</td>
-          <td class="py-2 pr-3 text-right font-mono">${{ row.insurance|floatformat:2 }}</td>
-          <td class="py-2 pr-3 text-right font-mono">${{ row.toll|floatformat:2 }}</td>
-          <td class="py-2 pr-3 text-right font-mono">${{ row.fuel|floatformat:2 }}</td>
-          <td class="py-2 pr-3 text-right font-mono">${{ row.other|floatformat:2 }}</td>
-          <td class="py-2 pr-3 text-right font-mono">${{ row.chassis|floatformat:2 }}</td>
-          <td class="py-2 pr-3 text-right font-mono">${{ row.pay|floatformat:2 }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ row.irp|floatformat:"2g" }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ row.parking|floatformat:"2g" }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ row.on_site|floatformat:"2g" }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ row.truck|floatformat:"2g" }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ row.check_charge|floatformat:"2g" }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ row.insurance|floatformat:"2g" }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ row.toll|floatformat:"2g" }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ row.fuel|floatformat:"2g" }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ row.other|floatformat:"2g" }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ row.chassis|floatformat:"2g" }}</td>
+          <td class="py-2 pr-3 text-right font-mono">${{ row.pay|floatformat:"2g" }}</td>
           <td class="py-2 pr-3">{{ row.pay_to }}</td>
         </tr>
         {% empty %}

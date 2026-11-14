@@ -138,6 +138,8 @@ def dashboard(request):
                 {
                     "vehicle": vehicle,
                     "miles_to_service": miles_to_service,
+                    "overdue": miles_to_service < 0,   # shown as "15,000 miles overdue", not "-15000 miles remaining" (QA-047)
+                    "miles_abs": abs(miles_to_service),
                     "next_service_mileage": entry.next_service_mileage,
                     "last_service_mileage": entry.mileage_at_service,
                 }

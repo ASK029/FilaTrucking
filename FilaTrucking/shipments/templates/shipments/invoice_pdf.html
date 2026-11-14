@@ -247,7 +247,7 @@
                 <td>{{ item.seal_no|default:"—" }}</td>
                 <td>{{ item.location }}</td>
                 <td>{{ item.description }}</td>
-                <td class="amount">${{ item.amount }}</td>
+                <td class="amount">${{ item.amount|floatformat:"2g" }}</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -257,11 +257,11 @@
         <div class="total-box">
             <div class="total-row">
                 <span class="total-label">Subtotal</span>
-                <span>${{ invoice.total_amount }}</span>
+                <span>${{ invoice.total_amount|floatformat:"2g" }}</span>
             </div>
             <div class="grand-total">
                 <span>Total Due</span>
-                <span>${{ invoice.total_amount }}</span>
+                <span>${{ invoice.total_amount|floatformat:"2g" }}</span>
             </div>
         </div>
     </div>

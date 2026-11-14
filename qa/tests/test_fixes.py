@@ -346,3 +346,102 @@ class LogoutQA049(QABase):
         c = Client(enforce_csrf_checks=True)
         c.force_login(self.user)
         self.assertEqual(c.post("/auth/logout/").status_code, 403)  # another site cannot sign the admin out
+
+
+class ErrorPagesAndShellQA046(QABase):
+    def test_branded_404(self):
+        self.login()
+        r = self.client.get("/definitely-not-a-page/")
+        self.assertContains(r, "We can't find that page", status_code=404)
+        self.assertContains(r, "Back to the dashboard", status_code=404)
+
+    def test_anonymous_404_does_not_need_a_session(self):
+        r = self.client.get("/definitely-not-a-page/")
+        self.assertContains(r, "404", status_code=404)
+
+    def test_branded_400_and_403(self):
+        self.login()
+        self.assertContains(self.client.get("/reports/financial/monthly/?month=13"), "doesn't look right", status_code=400)
+        from django.test import Client
+        c = Client(enforce_csrf_checks=True, raise_request_exception=False)
+        c.force_login(self.user)
+        self.assertContains(c.post("/auth/logout/"), "You can't do that", status_code=403)
+
+    def test_500_is_standalone_and_styled(self):
+        self.login()
+        from unittest import mock
+        with mock.patch("shipments.views.ShipmentListView.get_queryset", side_effect=RuntimeError("boom")):
+            r = self.client.get("/shipments/")
+        self.assertContains(r, "Something went wrong on our side", status_code=500)
+        self.assertContains(r, "/static/css/app", status_code=500)
+        self.assertNotContains(r, "boom", status_code=500)  # never leak the exception
+
+    def test_skip_link_and_single_main_landmark(self):
+        self.login()
+        for url in ("/", "/shipments/", "/settings/import/", "/shipments/settings/whatsapp/", "/vehicles/"):
+            with self.subTest(url=url):
+                html = self.client.get(url).content.decode()
+                self.assertIn('href="#main-content"', html)
+                self.assertIn('id="main-content"', html)
+                self.assertEqual(html.count("<main"), 1, "nested/duplicate <main> landmarks")
+
+    def test_double_submit_guard_ships_on_every_page(self):
+        self.login()
+        html = self.client.get("/expenses/create/").content.decode()
+        self.assertIn("form.dataset.submitting", html)
+        self.assertIn("data-no-guard", html)
+
+    def test_no_template_comment_text_leaks_into_pages(self):
+        """A multi-line {# #} comment is NOT a comment in Django: it printed my QA-035 notes at the top of every page."""
+        self.login()
+        for url in ("/", "/auth/login/", "/shipments/", "/invoices/create/"):
+            with self.subTest(url=url):
+                html = self.client.get(url).content.decode()
+                for needle in ("{#", "#}", "{% comment", "QA-035", "QA-033"):
+                    self.assertNotIn(needle, html)
+
+
+class MoneyAndAlertsFormattingQA047(QABase):
+    def setUp(self):
+        super().setUp()
+        self.login()
+
+    def test_dashboard_revenue_has_thousands_separators_and_cents(self):
+        from shipments.models import Invoice
+        Invoice.objects.create(customer=self.customer, invoice_date=date(2026, 1, 5), status="paid",
+                               paid_at=timezone_today(), total_amount=Decimal("2457"))
+        self.assertContains(self.client.get("/"), "$2,457.00")
+
+    def test_overdue_service_says_overdue_not_negative_miles(self):
+        from vehicles.models import Maintenance, Vehicle
+        Vehicle.objects.filter(pk=self.vehicle.pk).update(current_odometer=115000)
+        Maintenance.objects.create(vehicle=self.vehicle, cost=1, service_provider="x", description="d",
+                                   mileage_at_service=90000, next_service_mileage=100000)
+        r = self.client.get("/")
+        self.assertContains(r, "15,000 miles overdue")
+        self.assertNotContains(r, "-15000")
+        self.assertNotContains(r, "miles remaining")
+
+    def test_service_coming_up_still_says_remaining(self):
+        from vehicles.models import Maintenance, Vehicle
+        Vehicle.objects.filter(pk=self.vehicle.pk).update(current_odometer=99800)
+        Maintenance.objects.create(vehicle=self.vehicle, cost=1, service_provider="x", description="d",
+                                   mileage_at_service=90000, next_service_mileage=100000)
+        self.assertContains(self.client.get("/"), "200 miles remaining")
+
+    def test_lists_and_details_group_thousands(self):
+        from shipments.models import Expense, Invoice, Shipment, ShipmentStatus
+        Expense.objects.create(date=date(2026, 1, 5), amount=Decimal("12345.5"))
+        inv = Invoice.objects.create(customer=self.customer, invoice_date=date(2026, 1, 5), total_amount=Decimal("1234567.8"))
+        s = Shipment.objects.create(customer=self.customer, date=date(2026, 1, 5), booking="B", container="C", seal="S",
+                                    amount=Decimal("9876.5"), status=ShipmentStatus.CONFIRMED)
+        self.assertContains(self.client.get("/expenses/"), "$12,345.50")
+        self.assertContains(self.client.get("/invoices/"), "$1,234,567.80")
+        self.assertContains(self.client.get(f"/invoices/{inv.pk}/"), "$1,234,567.80")
+        self.assertContains(self.client.get("/shipments/"), "$9,876.50")
+        self.assertContains(self.client.get(f"/shipments/{s.pk}/"), "$9,876.50")
+
+
+def timezone_today():
+    from django.utils import timezone
+    return timezone.localdate()

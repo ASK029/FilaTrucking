@@ -64,15 +64,15 @@
     <div class="stat-grid">
         <div class="stat">
             <div class="stat-label">Total Revenue</div>
-            <div class="stat-value">${{ total_revenue|floatformat:2 }}</div>
+            <div class="stat-value">${{ total_revenue|floatformat:"2g" }}</div>
         </div>
         <div class="stat">
             <div class="stat-label">Total Spending</div>
-            <div class="stat-value">${{ total_expenses|floatformat:2 }}</div>
+            <div class="stat-value">${{ total_expenses|floatformat:"2g" }}</div>
         </div>
         <div class="stat">
             <div class="stat-label">Profit</div>
-            <div class="stat-value">${{ net_profit|floatformat:2 }}</div>
+            <div class="stat-value">${{ net_profit|floatformat:"2g" }}</div>
         </div>
     </div>
 
@@ -99,38 +99,38 @@
             {% for row in monthly_rows %}
             <tr>
                 <td>{{ row.label }}</td>
-                <td>${{ row.irp|floatformat:2 }}</td>
-                <td>${{ row.parking|floatformat:2 }}</td>
-                <td>${{ row.on_site|floatformat:2 }}</td>
-                <td>${{ row.truck|floatformat:2 }}</td>
-                <td>${{ row.check_charge|floatformat:2 }}</td>
-                <td>${{ row.insurance|floatformat:2 }}</td>
-                <td>${{ row.toll|floatformat:2 }}</td>
-                <td>${{ row.fuel|floatformat:2 }}</td>
-                <td>${{ row.other_exp|floatformat:2 }}</td>
-                <td>${{ row.chassis|floatformat:2 }}</td>
-                <td>${{ row.pay|floatformat:2 }}</td>
-                <td>${{ row.deposit|floatformat:2 }}</td>
-                <td>${{ row.profit|floatformat:2 }}</td>
+                <td>${{ row.irp|floatformat:"2g" }}</td>
+                <td>${{ row.parking|floatformat:"2g" }}</td>
+                <td>${{ row.on_site|floatformat:"2g" }}</td>
+                <td>${{ row.truck|floatformat:"2g" }}</td>
+                <td>${{ row.check_charge|floatformat:"2g" }}</td>
+                <td>${{ row.insurance|floatformat:"2g" }}</td>
+                <td>${{ row.toll|floatformat:"2g" }}</td>
+                <td>${{ row.fuel|floatformat:"2g" }}</td>
+                <td>${{ row.other_exp|floatformat:"2g" }}</td>
+                <td>${{ row.chassis|floatformat:"2g" }}</td>
+                <td>${{ row.pay|floatformat:"2g" }}</td>
+                <td>${{ row.deposit|floatformat:"2g" }}</td>
+                <td>${{ row.profit|floatformat:"2g" }}</td>
             </tr>
             {% endfor %}
         </tbody>
         <tfoot>
             <tr class="totals">
                 <td>TOTALS</td>
-                <td>${{ col_totals.irp|floatformat:2 }}</td>
-                <td>${{ col_totals.parking|floatformat:2 }}</td>
-                <td>${{ col_totals.on_site|floatformat:2 }}</td>
-                <td>${{ col_totals.truck|floatformat:2 }}</td>
-                <td>${{ col_totals.check_charge|floatformat:2 }}</td>
-                <td>${{ col_totals.insurance|floatformat:2 }}</td>
-                <td>${{ col_totals.toll|floatformat:2 }}</td>
-                <td>${{ col_totals.fuel|floatformat:2 }}</td>
-                <td>${{ col_totals.other_exp|floatformat:2 }}</td>
-                <td>${{ col_totals.chassis|floatformat:2 }}</td>
-                <td>${{ col_totals.pay|floatformat:2 }}</td>
-                <td>${{ col_totals.deposit|floatformat:2 }}</td>
-                <td>${{ net_profit|floatformat:2 }}</td>
+                <td>${{ col_totals.irp|floatformat:"2g" }}</td>
+                <td>${{ col_totals.parking|floatformat:"2g" }}</td>
+                <td>${{ col_totals.on_site|floatformat:"2g" }}</td>
+                <td>${{ col_totals.truck|floatformat:"2g" }}</td>
+                <td>${{ col_totals.check_charge|floatformat:"2g" }}</td>
+                <td>${{ col_totals.insurance|floatformat:"2g" }}</td>
+                <td>${{ col_totals.toll|floatformat:"2g" }}</td>
+                <td>${{ col_totals.fuel|floatformat:"2g" }}</td>
+                <td>${{ col_totals.other_exp|floatformat:"2g" }}</td>
+                <td>${{ col_totals.chassis|floatformat:"2g" }}</td>
+                <td>${{ col_totals.pay|floatformat:"2g" }}</td>
+                <td>${{ col_totals.deposit|floatformat:"2g" }}</td>
+                <td>${{ net_profit|floatformat:"2g" }}</td>
             </tr>
         </tfoot>
     </table>

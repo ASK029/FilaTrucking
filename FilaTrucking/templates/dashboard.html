@@ -14,7 +14,7 @@
     <div class="bg-surface-card rounded-2xl p-5 border border-slate-700/50 shadow-lg">
         <p class="text-muted text-xs uppercase tracking-widest font-medium">Gross Revenue</p>
         <p class="text-3xl font-bold text-slate-100 mt-1 font-mono">
-            ${{ revenue_this_month|default:"0.00" }}
+            ${{ revenue_this_month|default:0|floatformat:"2g" }}
         </p>
         <p class="text-slate-500 text-sm mt-1">This month</p>
     </div>
@@ -172,7 +172,7 @@
                                 <p class="font-bold text-slate-100">{{ alert.vehicle.name }} <span class="text-muted font-normal text-xs ml-1">#{{ alert.vehicle.registration_number }}</span></p>
                                 <div class="flex items-center gap-2 mt-1">
                                     <span class="text-[10px] uppercase font-bold text-slate-500 bg-slate-900/60 px-1.5 py-0.5 rounded">Mileage</span>
-                                    <p class="text-xs text-slate-400">{{ alert.miles_to_service }} miles remaining</p>
+                                    <p class="text-xs {% if alert.overdue %}text-red-400 font-semibold{% else %}text-slate-400{% endif %}">{{ alert.miles_abs|floatformat:"0g" }} miles {% if alert.overdue %}overdue{% else %}remaining{% endif %}</p>
                                 </div>
                             </div>
                         </div>

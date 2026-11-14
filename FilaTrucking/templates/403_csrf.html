@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Form expired — FilaTrucking TMS{% endblock %}
+{% block content %}
+<div class="max-w-lg mx-auto text-center py-16">
+    <p class="text-6xl font-bold text-accent font-mono">403</p>
+    <h1 class="mt-4 text-2xl font-bold text-slate-100">You can't do that</h1>
+    <p class="mt-2 text-slate-400">This form has expired or did not come from this site (for example the page was left open for a long time, or cookies are blocked). Go back, reload the page and send it again.</p>
+    <div class="mt-8">
+        <a href="{% url 'dashboard' %}"
+            class="inline-flex items-center justify-center min-h-[44px] px-5 rounded-xl bg-accent hover:bg-accent-dark text-surface font-bold">Back to the dashboard</a>
+    </div>
+</div>
+{% endblock %}

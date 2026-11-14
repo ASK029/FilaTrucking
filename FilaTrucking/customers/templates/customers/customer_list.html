@@ -56,7 +56,7 @@
               {{ customer.email }}</div>
           </td>
           <td class="px-6 py-4 text-slate-400">
-            {% if customer.default_rate %}${{ customer.default_rate }}{% else %}-{% endif %}
+            {% if customer.default_rate %}${{ customer.default_rate|floatformat:"2g" }}{% else %}-{% endif %}
           </td>
           <td class="px-6 py-4 text-right">
             <a href="{% url 'customer_detail' customer.pk %}"

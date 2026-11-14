@@ -50,7 +50,7 @@
               {{ log.type }}
             </span>
           </td>
-          <td class="py-2.5 px-4 text-right font-mono">${{ log.cost }}</td>
+          <td class="py-2.5 px-4 text-right font-mono">${{ log.cost|floatformat:"2g" }}</td>
           <td class="py-2.5 px-4 text-right font-mono">{{ log.mileage_at_service }}</td>
           <td class="py-2.5 px-4">
             <div class="flex flex-col text-xs">

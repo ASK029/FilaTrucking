@@ -16,7 +16,7 @@
             </div>
             <h2 class="text-2xl font-extrabold text-slate-100 italic">Delete Expense?</h2>
             <p class="text-slate-400 mt-4 leading-relaxed font-medium">Are you sure you want to permanently delete this
-                expense record for <span class="text-white font-bold">${{ object.amount }}</span> recorded on <span
+                expense record for <span class="text-white font-bold">${{ object.amount|floatformat:"2g" }}</span> recorded on <span
                     class="text-white font-bold">{{ object.date|date:"m/d/Y" }}</span>? This action cannot be undone.
             </p>
         </div>
