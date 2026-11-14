@@ -259,7 +259,7 @@ def invoice_add_lines(request, invoice_pk):
             "formset": formset,
             "start_date": start_date,
             "end_date": end_date,
-            "shipment_data_json": json.dumps(shipment_data),
+            "shipment_data": shipment_data,
         },
     )
 

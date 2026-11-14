@@ -145,8 +145,10 @@
     @apply bg-slate-900 border-slate-700 rounded-lg text-xs py-1.5 focus:ring-accent !important;
   }
 </style>
+{# QA-005: json_script escapes <, > and & so shipment text (it comes from WhatsApp) can never close the tag #}
+{{ shipment_data|json_script:"shipment-data" }}
 <script>
-  const shipmentData = {{ shipment_data_json|safe }};
+  const shipmentData = JSON.parse(document.getElementById("shipment-data").textContent);
 
   document.addEventListener("DOMContentLoaded", function () {
     const rows = document.querySelectorAll("tbody tr");

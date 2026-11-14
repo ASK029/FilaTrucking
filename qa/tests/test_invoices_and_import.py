@@ -164,3 +164,26 @@ class CsvImport(QABase):
         self.login()
         self.client.post("/settings/import/process/", {"csv_file": SimpleUploadedFile("x.exe", b"MZ")}, follow=True)
         self.assertEqual(Expense.objects.count(), 0)
+
+
+class InvoiceLinesXss(InvoiceBase):
+    """[QA-005] shipment text reaches the page inside a <script>; it must not be able to break out."""
+
+    PAYLOAD = '</script><script>window.__xss=1</script>'
+
+    def test_script_breakout_in_shipment_fields_is_inert(self):
+        for field in ("location", "booking", "container", "seal"):
+            with self.subTest(field=field):
+                Shipment.objects.filter(pk=self.s1.pk).update(**{field: self.PAYLOAD})
+                inv = Invoice.objects.create(customer=self.customer, invoice_date=date(2026, 1, 10))
+                html = self.client.get(f"/invoices/{inv.pk}/lines/").content.decode()
+                self.assertNotIn("</script><script>window.__xss", html)
+                self.assertIn('id="shipment-data"', html)
+
+    def test_shipment_data_is_still_available_to_the_page_script(self):
+        import json, re
+        inv = Invoice.objects.create(customer=self.customer, invoice_date=date(2026, 1, 10))
+        html = self.client.get(f"/invoices/{inv.pk}/lines/").content.decode()
+        raw = re.search(r'<script id="shipment-data" type="application/json">(.*?)</script>', html, re.S).group(1)
+        data = json.loads(raw)
+        self.assertEqual(data[str(self.s1.pk)]["container_no"], "C1")
