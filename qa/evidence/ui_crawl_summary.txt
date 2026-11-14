@@ -1,0 +1,32 @@
+records: 129 | statuses != 200: ["500 /shipments/1/ @375","404 /does-not-exist/ @375","500 /shipments/1/ @768","404 /does-not-exist/ @768","500 /shipments/1/ @1440","404 /does-not-exist/ @1440"]
+JS page errors: 3 [["/invoices/1/lines/",375,"SyntaxError: Invalid or unexpected token"],["/invoices/1/lines/",768,"SyntaxError: Invalid or unexpected token"],["/invoices/1/lines/",1440,"SyntaxError: Invalid or unexpected token"]]
+console messages (unique):
+   492 x warning: Alpine Warning: You can't use [x-collapse] without first installing the "Collapse" plugin here: https://alpinejs.dev/plugins/collap
+   123 x warning: cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the 
+   3 x error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+   3 x error: Failed to load resource: the server responded with a status of 404 (Not Found)
+failed/4xx requests:
+   3 x 500 http://127.0.0.1:18080/shipments/1/
+   3 x 404 http://127.0.0.1:18080/does-not-exist/
+H-OVERFLOW pages: ["375 /shipments/1/ sw=816 TABLE.meta,TBODY.","375 /shipments/2/ sw=400 DIV.flex.gap-3,A.bg-surface.text-brand-light.px-4","375 /invoices/1/ sw=663 TABLE.w-full.text-left.text-xs,THEAD.bg-slate-50.border-y.border-slate-200","375 /invoices/1/lines/ sw=396 ","768 /shipments/1/ sw=816 TABLE.source.cut-top\n.,TBODY.","768 /invoices/1/ sw=935 TABLE.w-full.text-left.text-xs,THEAD.bg-slate-50.border-y.border-slate-200","768 /vehicles/ sw=793 A.flex-1.sm:flex-none.bg-accent"]
+375px tap targets <44px: 545 of 608 ( 90 %)
+  worst pages: ["/shipments/:95/95","/expenses/:45/45","/invoices/1/lines/:40/42","/vehicles/:20/23"]
+imgs w/o alt: 1 broken imgs: 0 inputs w/o label: 72 unnamed links/buttons: 6
+pages w/o <main>: 0 | no h1: /expenses/1/delete/ | lang: [ 'en' ] | titles unique: 31 of 43 | duplicate title sample: Dashboard — FilaTrucking TMS
+Tailwind Play CDN on all pages: false
+axe-core violations (1440px):
+   serious color-contrast pages=41 nodes=521
+   critical label pages=7 nodes=47
+   serious dlitem pages=2 nodes=20
+   critical select-name pages=8 nodes=17
+   serious link-name pages=3 nodes=6
+   moderate landmark-main-is-top-level pages=2 nodes=2
+   moderate landmark-no-duplicate-main pages=2 nodes=2
+   moderate landmark-unique pages=2 nodes=2
+   serious scrollable-region-focusable pages=2 nodes=2
+   critical button-name pages=1 nodes=1
+   minor empty-table-header pages=1 nodes=1
+   moderate page-has-heading-one pages=1 nodes=1
+   critical image-alt pages=1 nodes=1
+error-text pages: ["/shipments/1/@375","/shipments/1/@768","/shipments/1/@1440"]
+linkCheck: [{"checked":208,"broken":["500 /shipments/1/","500 /shipments/4/","500 /shipments/5/","500 /shipments/7/","500 /shipments/9/","500 /shipments/10/","500 /shipments/13/","500 /shipments/16/","500 /shipments/17/","500 /shipments/19/","500 /shipments/21/","500 /shipments/22/","500 /shipments/25/","500 /shipments/28/","500 /shipments/29/","500 /shipments/31/","500 /shipments/33/","500 /shipments/34/","500 /shipments/37/","500 /shipments/40/","500 /shipments/41/","500 /shipments/43/","500 /shipments/45/"]}]

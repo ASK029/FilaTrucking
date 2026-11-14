@@ -1,0 +1,5 @@
+node_modules/
+tools/audit/
+evidence/*.sqlite3
+evidence/runserver_native.log
+__pycache__/

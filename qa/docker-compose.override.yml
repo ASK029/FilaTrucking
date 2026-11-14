@@ -1,0 +1,33 @@
+# QA-only local stack. NOT auto-loaded (lives in qa/). Usage from repo root:
+#   docker compose --env-file qa/.env.qa -p filaqa -f docker-compose.yml -f qa/docker-compose.override.yml up -d --build
+# - fake credentials (qa/.env.qa), never the real .env
+# - alternate host ports so it cannot collide with a normal dev stack
+# - the real Baileys sidecar is behind the "real-sidecar" profile; by default a mock named "sidecar" is used
+services:
+  mysql:
+    container_name: !reset null
+  redis:
+    container_name: !reset null
+    ports: !override ["16379:6379"]
+  django:
+    container_name: !reset null
+    ports: !override ["18000:8000"]
+    volumes: !override
+      - ./FilaTrucking:/app/FilaTrucking
+      - ./qa/.env.qa:/app/.env:ro
+    command: sh -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"
+  whatsapp-sidecar:
+    container_name: !reset null
+    profiles: ["real-sidecar"]
+    ports: !override ["13001:3001"]
+  sidecar:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./qa/mock_sidecar:/app:ro
+    command: node server.js
+    environment:
+      - MOCK_DELAY_MS=${MOCK_DELAY_MS:-0}
+      - MOCK_FAIL=${MOCK_FAIL:-0}
+    ports: ["13002:3001"]
+    networks: [fila-network]

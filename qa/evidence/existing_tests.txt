@@ -1,0 +1,354 @@
+Creating test database for alias 'default' ('file:memorydb_default?mode=memory&cache=shared')...
+Django setup OK
+Found 14 test(s).
+Operations to perform:
+  Synchronize unmigrated apps: messages, phonenumber_field, staticfiles
+  Apply all migrations: admin, auth, contenttypes, customers, drivers, sessions, shipments, vehicles
+Synchronizing apps without migrations:
+  Creating tables...
+    Running deferred SQL...
+Running migrations:
+  Applying contenttypes.0001_initial... OK
+  Applying auth.0001_initial... OK
+  Applying admin.0001_initial... OK
+  Applying admin.0002_logentry_remove_auto_add... OK
+  Applying admin.0003_logentry_add_action_flag_choices... OK
+  Applying contenttypes.0002_remove_content_type_name... OK
+  Applying auth.0002_alter_permission_name_max_length... OK
+  Applying auth.0003_alter_user_email_max_length... OK
+  Applying auth.0004_alter_user_username_opts... OK
+  Applying auth.0005_alter_user_last_login_null... OK
+  Applying auth.0006_require_contenttypes_0002... OK
+  Applying auth.0007_alter_validators_add_error_messages... OK
+  Applying auth.0008_alter_user_username_max_length... OK
+  Applying auth.0009_alter_user_last_name_max_length... OK
+  Applying auth.0010_alter_group_name_max_length... OK
+  Applying auth.0011_update_proxy_permissions... OK
+  Applying auth.0012_alter_user_first_name_max_length... OK
+  Applying customers.0001_initial... OK
+  Applying customers.0002_alter_customer_options_customer_default_rate_and_more... OK
+  Applying customers.0003_remove_customer_address1_remove_customer_address2_and_more... OK
+  Applying drivers.0001_initial... OK
+  Applying drivers.0002_alter_driver_joined_at... OK
+  Applying drivers.0003_alter_driver_options_driver_status_and_more... OK
+  Applying drivers.0004_remove_driver_joined_at_driver_joined... OK
+  Applying sessions.0001_initial... OK
+  Applying vehicles.0001_initial... OK
+  Applying vehicles.0002_vehicle_average_mpg_iftamileagelog... OK
+  Applying vehicles.0003_remove_iftamileagelog_vehicles_iftamileagelog_unique_truck_month_year_state_and_more... OK
+  Applying vehicles.0004_alter_vehicle_year... OK
+  Applying vehicles.0005_maintenance_next_service_mileage_and_more... OK
+  Applying vehicles.0006_maintenance_gomotive_alert_id... OK
+  Applying vehicles.0007_alter_iftamileage_options_and_more... OK
+  Applying vehicles.0008_alter_maintenance_mileage_at_service_and_more... OK
+  Applying vehicles.0009_alter_maintenance_type... OK
+  Applying vehicles.0010_alter_iftamileage_vehicle_and_more... OK
+  Applying shipments.0001_initial... OK
+  Applying shipments.0002_invoice_invoicelineitem... OK
+  Applying shipments.0003_alter_shipment_options_shipment_created_at_and_more... OK
+  Applying shipments.0004_shipment_is_flagged_whatsappmessage... OK
+  Applying shipments.0005_whatsappconfig_whatsappgroup_whatsapplog... OK
+  Applying shipments.0006_systemsettings... OK
+  Applying shipments.0007_invoice_paid_at_invoicelineitem_booking_no_and_more... OK
+  Applying shipments.0008_alter_expense_category... OK
+  Applying shipments.0009_alter_expense_category_alter_expense_vehicle_and_more... OK
+  Applying vehicles.0011_alter_iftamileage_miles_nullable...test_generate_monthly_statement (shipments.tests.FinancialTasksTests.test_generate_monthly_statement) ... ERROR
+test_generate_recurring_invoices_no_confirmed_shipments (shipments.tests.FinancialTasksTests.test_generate_recurring_invoices_no_confirmed_shipments) ... ERROR
+test_generate_yearly_statement (shipments.tests.FinancialTasksTests.test_generate_yearly_statement) ... ERROR
+test_ifta_deadline_reminders_window (shipments.tests.FinancialTasksTests.test_ifta_deadline_reminders_window) ... ERROR
+test_client_initialization_without_env (vehicles.tests.GoMotiveClientTests.test_client_initialization_without_env) ... ok
+test_next_service_mileage_field_exists (vehicles.tests.MaintenanceAlertLogicTests.test_next_service_mileage_field_exists) ... ERROR
+test_fetch_maintenance_alerts (vehicles.test_gomotive.TestGoMotiveClient.test_fetch_maintenance_alerts) ... FAIL
+test_fetch_odometer_flat (vehicles.test_gomotive.TestGoMotiveClient.test_fetch_odometer_flat) ... FAIL
+test_fetch_odometer_nested (vehicles.test_gomotive.TestGoMotiveClient.test_fetch_odometer_nested) ... FAIL
+test_fetch_vehicle (vehicles.test_gomotive.TestGoMotiveClient.test_fetch_vehicle) ... ok
+test_fetch_vehicles (vehicles.test_gomotive.TestGoMotiveClient.test_fetch_vehicles) ... ok
+test_test_connection_failure (vehicles.test_gomotive.TestGoMotiveClient.test_test_connection_failure) ... GoMotive API https://api.test.com/vehicles returned 500: <MagicMock name='get().text' id='1875870711104'>
+ok
+test_test_connection_success (vehicles.test_gomotive.TestGoMotiveClient.test_test_connection_success) ... ok
+test_test_connection_unauthorized (vehicles.test_gomotive.TestGoMotiveClient.test_test_connection_unauthorized) ... GoMotive API: 401 Unauthorized. Check your API key.
+ok
+======================================================================
+ERROR: test_generate_monthly_statement (shipments.tests.FinancialTasksTests.test_generate_monthly_statement)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 359, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sqlite3.IntegrityError: NOT NULL constraint failed: shipments_invoice.customer_id
+The above exception was the direct cause of the following exception:
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\FilaTrucking\shipments\tests.py", line 16, in setUp
+    self.invoice = Invoice.objects.create(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\query.py", line 669, in create
+    obj.save(force_insert=True, using=self.db)
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\base.py", line 874, in save
+    self.save_base(
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\base.py", line 966, in save_base
+    updated = self._save_table(
+              ^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\base.py", line 1167, in _save_table
+    results = self._do_insert(
+              ^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\base.py", line 1218, in _do_insert
+    return manager._insert(
+           ^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\query.py", line 1918, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1925, in execute_sql
+    cursor.execute(sql, params)
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 359, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.IntegrityError: NOT NULL constraint failed: shipments_invoice.customer_id
+======================================================================
+ERROR: test_generate_recurring_invoices_no_confirmed_shipments (shipments.tests.FinancialTasksTests.test_generate_recurring_invoices_no_confirmed_shipments)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 359, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sqlite3.IntegrityError: NOT NULL constraint failed: shipments_invoice.customer_id
+The above exception was the direct cause of the following exception:
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\FilaTrucking\shipments\tests.py", line 16, in setUp
+    self.invoice = Invoice.objects.create(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\query.py", line 669, in create
+    obj.save(force_insert=True, using=self.db)
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\base.py", line 874, in save
+    self.save_base(
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\base.py", line 966, in save_base
+    updated = self._save_table(
+              ^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\base.py", line 1167, in _save_table
+    results = self._do_insert(
+              ^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\base.py", line 1218, in _do_insert
+    return manager._insert(
+           ^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\query.py", line 1918, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1925, in execute_sql
+    cursor.execute(sql, params)
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 359, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.IntegrityError: NOT NULL constraint failed: shipments_invoice.customer_id
+======================================================================
+ERROR: test_generate_yearly_statement (shipments.tests.FinancialTasksTests.test_generate_yearly_statement)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 359, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sqlite3.IntegrityError: NOT NULL constraint failed: shipments_invoice.customer_id
+The above exception was the direct cause of the following exception:
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\FilaTrucking\shipments\tests.py", line 16, in setUp
+    self.invoice = Invoice.objects.create(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\query.py", line 669, in create
+    obj.save(force_insert=True, using=self.db)
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\base.py", line 874, in save
+    self.save_base(
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\base.py", line 966, in save_base
+    updated = self._save_table(
+              ^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\base.py", line 1167, in _save_table
+    results = self._do_insert(
+              ^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\base.py", line 1218, in _do_insert
+    return manager._insert(
+           ^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\query.py", line 1918, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1925, in execute_sql
+    cursor.execute(sql, params)
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 359, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.IntegrityError: NOT NULL constraint failed: shipments_invoice.customer_id
+======================================================================
+ERROR: test_ifta_deadline_reminders_window (shipments.tests.FinancialTasksTests.test_ifta_deadline_reminders_window)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 359, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sqlite3.IntegrityError: NOT NULL constraint failed: shipments_invoice.customer_id
+The above exception was the direct cause of the following exception:
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\FilaTrucking\shipments\tests.py", line 16, in setUp
+    self.invoice = Invoice.objects.create(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\query.py", line 669, in create
+    obj.save(force_insert=True, using=self.db)
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\base.py", line 874, in save
+    self.save_base(
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\base.py", line 966, in save_base
+    updated = self._save_table(
+              ^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\base.py", line 1167, in _save_table
+    results = self._do_insert(
+              ^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\base.py", line 1218, in _do_insert
+    return manager._insert(
+           ^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\query.py", line 1918, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1925, in execute_sql
+    cursor.execute(sql, params)
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 359, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.IntegrityError: NOT NULL constraint failed: shipments_invoice.customer_id
+======================================================================
+ERROR: test_next_service_mileage_field_exists (vehicles.tests.MaintenanceAlertLogicTests.test_next_service_mileage_field_exists)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\FilaTrucking\vehicles\tests.py", line 16, in test_next_service_mileage_field_exists
+    vehicle = Vehicle.objects.create(
+              ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\query.py", line 667, in create
+    obj = self.model(**kwargs)
+          ^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\base.py", line 590, in __init__
+    raise TypeError(
+TypeError: Vehicle() got unexpected keyword arguments: 'name', 'engine_number'
+======================================================================
+FAIL: test_fetch_maintenance_alerts (vehicles.test_gomotive.TestGoMotiveClient.test_fetch_maintenance_alerts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\Lib\unittest\mock.py", line 1396, in patched
+    return func(*newargs, **newkeywargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\FilaTrucking\vehicles\test_gomotive.py", line 98, in test_fetch_maintenance_alerts
+    self.assertEqual(len(alerts), 1)
+AssertionError: 0 != 1
+======================================================================
+FAIL: test_fetch_odometer_flat (vehicles.test_gomotive.TestGoMotiveClient.test_fetch_odometer_flat)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\Lib\unittest\mock.py", line 1396, in patched
+    return func(*newargs, **newkeywargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\FilaTrucking\vehicles\test_gomotive.py", line 67, in test_fetch_odometer_flat
+    self.assertIsNotNone(reading)
+AssertionError: unexpectedly None
+======================================================================
+FAIL: test_fetch_odometer_nested (vehicles.test_gomotive.TestGoMotiveClient.test_fetch_odometer_nested)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\Lib\unittest\mock.py", line 1396, in patched
+    return func(*newargs, **newkeywargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\FilaTrucking\vehicles\test_gomotive.py", line 78, in test_fetch_odometer_nested
+    self.assertIsNotNone(reading)
+AssertionError: unexpectedly None
+----------------------------------------------------------------------
+Ran 14 tests in 0.093s
+FAILED (failures=3, errors=5)
+Destroying test database for alias 'default' ('file:memorydb_default?mode=memory&cache=shared')...
+ OK
+System check identified no issues (0 silenced).

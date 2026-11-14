@@ -1,0 +1,79 @@
+{
+ "anon_redirect_url": "/auth/login/?next=/customers/",
+ "wrong_password_feedback": "Please enter a correct username and password.",
+ "customer_empty_submit": {
+  "stayedOnForm": true,
+  "novalidateAttr": null,
+  "visibleErrors": 0
+ },
+ "xss_customer_name_executed": false,
+ "xss_in_shipment_list_executed": false,
+ "xss_invoice_lines_page_executed": true,
+ "invoice_form_management_form_ids": {
+  "jsExpects": "id_form-TOTAL_FORMS",
+  "present": false,
+  "actualIds": [
+   "id_line_items-TOTAL_FORMS"
+  ]
+ },
+ "invoice_add_manual_item_js_errors": [
+  "TypeError: Cannot set properties of null (setting 'value')"
+ ],
+ "invoice_manual_row_input_names": [
+  "line_items-0-id",
+  "line_items-0-date_incurred",
+  "line_items-0-description",
+  "line_items-0-booking_no"
+ ],
+ "shipment_double_click_submit_rows_created": 1,
+ "whatsapp_settings": {
+  "qrCanvasOrImg": 1,
+  "apiCallsIn6s": [
+   "/shipments/api/whatsapp/status/",
+   "/shipments/api/whatsapp/status/"
+  ],
+  "jsErrors": [],
+  "pollsEvery": "see setInterval in whatsapp_settings.html:357",
+  "staleErrorShown": true
+ },
+ "keyboard_focus_indicator": {
+  "tabbed": 14,
+  "withVisibleIndicator": 14,
+  "firstStops": [
+   {
+    "tag": "A",
+    "text": "FilaTrucking",
+    "outline": true,
+    "ring": false
+   },
+   {
+    "tag": "A",
+    "text": "Logout",
+    "outline": true,
+    "ring": false
+   },
+   {
+    "tag": "A",
+    "text": "Dashboard",
+    "outline": true,
+    "ring": false
+   },
+   {
+    "tag": "A",
+    "text": "Customers",
+    "outline": true,
+    "ring": false
+   }
+  ]
+ },
+ "skip_to_content_link": false,
+ "mobile_nav": {
+  "shipmentsLinkVisibleBeforeOpen": false,
+  "afterTappingHamburger": true
+ },
+ "logout_via_GET_status": 405,
+ "404_page": {
+  "status": 404,
+  "customTemplate": true
+ }
+}

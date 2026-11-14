@@ -1,0 +1,12 @@
+critical | @whiskeysockets/baileys | direct | Baileys has message upsert / hist sync spoofing and app state corruption when using maliciously crafted protocolMessage payload
+critical | protobufjs | transitive | protobuf.js: Code injection through bytes field defaults in generated toObject code
+high | @whiskeysockets/libsignal-node | transitive | 
+high | axios | direct | Axios has a NO_PROXY Hostname Normalization Bypass that Leads to SSRF
+high | form-data | transitive | form-data: CRLF injection in form-data via unescaped multipart field names and filenames
+high | music-metadata | transitive | music-metadata has an infinite loop vulnerability in ASF parser
+high | sharp | transitive | sharp inherited vulnerabilities in libvips: CVE-2026-33327, CVE-2026-33328, CVE-2026-35590, CVE-2026-35591
+high | ws | transitive | ws: Uninitialized memory disclosure
+moderate | @protobufjs/utf8 | transitive | protobufjs has overlong UTF-8 decoding
+moderate | file-type | transitive | file-type affected by infinite loop in ASF parser on malformed input with zero-size sub-header
+moderate | follow-redirects | transitive | follow-redirects leaks Custom Authentication Headers to Cross-Domain Redirect Targets
+{"info":0,"low":0,"moderate":3,"high":6,"critical":2,"total":11}

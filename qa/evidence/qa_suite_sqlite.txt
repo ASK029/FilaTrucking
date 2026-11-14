@@ -1,0 +1,842 @@
+Creating test database for alias 'default' ('file:memorydb_default?mode=memory&cache=shared')...
+Found 69 test(s).
+Operations to perform:
+  Synchronize unmigrated apps: messages, phonenumber_field, staticfiles
+  Apply all migrations: admin, auth, contenttypes, customers, drivers, sessions, shipments, vehicles
+Synchronizing apps without migrations:
+  Creating tables...
+    Running deferred SQL...
+Running migrations:
+  Applying contenttypes.0001_initial... OK
+  Applying auth.0001_initial... OK
+  Applying admin.0001_initial... OK
+  Applying admin.0002_logentry_remove_auto_add... OK
+  Applying admin.0003_logentry_add_action_flag_choices... OK
+  Applying contenttypes.0002_remove_content_type_name... OK
+  Applying auth.0002_alter_permission_name_max_length... OK
+  Applying auth.0003_alter_user_email_max_length... OK
+  Applying auth.0004_alter_user_username_opts... OK
+  Applying auth.0005_alter_user_last_login_null... OK
+  Applying auth.0006_require_contenttypes_0002... OK
+  Applying auth.0007_alter_validators_add_error_messages... OK
+  Applying auth.0008_alter_user_username_max_length... OK
+  Applying auth.0009_alter_user_last_name_max_length... OK
+  Applying auth.0010_alter_group_name_max_length... OK
+  Applying auth.0011_update_proxy_permissions... OK
+  Applying auth.0012_alter_user_first_name_max_length... OK
+  Applying customers.0001_initial... OK
+  Applying customers.0002_alter_customer_options_customer_default_rate_and_more... OK
+  Applying customers.0003_remove_customer_address1_remove_customer_address2_and_more... OK
+  Applying drivers.0001_initial... OK
+  Applying drivers.0002_alter_driver_joined_at... OK
+  Applying drivers.0003_alter_driver_options_driver_status_and_more... OK
+  Applying drivers.0004_remove_driver_joined_at_driver_joined... OK
+  Applying sessions.0001_initial... OK
+  Applying vehicles.0001_initial... OK
+  Applying vehicles.0002_vehicle_average_mpg_iftamileagelog... OK
+  Applying vehicles.0003_remove_iftamileagelog_vehicles_iftamileagelog_unique_truck_month_year_state_and_more... OK
+  Applying vehicles.0004_alter_vehicle_year... OK
+  Applying vehicles.0005_maintenance_next_service_mileage_and_more... OK
+  Applying vehicles.0006_maintenance_gomotive_alert_id... OK
+  Applying vehicles.0007_alter_iftamileage_options_and_more... OK
+  Applying vehicles.0008_alter_maintenance_mileage_at_service_and_more... OK
+  Applying vehicles.0009_alter_maintenance_type... OK
+  Applying vehicles.0010_alter_iftamileage_vehicle_and_more... OK
+  Applying shipments.0001_initial... OK
+  Applying shipments.0002_invoice_invoicelineitem... OK
+  Applying shipments.0003_alter_shipment_options_shipment_created_at_and_more... OK
+  Applying shipments.0004_shipment_is_flagged_whatsappmessage... OK
+  Applying shipments.0005_whatsappconfig_whatsappgroup_whatsapplog... OK
+  Applying shipments.0006_systemsettings... OK
+  Applying shipments.0007_invoice_paid_at_invoicelineitem_booking_no_and_more... OK
+  Applying shipments.0008_alter_expense_category... OK
+  Applying shipments.0009_alter_expense_category_alter_expense_vehicle_and_more... OK
+  Applying vehicles.0011_alter_iftamileage_miles_nullable...test_login_is_rate_limited (qa.tests.test_access_pages_security.SecretsAndUploads.test_login_is_rate_limited)
+[SEC-BRUTEFORCE] 15 wrong passwords in a row are all processed normally. ... D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\core\handlers\base.py:62: UserWarning: No directory at: D:\Projects\FilaTrucking\FilaTrucking\staticfiles\
+  mw_instance = middleware(adapted_handler)
+FAIL
+test_system_settings_page_does_not_echo_stored_secrets (qa.tests.test_access_pages_security.SecretsAndUploads.test_system_settings_page_does_not_echo_stored_secrets)
+[SEC-ECHO] PasswordInput(render_value=True) writes the Motive API key and SMTP password into the HTML. ... FAIL
+test_uploaded_documents_get_unguessable_names (qa.tests.test_access_pages_security.SecretsAndUploads.test_uploaded_documents_get_unguessable_names)
+[SEC-MEDIA] nginx serves /media/ with no auth; driver licences keep their original, guessable file name. ... FAIL
+test_404_for_unknown_objects (qa.tests.test_access_pages_security.SiteSweep.test_404_for_unknown_objects) ... Not Found: /customers/999999/
+Not Found: /drivers/999999/
+Not Found: /shipments/999999/
+Not Found: /invoices/999999/
+Not Found: /vehicles/999999/
+ok
+test_every_page_renders_without_server_error (qa.tests.test_access_pages_security.SiteSweep.test_every_page_renders_without_server_error) ... No hostname was supplied. Reverting to default 'localhost'
+Not Found: /drivers/documents/1/delete/
+Internal Server Error: /shipments/1/
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\core\handlers\base.py", line 221, in _get_response
+    response = response.render()
+               ^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\template\response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\template\response.py", line 92, in rendered_content
+    return template.render(context, self._request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\template\base.py", line 174, in render
+    return self._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\test\utils.py", line 114, in instrumented_test_render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\template\base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\template\base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\template\loader_tags.py", line 160, in render
+    return compiled_parent._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\test\utils.py", line 114, in instrumented_test_render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\template\base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\template\base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\template\loader_tags.py", line 66, in render
+    result = block.nodelist.render(context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\template\base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\template\base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\template\defaulttags.py", line 511, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\urls\base.py", line 98, in reverse
+    resolved_url = resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\urls\resolvers.py", line 842, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'driver_detail' with arguments '('',)' not found. 1 pattern(s) tried: ['drivers/(?P<pk>[0-9]+)/\\Z']
+Method Not Allowed (GET): /shipments/api/ingest/
+Method Not Allowed (GET): /shipments/api/whatsapp/groups/1/status/
+Method Not Allowed (GET): /shipments/api/whatsapp/sync-groups/
+Method Not Allowed (GET): /shipments/api/whatsapp/update-status/
+Method Not Allowed (GET): /shipments/api/whatsapp/trigger-sync/
+Method Not Allowed (GET): /shipments/api/whatsapp/trigger-restart/
+Method Not Allowed (GET): /shipments/api/whatsapp/trigger-clear-auth/
+Method Not Allowed (GET): /vehicles/1/sync/
+GoMotiveClient initialized without API key. Falling back to dynamic settings if available.
+Method Not Allowed (GET): /settings/test/motive/
+Method Not Allowed (GET): /settings/import/process/
+FAIL
+test_every_route_requires_authentication (qa.tests.test_access_pages_security.SiteSweep.test_every_route_requires_authentication)
+[AUTH-SWEEP] anonymous GET must redirect to login / 401 / 405 for every route. ... Method Not Allowed (GET): /shipments/api/ingest/
+Method Not Allowed (GET): /shipments/api/whatsapp/groups/1/status/
+Method Not Allowed (GET): /shipments/api/whatsapp/sync-groups/
+Method Not Allowed (GET): /shipments/api/whatsapp/update-status/
+Method Not Allowed (GET): /shipments/api/whatsapp/trigger-sync/
+Method Not Allowed (GET): /shipments/api/whatsapp/trigger-restart/
+Method Not Allowed (GET): /shipments/api/whatsapp/trigger-clear-auth/
+FAIL
+test_non_csv_is_rejected (qa.tests.test_invoices_and_import.CsvImport.test_non_csv_is_rejected) ... ok
+test_valid_csv_imports_rows (qa.tests.test_invoices_and_import.CsvImport.test_valid_csv_imports_rows)
+[CSV-EMPTY] `rows = list(reader)` exhausts the DictReader, so the loop below it never runs. ... FAIL
+test_create_marks_shipments_invoiced_and_totals (qa.tests.test_invoices_and_import.InvoiceCreate.test_create_marks_shipments_invoiced_and_totals) ... ok
+test_invalid_line_item_does_not_leave_an_orphan_invoice (qa.tests.test_invoices_and_import.InvoiceCreate.test_invalid_line_item_does_not_leave_an_orphan_invoice)
+[INV-ORPHAN] invoice.save() runs before the formset is validated, with no transaction. ... FAIL
+test_invalid_submission_keeps_what_the_user_typed (qa.tests.test_invoices_and_import.InvoiceCreate.test_invalid_submission_keeps_what_the_user_typed)
+[INV-LOSE-INPUT] on error the view replaces the bound formset with an empty one. ... FAIL
+test_shipment_cannot_be_invoiced_twice (qa.tests.test_invoices_and_import.InvoiceCreate.test_shipment_cannot_be_invoiced_twice)
+[INV-DOUBLE] nothing stops the same shipment appearing on two invoices. ... FAIL
+test_customer_without_email_is_handled (qa.tests.test_invoices_and_import.InvoiceEmail.test_customer_without_email_is_handled) ... ok
+test_email_attaches_pdf_and_marks_sent (qa.tests.test_invoices_and_import.InvoiceEmail.test_email_attaches_pdf_and_marks_sent) ... ok
+test_email_does_not_downgrade_a_paid_invoice (qa.tests.test_invoices_and_import.InvoiceEmail.test_email_does_not_downgrade_a_paid_invoice)
+[INV-PAID-RESET] re-sending a PAID invoice flips it to 'sent' and wipes paid_at, removing it from revenue. ... FAIL
+test_sending_email_requires_post (qa.tests.test_invoices_and_import.InvoiceEmail.test_sending_email_requires_post)
+[INV-GET-EMAIL] a plain GET (link, prefetch, crawler) emails the customer and changes status. ... FAIL
+test_change_status_rejects_garbage (qa.tests.test_invoices_and_import.InvoiceLifecycle.test_change_status_rejects_garbage) ... ok
+test_change_status_to_paid_sets_paid_at (qa.tests.test_invoices_and_import.InvoiceLifecycle.test_change_status_to_paid_sets_paid_at) ... ok
+test_delete_draft_restores_shipments (qa.tests.test_invoices_and_import.InvoiceLifecycle.test_delete_draft_restores_shipments) ... ok
+test_delete_sent_invoice_is_blocked (qa.tests.test_invoices_and_import.InvoiceLifecycle.test_delete_sent_invoice_is_blocked) ... ok
+test_removing_a_line_returns_the_shipment_to_confirmed (qa.tests.test_invoices_and_import.InvoiceLifecycle.test_removing_a_line_returns_the_shipment_to_confirmed)
+[INV-RESTORE] only invoice_delete restores status; removing one line leaves the shipment 'invoiced' forever. ... FAIL
+test_expense_list (qa.tests.test_performance.QueryCounts.test_expense_list) ... FAIL
+test_invoice_list (qa.tests.test_performance.QueryCounts.test_invoice_list) ... FAIL
+test_maintenance_list (qa.tests.test_performance.QueryCounts.test_maintenance_list) ... FAIL
+test_shipment_list (qa.tests.test_performance.QueryCounts.test_shipment_list) ... FAIL
+test_vehicle_list (qa.tests.test_performance.QueryCounts.test_vehicle_list) ... FAIL
+test_creates_one_draft_and_marks_shipments_invoiced (qa.tests.test_reports_tasks_vehicles.RecurringInvoices.test_creates_one_draft_and_marks_shipments_invoiced) ... ok
+test_shipment_without_amount_does_not_abort_the_whole_run (qa.tests.test_reports_tasks_vehicles.RecurringInvoices.test_shipment_without_amount_does_not_abort_the_whole_run)
+[TASK-NULL-AMOUNT] Shipment.amount is nullable, InvoiceLineItem.amount is not -> IntegrityError, task dies. ... ERROR
+test_monthly_statement_task_computes (qa.tests.test_reports_tasks_vehicles.StatementTasks.test_monthly_statement_task_computes)
+[TASK-NAMEERROR] tasks.py:46 uses `driver_pay_total`, which is never defined. ... ERROR
+test_scheduled_monthly_run_reports_the_month_that_just_ended (qa.tests.test_reports_tasks_vehicles.StatementTasks.test_scheduled_monthly_run_reports_the_month_that_just_ended)
+[TASK-PERIOD] beat fires on the 1st at 01:00 with no args; the task then reports the *new, empty* month. ... FAIL
+test_scheduled_yearly_run_reports_the_year_that_just_ended (qa.tests.test_reports_tasks_vehicles.StatementTasks.test_scheduled_yearly_run_reports_the_year_that_just_ended) ... FAIL
+test_statement_view_rejects_bad_month (qa.tests.test_reports_tasks_vehicles.StatementTasks.test_statement_view_rejects_bad_month)
+[RPT-PARAM] ?month=13 / ?month=abc -> ValueError -> 500. ... Internal Server Error: /reports/financial/monthly/
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\FilaTrucking\FilaTrucking\views.py", line 213, in monthly_statement
+    _, last_day = monthrange(year, month)
+                  ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\Lib\calendar.py", line 170, in monthrange
+    _validate_month(month)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\Lib\calendar.py", line 165, in _validate_month
+    raise IllegalMonthError(month)
+calendar.IllegalMonthError: bad month number 13; must be 1-12
+  test_statement_view_rejects_bad_month (qa.tests.test_reports_tasks_vehicles.StatementTasks.test_statement_view_rejects_bad_month) (q='month=13')
+[RPT-PARAM] ?month=13 / ?month=abc -> ValueError -> 500. ... FAIL
+Internal Server Error: /reports/financial/monthly/
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\FilaTrucking\FilaTrucking\views.py", line 211, in monthly_statement
+    month = int(request.GET.get("month", today.month))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: invalid literal for int() with base 10: 'abc'
+  test_statement_view_rejects_bad_month (qa.tests.test_reports_tasks_vehicles.StatementTasks.test_statement_view_rejects_bad_month) (q='month=abc')
+[RPT-PARAM] ?month=13 / ?month=abc -> ValueError -> 500. ... FAIL
+Internal Server Error: /reports/financial/monthly/
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\FilaTrucking\FilaTrucking\views.py", line 214, in monthly_statement
+    start_date = date(year, month, 1)
+                 ^^^^^^^^^^^^^^^^^^^^
+ValueError: year 99999 is out of range
+  test_statement_view_rejects_bad_month (qa.tests.test_reports_tasks_vehicles.StatementTasks.test_statement_view_rejects_bad_month) (q='year=99999')
+[RPT-PARAM] ?month=13 / ?month=abc -> ValueError -> 500. ... FAIL
+test_statement_view_renders_figures (qa.tests.test_reports_tasks_vehicles.StatementTasks.test_statement_view_renders_figures) ... ok
+test_deleting_a_vehicle_keeps_ifta_history (qa.tests.test_reports_tasks_vehicles.Vehicles.test_deleting_a_vehicle_keeps_ifta_history)
+[DATA-CASCADE] Vehicle -> IFTAMileage / Maintenance are CASCADE; deleting a truck erases its IFTA + service history. ... FAIL
+test_ifta_miles_entry_upserts (qa.tests.test_reports_tasks_vehicles.Vehicles.test_ifta_miles_entry_upserts) ... ok
+test_ifta_report_bad_params_do_not_500 (qa.tests.test_reports_tasks_vehicles.Vehicles.test_ifta_report_bad_params_do_not_500) ... ok
+test_maintenance_service_date_is_editable (qa.tests.test_reports_tasks_vehicles.Vehicles.test_maintenance_service_date_is_editable)
+[VEH-DATE] Maintenance.date is auto_now_add, so historical services cannot be entered with their real date. ... FAIL
+test_sync_for_vehicle_without_gomotive_id_shows_a_message (qa.tests.test_reports_tasks_vehicles.Vehicles.test_sync_for_vehicle_without_gomotive_id_shows_a_message)
+[VEH-NAME] vehicles/views.py reads `vehicle.name`, a field that was removed -> AttributeError -> 500. ... Internal Server Error: /vehicles/1/sync/
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\views\decorators\http.py", line 64, in inner
+    return func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\FilaTrucking\vehicles\views.py", line 273, in sync_vehicle_gomotive
+    messages.error(request, f"Vehicle {vehicle.name} has no GoMotive ID set.")
+                                       ^^^^^^^^^^^^
+AttributeError: 'Vehicle' object has no attribute 'name'
+FAIL
+test_ingest_secret_is_configurable_through_environment (qa.tests.test_whatsapp_api.SecretHandling.test_ingest_secret_is_configurable_through_environment)
+[WA-SECRET] docker-compose sets WHATSAPP_INGEST_SECRET, but settings.py never reads it, so api.py always ... FAIL
+test_anonymous_cannot_list_groups (qa.tests.test_whatsapp_api.StatusEndpointsAreNotPublic.test_anonymous_cannot_list_groups) ... FAIL
+test_anonymous_cannot_read_logs (qa.tests.test_whatsapp_api.StatusEndpointsAreNotPublic.test_anonymous_cannot_read_logs) ... FAIL
+test_anonymous_cannot_read_qr_code (qa.tests.test_whatsapp_api.StatusEndpointsAreNotPublic.test_anonymous_cannot_read_qr_code) ... FAIL
+test_anonymous_cannot_read_status (qa.tests.test_whatsapp_api.StatusEndpointsAreNotPublic.test_anonymous_cannot_read_status) ... FAIL
+test_mutating_endpoints_reject_anonymous (qa.tests.test_whatsapp_api.StatusEndpointsAreNotPublic.test_mutating_endpoints_reject_anonymous) ... Unauthorized: /shipments/api/whatsapp/update-status/
+Unauthorized: /shipments/api/whatsapp/sync-groups/
+Unauthorized: /shipments/api/whatsapp/trigger-sync/
+Unauthorized: /shipments/api/whatsapp/trigger-restart/
+Unauthorized: /shipments/api/whatsapp/trigger-clear-auth/
+ok
+test_last_error_is_cleared_once_connected (qa.tests.test_whatsapp_api.StatusLifecycle.test_last_error_is_cleared_once_connected)
+[WA-STALE-ERR] the settings page keeps showing the last error after a successful reconnect. ... FAIL
+test_qr_is_cleared_once_connected (qa.tests.test_whatsapp_api.StatusLifecycle.test_qr_is_cleared_once_connected)
+[WA-STALE-QR] sidecar sends qr_code=null when connected; Django keeps the old QR forever. ... FAIL
+test_status_pings_write_one_log_row_each (qa.tests.test_whatsapp_api.StatusLifecycle.test_status_pings_write_one_log_row_each)
+[WA-LOG-GROWTH] documents behaviour (passes): unbounded table, ~1,200 rows/hour during a 3 s reconnect loop. ... ok
+test_logs_endpoint_rejects_non_numeric_limit (qa.tests.test_whatsapp_api.TriggerEndpoints.test_logs_endpoint_rejects_non_numeric_limit)
+[WA-LIMIT] ?limit=abc -> uncaught ValueError -> HTTP 500. ... Internal Server Error: /shipments/api/whatsapp/logs/
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\views\decorators\http.py", line 64, in inner
+    return func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\FilaTrucking\shipments\api.py", line 382, in whatsapp_logs
+    limit = int(request.GET.get("limit", 100))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: invalid literal for int() with base 10: 'abc'
+FAIL
+test_sidecar_down_returns_a_json_error (qa.tests.test_whatsapp_api.TriggerEndpoints.test_sidecar_down_returns_a_json_error) ... Internal Server Error: /shipments/api/whatsapp/trigger-sync/
+Internal Server Error: /shipments/api/whatsapp/trigger-restart/
+Internal Server Error: /shipments/api/whatsapp/trigger-clear-auth/
+ok
+test_sidecar_timeout_is_reported (qa.tests.test_whatsapp_api.TriggerEndpoints.test_sidecar_timeout_is_reported) ... Internal Server Error: /shipments/api/whatsapp/trigger-sync/
+ok
+test_trigger_sync_keeps_groups_the_admin_disabled (qa.tests.test_whatsapp_api.TriggerEndpoints.test_trigger_sync_keeps_groups_the_admin_disabled)
+[WA-SYNC-RESET] 'Sync groups' silently re-enables every group (is_active=True in update_or_create defaults). ... FAIL
+test_arabic_text_does_not_crash (qa.tests.test_whatsapp_ingest.IngestAuthAndRobustness.test_arabic_text_does_not_crash) ... ok
+test_empty_text_is_400 (qa.tests.test_whatsapp_ingest.IngestAuthAndRobustness.test_empty_text_is_400) ... Bad Request: /shipments/api/ingest/
+ok
+test_get_not_allowed (qa.tests.test_whatsapp_ingest.IngestAuthAndRobustness.test_get_not_allowed) ... Method Not Allowed (GET): /shipments/api/ingest/
+ok
+test_invalid_json_is_400 (qa.tests.test_whatsapp_ingest.IngestAuthAndRobustness.test_invalid_json_is_400) ... Bad Request: /shipments/api/ingest/
+ok
+test_json_array_body_is_a_client_error_not_500 (qa.tests.test_whatsapp_ingest.IngestAuthAndRobustness.test_json_array_body_is_a_client_error_not_500) ... Internal Server Error: /shipments/api/ingest/
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\views\decorators\http.py", line 64, in inner
+    return func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\FilaTrucking\shipments\api.py", line 32, in ingest_whatsapp_message
+    raw_text = data.get("text", "")
+               ^^^^^^^^
+AttributeError: 'list' object has no attribute 'get'
+FAIL
+test_missing_or_wrong_token_is_rejected (qa.tests.test_whatsapp_ingest.IngestAuthAndRobustness.test_missing_or_wrong_token_is_rejected) ... Unauthorized: /shipments/api/ingest/
+Unauthorized: /shipments/api/ingest/
+ok
+test_non_string_text_is_a_client_error_not_500 (qa.tests.test_whatsapp_ingest.IngestAuthAndRobustness.test_non_string_text_is_a_client_error_not_500) ... Internal Server Error: /shipments/api/ingest/
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\views\decorators\http.py", line 64, in inner
+    return func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\FilaTrucking\shipments\api.py", line 57, in ingest_whatsapp_message
+    lines = raw_text.strip().split('\n')
+            ^^^^^^^^^^^^^^
+AttributeError: 'int' object has no attribute 'strip'
+FAIL
+test_overlong_field_is_flagged_not_500 (qa.tests.test_whatsapp_ingest.IngestAuthAndRobustness.test_overlong_field_is_flagged_not_500) ... skipped 'length limits are only enforced by MySQL strict mode'
+test_chat_noise_is_ignored_silently (qa.tests.test_whatsapp_ingest.IngestBusinessRules.test_chat_noise_is_ignored_silently)
+[WA-NOISE] Drivers chat in the group. Chit-chat must not become an error row nor a bot reply. ... FAIL
+test_chat_noise_response_cannot_trigger_a_sidecar_reply (qa.tests.test_whatsapp_ingest.IngestBusinessRules.test_chat_noise_response_cannot_trigger_a_sidecar_reply)
+sidecar/index.js replies when status=='flagged' or reply_message is present. ... FAIL
+test_driver_is_resolved_from_whatsapp_jid (qa.tests.test_whatsapp_ingest.IngestBusinessRules.test_driver_is_resolved_from_whatsapp_jid)
+[WA-DRIVER] sender arrives as '<digits>@s.whatsapp.net'; Driver.phone_number is E.164. ... FAIL
+test_message_without_date_uses_business_local_date (qa.tests.test_whatsapp_ingest.IngestBusinessRules.test_message_without_date_uses_business_local_date)
+[WA-TZ] 02:30 UTC on Jan 6 is 8:30 pm Jan 5 in Illinois (PRD: Illinois fleet); TIME_ZONE is UTC. ... FAIL
+test_missing_rate_falls_back_to_customer_default_rate (qa.tests.test_whatsapp_ingest.IngestBusinessRules.test_missing_rate_falls_back_to_customer_default_rate)
+[WA-RATE] customer.default_rate=400; PRD: 'each customer has a default rate'. ... FAIL
+test_same_whatsapp_message_delivered_twice_creates_one_shipment (qa.tests.test_whatsapp_ingest.IngestBusinessRules.test_same_whatsapp_message_delivered_twice_creates_one_shipment)
+[WA-DEDUPE] Baileys can re-emit messages after reconnect; the payload has no message id to dedupe on. ... FAIL
+test_duplicate_container_same_month_is_flagged (qa.tests.test_whatsapp_ingest.IngestHappyPath.test_duplicate_container_same_month_is_flagged) ... ok
+test_key_value_message_creates_pending_shipment (qa.tests.test_whatsapp_ingest.IngestHappyPath.test_key_value_message_creates_pending_shipment) ... ok
+test_positional_message_creates_shipment (qa.tests.test_whatsapp_ingest.IngestHappyPath.test_positional_message_creates_shipment) ... ok
+test_rate_formats (qa.tests.test_whatsapp_ingest.IngestHappyPath.test_rate_formats) ... ok
+======================================================================
+ERROR: test_shipment_without_amount_does_not_abort_the_whole_run (qa.tests.test_reports_tasks_vehicles.RecurringInvoices.test_shipment_without_amount_does_not_abort_the_whole_run)
+[TASK-NULL-AMOUNT] Shipment.amount is nullable, InvoiceLineItem.amount is not -> IntegrityError, task dies.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 359, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sqlite3.IntegrityError: NOT NULL constraint failed: shipments_invoicelineitem.amount
+The above exception was the direct cause of the following exception:
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_reports_tasks_vehicles.py", line 70, in test_shipment_without_amount_does_not_abort_the_whole_run
+    tasks.generate_recurring_invoices()
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\celery\local.py", line 182, in __call__
+    return self._get_current_object()(*a, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\celery\app\task.py", line 411, in __call__
+    return self.run(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\FilaTrucking\shipments\tasks.py", line 131, in generate_recurring_invoices
+    InvoiceLineItem.objects.create(
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\query.py", line 669, in create
+    obj.save(force_insert=True, using=self.db)
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\base.py", line 874, in save
+    self.save_base(
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\base.py", line 966, in save_base
+    updated = self._save_table(
+              ^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\base.py", line 1167, in _save_table
+    results = self._do_insert(
+              ^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\base.py", line 1218, in _do_insert
+    return manager._insert(
+           ^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\query.py", line 1918, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1925, in execute_sql
+    cursor.execute(sql, params)
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 359, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.IntegrityError: NOT NULL constraint failed: shipments_invoicelineitem.amount
+======================================================================
+ERROR: test_monthly_statement_task_computes (qa.tests.test_reports_tasks_vehicles.StatementTasks.test_monthly_statement_task_computes)
+[TASK-NAMEERROR] tasks.py:46 uses `driver_pay_total`, which is never defined.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_reports_tasks_vehicles.py", line 30, in test_monthly_statement_task_computes
+    r = tasks.generate_monthly_statement(year=2026, month=1)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\celery\local.py", line 182, in __call__
+    return self._get_current_object()(*a, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\celery\app\task.py", line 411, in __call__
+    return self.run(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\FilaTrucking\shipments\tasks.py", line 46, in generate_monthly_statement
+    "driver_pay_total": str(driver_pay_total),
+                            ^^^^^^^^^^^^^^^^
+NameError: name 'driver_pay_total' is not defined
+======================================================================
+FAIL: test_login_is_rate_limited (qa.tests.test_access_pages_security.SecretsAndUploads.test_login_is_rate_limited)
+[SEC-BRUTEFORCE] 15 wrong passwords in a row are all processed normally.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_access_pages_security.py", line 111, in test_login_is_rate_limited
+    self.assertTrue(any(c in (403, 429) for c in codes), "no lockout / throttling after repeated failures")
+AssertionError: False is not true : no lockout / throttling after repeated failures
+======================================================================
+FAIL: test_system_settings_page_does_not_echo_stored_secrets (qa.tests.test_access_pages_security.SecretsAndUploads.test_system_settings_page_does_not_echo_stored_secrets)
+[SEC-ECHO] PasswordInput(render_value=True) writes the Motive API key and SMTP password into the HTML.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_access_pages_security.py", line 98, in test_system_settings_page_does_not_echo_stored_secrets
+    self.assertEqual(len(leaked), 0, f"{len(leaked)} secret(s) rendered in page source")
+AssertionError: 2 != 0 : 2 secret(s) rendered in page source
+======================================================================
+FAIL: test_uploaded_documents_get_unguessable_names (qa.tests.test_access_pages_security.SecretsAndUploads.test_uploaded_documents_get_unguessable_names)
+[SEC-MEDIA] nginx serves /media/ with no auth; driver licences keep their original, guessable file name.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_access_pages_security.py", line 105, in test_uploaded_documents_get_unguessable_names
+    self.assertNotEqual(d.document.name, "driver_documents/license.pdf")
+AssertionError: 'driver_documents/license.pdf' == 'driver_documents/license.pdf'
+======================================================================
+FAIL: test_every_page_renders_without_server_error (qa.tests.test_access_pages_security.SiteSweep.test_every_page_renders_without_server_error)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_access_pages_security.py", line 79, in test_every_page_renders_without_server_error
+    self.assertEqual(bad, [])
+AssertionError: Lists differ: ['500 /shipments/1/ (shipment_detail)'] != []
+First list contains 1 additional elements.
+First extra element 0:
+'500 /shipments/1/ (shipment_detail)'
+- ['500 /shipments/1/ (shipment_detail)']
++ []
+======================================================================
+FAIL: test_every_route_requires_authentication (qa.tests.test_access_pages_security.SiteSweep.test_every_route_requires_authentication)
+[AUTH-SWEEP] anonymous GET must redirect to login / 401 / 405 for every route.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_access_pages_security.py", line 68, in test_every_route_requires_authentication
+    self.assertEqual(bad, [], "routes answering an anonymous GET")
+AssertionError: Lists differ: ['200 /shipments/api/whatsapp/status/ (api[195 chars]ps)'] != []
+First list contains 4 additional elements.
+First extra element 0:
+'200 /shipments/api/whatsapp/status/ (api_whatsapp_status)'
++ []
+- ['200 /shipments/api/whatsapp/status/ (api_whatsapp_status)',
+-  '200 /shipments/api/whatsapp/qr-code/ (api_whatsapp_qr_code)',
+-  '200 /shipments/api/whatsapp/logs/ (api_whatsapp_logs)',
+-  '200 /shipments/api/whatsapp/groups/ (api_whatsapp_groups)'] : routes answering an anonymous GET
+======================================================================
+FAIL: test_valid_csv_imports_rows (qa.tests.test_invoices_and_import.CsvImport.test_valid_csv_imports_rows)
+[CSV-EMPTY] `rows = list(reader)` exhausts the DictReader, so the loop below it never runs.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_invoices_and_import.py", line 161, in test_valid_csv_imports_rows
+    self.assertEqual(Expense.objects.count(), 2, f"messages shown to user: {msgs}")
+AssertionError: 0 != 2 : messages shown to user: ['No valid data rows found in CSV.']
+======================================================================
+FAIL: test_invalid_line_item_does_not_leave_an_orphan_invoice (qa.tests.test_invoices_and_import.InvoiceCreate.test_invalid_line_item_does_not_leave_an_orphan_invoice)
+[INV-ORPHAN] invoice.save() runs before the formset is validated, with no transaction.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_invoices_and_import.py", line 69, in test_invalid_line_item_does_not_leave_an_orphan_invoice
+    self.assertEqual(Invoice.objects.count(), 0)
+AssertionError: 1 != 0
+======================================================================
+FAIL: test_invalid_submission_keeps_what_the_user_typed (qa.tests.test_invoices_and_import.InvoiceCreate.test_invalid_submission_keeps_what_the_user_typed)
+[INV-LOSE-INPUT] on error the view replaces the bound formset with an empty one.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_invoices_and_import.py", line 74, in test_invalid_submission_keeps_what_the_user_typed
+    self.assertContains(r, "B1")
+AssertionError: False is not true : Couldn't find 'B1' in the following response
+b'\n<!doctype html>\n<html lang="en" class="h-full">\n\n<head>\n    <meta charset="UTF-8" />\n    <meta name="viewport" content="width=device-width, initial-scale=1.0" />\n    <meta name="description" content="Fila Trucking \xe2\x80\x94 Dispatch & Fleet Management System" />\n    <title>Create Invoice \xe2\x80\x94 FilaTrucking</title>\n    <!-- Tailwind CSS CDN -->\n    <script src="https://cdn.tailwindcss.com"></script>\n    <!-- Design tokens -->\n    <script>\n        tailwind.config = {\n            theme: {\n                extend: {\n                    colors: {\n                        brand: { DEFAULT: \'#1B3A6B\', light: \'#2A5298\' },\n                        accent: { DEFAULT: \'#F59E0B\', dark: \'#D97706\' },\n                        surface: { DEFAULT: \'#0F172A\', card: \'#1E293B\' },\n                        muted: \'#64748B\',\n                    },\n                    fontFamily: {\n                        sans: [\'DM Sans\', \'sans-serif\'],\n                        mono: [\'JetBrains Mono\', \'monospace\'],\n                    },\n                }\n            }\n        }\n    </script>\n    <!-- Google Fonts -->\n    <link rel="preconnect" href="https://fonts.googleapis.com" />\n    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />\n    <link\n        href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap"\n        rel="stylesheet" />\n    <!-- Alpine.js for lightweight interactivity -->\n    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>\n    \n    <style>\n        /* Smooth scrollbar */\n        ::-webkit-scrollbar {\n            width: 6px;\n            height: 6px;\n        }\n\n        ::-webkit-scrollbar-track {\n            background: #0F172A;\n        }\n\n        ::-webkit-scrollbar-thumb {\n            background: #334155;\n            border-radius: 3px;\n        }\n\n        ::-webkit-scrollbar-thumb:hover {\n            background: #475569;\n        }\n    </style>\n</head>\n\n<body class="bg-surface text-slate-100 min-h-screen font-sans antialiased" x-data="{ sidebarOpen: false }">\n\n    \n    \n    \n    <header\n        class="fixed top-0 inset-x-0 z-40 bg-surface/90 backdrop-blur border-b border-slate-800/60 h-14 flex items-center px-4 md:px-6 gap-4">\n        \n        <button id="sidebar-toggle"\n            class="md:hidden flex items-center justify-center w-10 h-10 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-slate-100 transition-colors flex-shrink-0"\n            @click="sidebarOpen = true" aria-label="Open navigation menu">\n            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">\n                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />\n            </svg>\n        </button>\n        \n        <a href="/" class="flex items-center gap-2.5 flex-shrink-0 select-none">\n            <div class="w-8 h-8 rounded-lg bg-brand-light flex items-center justify-center shadow-md shadow-brand/30">\n                <svg class="w-4.5 h-4.5 text-accent" fill="currentColor" viewBox="0 0 24 24"\n                    style="width:18px;height:18px;">\n                    <path\n                        d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" />\n                </svg>\n            </div>\n            <span class="font-bold text-slate-100 tracking-tight leading-none hidden sm:block">\n                Fila<span class="text-accent">Trucking</span>\n            </span>\n        </a>\n        \n        <div class="flex-1"></div>\n        \n        \n        <div class="flex items-center gap-3">\n            <span class="hidden md:block text-sm text-muted">qa_admin</span>\n            <a href="/auth/logout/"\n                class="flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-100 hover:bg-slate-800 px-3 py-2 rounded-xl transition-colors min-h-[44px]"\n                title="Logout">\n                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">\n                    <path stroke-linecap="round" stroke-linejoin="round"\n                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />\n                </svg>\n                <span class="hidden sm:block">Logout</span>\n            </a>\n        </div>\n        \n    </header>\n    \n    \n    \n    <div x-show="sidebarOpen" x-transition:enter="transition-opacity duration-200" x-transition:enter-start="opacity-0"\n        x-transition:enter-end="opacity-100" x-transition:leave="transition-opacity duration-200"\n        x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"\n        class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm md:hidden" @click="sidebarOpen = false"\n        style="display:none;">\n    </div>\n    <div x-show="sidebarOpen" x-transition:enter="transition-transform duration-250 ease-out"\n        x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"\n        x-transition:leave="transition-transform duration-200 ease-in" x-transition:leave-start="translate-x-0"\n        x-transition:leave-end="-translate-x-full"\n        class="fixed inset-y-0 left-0 z-50 w-72 bg-surface-card border-r border-slate-700/50 flex flex-col md:hidden shadow-2xl"\n        style="display:none;">\n        \n        <div class="flex items-center justify-between h-14 px-4 border-b border-slate-700/50 flex-shrink-0">\n            <span class="font-bold text-slate-100 tracking-tight">\n                Fila<span class="text-accent">Trucking</span>\n            </span>\n            <button @click="sidebarOpen = false"\n                class="w-9 h-9 rounded-xl text-slate-400 hover:bg-slate-700 hover:text-slate-100 transition-colors flex items-center justify-center"\n                aria-label="Close menu">\n                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">\n                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />\n                </svg>\n            </button>\n        </div>\n        \n        <nav class="flex-1 overflow-y-auto py-4 px-3">\n            \n\n\n\n\n\n\n\n\n\n<ul class="space-y-0.5">\n    \n    <li>\n        <a href="/" id="nav-dashboard"\n            class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150\n              text-slate-400 hover:bg-slate-800 hover:text-slate-100">\n            <svg class="w-5 h-5 flex-shrink-0 text-slate-500 group-hover:text-slate-300"\n                fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">\n                <path stroke-linecap="round" stroke-linejoin="round"\n                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />\n            </svg>\n            Dashboard\n        </a>\n    </li>\n    \n    <li>\n        <a href="/customers/" id="nav-customers"\n            class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150\n              text-slate-400 hover:bg-slate-800 hover:text-slate-100">\n            <svg class="w-5 h-5 flex-shrink-0 text-slate-500 group-hover:text-slate-300"\n                xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"\n                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">\n                <path d="M10 12h4" />\n                <path d="M10 8h4" />\n                <path d="M14 21v-3a2 2 0 0 0-4 0v3" />\n                <path d="M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2" />\n                <path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16" />\n            </svg>\n            Customers\n        </a>\n    </li>\n    \n    <li>\n        <a href="/shipments/" id="nav-shipments"\n            class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150\n              text-slate-400 hover:bg-slate-800 hover:text-slate-100">\n            <svg class="w-5 h-5 flex-shrink-0 text-slate-500 group-hover:text-slate-300"\n                fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">\n                <path stroke-linecap="round" stroke-linejoin="round"\n                    d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />\n            </svg>\n            Shipments\n        </a>\n    </li>\n    \n    <li>\n        <a href="/invoices/" id="nav-invoices"\n            class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150\n              bg-brand-light/20 text-accent border border-brand-light/30">\n            <svg class="w-5 h-5 flex-shrink-0 text-accent"\n                fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">\n                <path stroke-linecap="round" stroke-linejoin="round"\n                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />\n            </svg>\n            Invoices\n        </a>\n    </li>\n    \n    <li>\n        <a href="/drivers/" id="nav-drivers"\n            class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150\n              text-slate-400 hover:bg-slate-800 hover:text-slate-100">\n            <svg class="w-5 h-5 flex-shrink-0 text-slate-500 group-hover:text-slate-300"\n                fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">\n                <path stroke-linecap="round" stroke-linejoin="round"\n                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />\n            </svg>\n            Drivers\n        </a>\n    </li>\n    \n    <li>\n        <a href="/vehicles/" id="nav-vehicles"\n            class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150\n              text-slate-400 hover:bg-slate-800 hover:text-slate-100">\n            <svg class="w-5 h-5 flex-shrink-0 text-slate-500 group-hover:text-slate-300"\n                fill="currentColor" viewBox="0 0 24 24">\n                <path\n                    d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.08 3.11H5.77L6.85 7zM19 17H5v-5h14v5z" />\n                <circle cx="7.5" cy="14.5" r="1.5" />\n                <circle cx="16.5" cy="14.5" r="1.5" />\n            </svg>\n            Vehicles\n        </a>\n    </li>\n    \n    <li>\n        <a href="/vehicles/maintenance/" id="nav-maintenance"\n            class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150\n              text-slate-400 hover:bg-slate-800 hover:text-slate-100">\n            <svg class="w-5 h-5 flex-shrink-0 text-slate-500 group-hover:text-slate-300"\n                fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">\n                <path stroke-linecap="round" stroke-linejoin="round"\n                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />\n            </svg>\n            Maintenance\n        </a>\n    </li>\n    \n    <li>\n        <a href="/expenses/" id="nav-expenses"\n            class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150\n              text-slate-400 hover:bg-slate-800 hover:text-slate-100">\n            <svg class="w-5 h-5 flex-shrink-0 text-slate-500 group-hover:text-slate-300"\n                fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">\n                <path stroke-linecap="round" stroke-linejoin="round"\n                    d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />\n            </svg>\n            Expenses\n        </a>\n    </li>\n    \n    <li\n        x-data="{ open: false }">\n        <button @click="open = !open"\n            class="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150\n              text-slate-400 hover:bg-slate-800 hover:text-slate-100">\n            <div class="flex items-center gap-3">\n                <svg class="w-5 h-5 flex-shrink-0 text-slate-500 group-hover:text-slate-300"\n                    fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">\n                    <path stroke-linecap="round" stroke-linejoin="round"\n                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />\n                </svg>\n                Reports\n            </div>\n            <svg class="w-4 h-4 transition-transform duration-200" :class="{\'rotate-180\': open}" fill="none"\n                stroke="currentColor" viewBox="0 0 24 24">\n                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>\n            </svg>\n        </button>\n        <ul x-show="open" x-collapse x-cloak class="mt-1 space-y-1 pl-11 pr-2 pb-1">\n            <li>\n                <a href="/reports/financial/monthly/"\n                    class="block py-1.5 text-sm text-slate-400 hover:text-slate-200">Monthly\n                    Statement</a>\n            </li>\n            <li>\n                <a href="/vehicles/ifta/report/"\n                    class="block py-1.5 text-sm text-slate-400 hover:text-slate-200">IFTA\n                    Report</a>\n            </li>\n            <li>\n                <a href="/vehicles/ifta/logs/"\n                    class="block py-1.5 text-sm text-slate-400 hover:text-slate-200">IFTA\n                    Logs</a>\n            </li>\n        </ul>\n    </li>\n    \n    <li\n        x-data="{ open: false }">\n        <button @click="open = !open"\n            class="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150\n              text-slate-400 hover:bg-slate-800 hover:text-slate-100">\n            <div class="flex items-center gap-3">\n                <svg class="w-5 h-5 flex-shrink-0 text-slate-500 group-hover:text-slate-300"\n                    fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">\n                    <path stroke-linecap="round" stroke-linejoin="round"\n                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />\n                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />\n                </svg>\n                System Settings\n            </div>\n            <svg class="w-4 h-4 transition-transform duration-200" :class="{\'rotate-180\': open}" fill="none"\n                stroke="currentColor" viewBox="0 0 24 24">\n                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>\n            </svg>\n        </button>\n        <ul x-show="open" x-collapse x-cloak class="mt-1 space-y-1 pl-11 pr-2 pb-1">\n            <li>\n                <a href="/settings/system/"\n                    class="block py-1.5 text-sm text-slate-400 hover:text-slate-200">Settings</a>\n            </li>\n            <li>\n                <a href="/shipments/settings/whatsapp/"\n                    class="block py-1.5 text-sm text-slate-400 hover:text-slate-200">WhatsApp Setup</a>\n            </li>\n            <li>\n                <a href="/settings/import/"\n                    class="block py-1.5 text-sm text-slate-400 hover:text-slate-200">Import Data</a>\n            </li>\n        </ul>\n    </li>\n</ul>\n\n        </nav>\n        <div class="border-t border-slate-700/50 px-4 py-4 flex items-center gap-3 flex-shrink-0">\n            <div\n                class="w-8 h-8 rounded-full bg-brand-light flex items-center justify-center text-xs font-bold text-accent uppercase">\n                q\n            </div>\n            <div class="flex-1 min-w-0">\n                <p class="text-sm font-medium text-slate-200 truncate">qa_admin</p>\n                <p class="text-xs text-muted">Administrator</p>\n            </div>\n            <a href="/auth/logout/" class="text-muted hover:text-slate-100 transition-colors" title="Logout">\n                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">\n                    <path stroke-linecap="round" stroke-linejoin="round"\n                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />\n                </svg>\n            </a>\n        </div>\n        \n    </div>\n    \n    \n    \n    <div class="flex h-full pt-14">\n        \n        \n        <aside\n            class="hidden md:flex flex-col w-60 fixed top-14 bottom-0 left-0 bg-surface-card border-r border-slate-700/50 z-30 overflow-y-auto">\n            <nav class="flex-1 py-4 px-3">\n                \n\n\n\n\n\n\n\n\n\n<ul class="space-y-0.5">\n    \n    <li>\n        <a href="/" id="nav-dashboard"\n            class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150\n              text-slate-400 hover:bg-slate-800 hover:text-slate-100">\n            <svg class="w-5 h-5 flex-shrink-0 text-slate-500 group-hover:text-slate-300"\n                fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">\n                <path stroke-linecap="round" stroke-linejoin="round"\n                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />\n            </svg>\n            Dashboard\n        </a>\n    </li>\n    \n    <li>\n        <a href="/customers/" id="nav-customers"\n            class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150\n              text-slate-400 hover:bg-slate-800 hover:text-slate-100">\n            <svg class="w-5 h-5 flex-shrink-0 text-slate-500 group-hover:text-slate-300"\n                xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"\n                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">\n                <path d="M10 12h4" />\n                <path d="M10 8h4" />\n                <path d="M14 21v-3a2 2 0 0 0-4 0v3" />\n                <path d="M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2" />\n                <path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16" />\n            </svg>\n            Customers\n        </a>\n    </li>\n    \n    <li>\n        <a href="/shipments/" id="nav-shipments"\n            class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150\n              text-slate-400 hover:bg-slate-800 hover:text-slate-100">\n            <svg class="w-5 h-5 flex-shrink-0 text-slate-500 group-hover:text-slate-300"\n                fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">\n                <path stroke-linecap="round" stroke-linejoin="round"\n                    d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />\n            </svg>\n            Shipments\n        </a>\n    </li>\n    \n    <li>\n        <a href="/invoices/" id="nav-invoices"\n            class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150\n              bg-brand-light/20 text-accent border border-brand-light/30">\n            <svg class="w-5 h-5 flex-shrink-0 text-accent"\n                fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">\n                <path stroke-linecap="round" stroke-linejoin="round"\n                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />\n            </svg>\n            Invoices\n        </a>\n    </li>\n    \n    <li>\n        <a href="/drivers/" id="nav-drivers"\n            class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150\n              text-slate-400 hover:bg-slate-800 hover:text-slate-100">\n            <svg class="w-5 h-5 flex-shrink-0 text-slate-500 group-hover:text-slate-300"\n                fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">\n                <path stroke-linecap="round" stroke-linejoin="round"\n                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />\n            </svg>\n            Drivers\n        </a>\n    </li>\n    \n    <li>\n        <a href="/vehicles/" id="nav-vehicles"\n            class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150\n              text-slate-400 hover:bg-slate-800 hover:text-slate-100">\n            <svg class="w-5 h-5 flex-shrink-0 text-slate-500 group-hover:text-slate-300"\n                fill="currentColor" viewBox="0 0 24 24">\n                <path\n                    d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.08 3.11H5.77L6.85 7zM19 17H5v-5h14v5z" />\n                <circle cx="7.5" cy="14.5" r="1.5" />\n                <circle cx="16.5" cy="14.5" r="1.5" />\n            </svg>\n            Vehicles\n        </a>\n    </li>\n    \n    <li>\n        <a href="/vehicles/maintenance/" id="nav-maintenance"\n            class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150\n              text-slate-400 hover:bg-slate-800 hover:text-slate-100">\n            <svg class="w-5 h-5 flex-shrink-0 text-slate-500 group-hover:text-slate-300"\n                fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">\n                <path stroke-linecap="round" stroke-linejoin="round"\n                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />\n            </svg>\n            Maintenance\n        </a>\n    </li>\n    \n    <li>\n        <a href="/expenses/" id="nav-expenses"\n            class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150\n              text-slate-400 hover:bg-slate-800 hover:text-slate-100">\n            <svg class="w-5 h-5 flex-shrink-0 text-slate-500 group-hover:text-slate-300"\n                fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">\n                <path stroke-linecap="round" stroke-linejoin="round"\n                    d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />\n            </svg>\n            Expenses\n        </a>\n    </li>\n    \n    <li\n        x-data="{ open: false }">\n        <button @click="open = !open"\n            class="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150\n              text-slate-400 hover:bg-slate-800 hover:text-slate-100">\n            <div class="flex items-center gap-3">\n                <svg class="w-5 h-5 flex-shrink-0 text-slate-500 group-hover:text-slate-300"\n                    fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">\n                    <path stroke-linecap="round" stroke-linejoin="round"\n                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />\n                </svg>\n                Reports\n            </div>\n            <svg class="w-4 h-4 transition-transform duration-200" :class="{\'rotate-180\': open}" fill="none"\n                stroke="currentColor" viewBox="0 0 24 24">\n                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>\n            </svg>\n        </button>\n        <ul x-show="open" x-collapse x-cloak class="mt-1 space-y-1 pl-11 pr-2 pb-1">\n            <li>\n                <a href="/reports/financial/monthly/"\n                    class="block py-1.5 text-sm text-slate-400 hover:text-slate-200">Monthly\n                    Statement</a>\n            </li>\n            <li>\n                <a href="/vehicles/ifta/report/"\n                    class="block py-1.5 text-sm text-slate-400 hover:text-slate-200">IFTA\n                    Report</a>\n            </li>\n            <li>\n                <a href="/vehicles/ifta/logs/"\n                    class="block py-1.5 text-sm text-slate-400 hover:text-slate-200">IFTA\n                    Logs</a>\n            </li>\n        </ul>\n    </li>\n    \n    <li\n        x-data="{ open: false }">\n        <button @click="open = !open"\n            class="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150\n              text-slate-400 hover:bg-slate-800 hover:text-slate-100">\n            <div class="flex items-center gap-3">\n                <svg class="w-5 h-5 flex-shrink-0 text-slate-500 group-hover:text-slate-300"\n                    fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">\n                    <path stroke-linecap="round" stroke-linejoin="round"\n                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />\n                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />\n                </svg>\n                System Settings\n            </div>\n            <svg class="w-4 h-4 transition-transform duration-200" :class="{\'rotate-180\': open}" fill="none"\n                stroke="currentColor" viewBox="0 0 24 24">\n                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>\n            </svg>\n        </button>\n        <ul x-show="open" x-collapse x-cloak class="mt-1 space-y-1 pl-11 pr-2 pb-1">\n            <li>\n                <a href="/settings/system/"\n                    class="block py-1.5 text-sm text-slate-400 hover:text-slate-200">Settings</a>\n            </li>\n            <li>\n                <a href="/shipments/settings/whatsapp/"\n                    class="block py-1.5 text-sm text-slate-400 hover:text-slate-200">WhatsApp Setup</a>\n            </li>\n            <li>\n                <a href="/settings/import/"\n                    class="block py-1.5 text-sm text-slate-400 hover:text-slate-200">Import Data</a>\n            </li>\n        </ul>\n    </li>\n</ul>\n\n            </nav>\n            <div class="border-t border-slate-700/50 px-4 py-4 flex items-center gap-3 flex-shrink-0">\n                <div\n                    class="w-8 h-8 rounded-full bg-brand-light flex items-center justify-center text-xs font-bold text-accent uppercase">\n                    q\n                </div>\n                <div class="flex-1 min-w-0">\n                    <p class="text-sm font-medium text-slate-200 truncate">qa_admin</p>\n                    <p class="text-xs text-muted">Administrator</p>\n                </div>\n            </div>\n        </aside>\n        \n        \n        \n        \n        <main class="flex-1 min-w-0 md:ml-60">\n            \n            \n            \n            <div class="p-4 md:p-8">\n                \n<div class="max-w-5xl mx-auto py-8">\n  <div class="mb-8 text-center sm:text-left">\n    <a href="/invoices/"\n      class="text-sm text-slate-500 hover:text-slate-300 flex items-center justify-center sm:justify-start gap-1 transition-colors group">\n      <svg class="w-4 h-4 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor"\n        viewBox="0 0 24 24">\n        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>\n      </svg>\n      Back to Invoices\n    </a>\n    <h1 class="text-2xl font-bold text-slate-100 mt-4">Create New Invoice</h1>\n    <p class="text-slate-400 mt-2 text-sm leading-relaxed">\n      Select a customer and date range. Confirmed shipments in that period will be auto-populated.\n    </p>\n  </div>\n\n  <div class="bg-surface-card rounded-2xl shadow-xl border border-slate-700/50 p-6 md:p-8">\n    <form method="post" class="space-y-6">\n      <input type="hidden" name="csrfmiddlewaretoken" value="h5s7Y6t9biw5DFcszwlPLyu38LVj4LaprU4CnJP08nd1l9vORZCvI82r9sstkgL3">\n\n      \n\n      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">\n        <div>\n          <label class="block text-sm font-semibold text-slate-300 mb-2">Customer</label>\n          <select name="customer" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent text-sm accent-accent" required id="id_customer">\n  <option value="">---------</option>\n\n  <option value="1" selected>Acme Shipping Line</option>\n\n</select>\n          \n        </div>\n        <div>\n          <label class="block text-sm font-semibold text-slate-300 mb-2">Invoice Date</label>\n          <input type="date" name="invoice_date" value="2026-01-10" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent text-sm accent-accent" required id="id_invoice_date">\n          \n        </div>\n        <div>\n          <label class="block text-sm font-semibold text-slate-300 mb-2">Initial Status</label>\n          <select name="status" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent text-sm accent-accent" id="id_status">\n  <option value="draft" selected>Draft</option>\n\n  <option value="sent">Sent</option>\n\n  <option value="paid">Paid</option>\n\n</select>\n          \n        </div>\n      </div>\n\n      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">\n        <div>\n          <label class="block text-sm font-semibold text-slate-300 mb-2">Shipments From</label>\n          <input type="date" name="start_date" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent text-sm accent-accent" id="id_start_date">\n        </div>\n        <div>\n          <label class="block text-sm font-semibold text-slate-300 mb-2">Shipments To</label>\n          <input type="date" name="end_date" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent text-sm accent-accent" id="id_end_date">\n        </div>\n      </div>\n\n      <input type="hidden" name="line_items-TOTAL_FORMS" value="1" id="id_line_items-TOTAL_FORMS"><input type="hidden" name="line_items-INITIAL_FORMS" value="0" id="id_line_items-INITIAL_FORMS"><input type="hidden" name="line_items-MIN_NUM_FORMS" value="0" id="id_line_items-MIN_NUM_FORMS"><input type="hidden" name="line_items-MAX_NUM_FORMS" value="1000" id="id_line_items-MAX_NUM_FORMS">\n      \n\n      <div class="pt-6 border-t border-slate-700/50">\n        <div class="flex items-center justify-between mb-4">\n          <h2 class="text-lg font-semibold text-slate-200">Invoice Line Items</h2>\n          <button type="button" onclick="addLineItem()" class="text-sm text-accent hover:text-accent-dark font-medium flex items-center gap-1">\n            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">\n              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>\n            </svg>\n            Add Manual Item\n          </button>\n        </div>\n\n        <div class="overflow-x-auto">\n          <table class="w-full min-w-[700px]" id="line-items-table">\n            <thead>\n              <tr class="text-left text-xs uppercase tracking-widest text-slate-500 border-b border-slate-700">\n                <th class="pb-3 pr-4 w-8"></th>\n                <th class="pb-3 pr-4 w-24">Date</th>\n                <th class="pb-3 pr-4 w-40">Description</th>\n                <th class="pb-3 pr-4 w-24">Booking #</th>\n                <th class="pb-3 pr-4 w-24">Container #</th>\n                <th class="pb-3 pr-4 w-24">Seal #</th>\n                <th class="pb-3 pr-4">Location</th>\n                <th class="pb-3 text-right w-28">Amount</th>\n              </tr>\n            </thead>\n            <tbody id="line-items-body">\n              \n              <tr class="border-b border-slate-700/50 group ">\n                <td class="py-2 pr-4 align-top pt-3">\n                  \n                    <button type="button" onclick="removeLineItem(this)" class="text-slate-500 hover:text-red-400 p-1">\n                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">\n                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>\n                      </svg>\n                    </button>\n                  \n                  <input type="hidden" name="line_items-0-id" id="id_line_items-0-id">\n                  <select name="line_items-0-shipment" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent text-sm accent-accent" id="id_line_items-0-shipment">\n  <option value="" selected>---------</option>\n\n  <option value="2">Shipment #2 \xe2\x80\x93 C2 (Acme Shipping Line)</option>\n\n  <option value="1">Shipment #1 \xe2\x80\x93 C1 (Acme Shipping Line)</option>\n\n</select>\n                </td>\n                <td class="py-2 pr-4">\n                  <input type="date" name="line_items-0-date_incurred" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent text-sm accent-accent" id="id_line_items-0-date_incurred">\n                </td>\n                <td class="py-2 pr-4">\n                  <input type="text" name="line_items-0-description" placeholder="e.g. Booking # or Yard Rent" maxlength="255" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent text-sm accent-accent" id="id_line_items-0-description">\n                </td>\n                <td class="py-2 pr-4">\n                  <input type="text" name="line_items-0-booking_no" maxlength="50" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent text-sm accent-accent" id="id_line_items-0-booking_no">\n                </td>\n                <td class="py-2 pr-4">\n                  <input type="text" name="line_items-0-container_no" maxlength="50" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent text-sm accent-accent" id="id_line_items-0-container_no">\n                </td>\n                <td class="py-2 pr-4">\n                  <input type="text" name="line_items-0-seal_no" maxlength="50" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent text-sm accent-accent" id="id_line_items-0-seal_no">\n                </td>\n                <td class="py-2 pr-4">\n                  <input type="text" name="line_items-0-location" maxlength="255" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent text-sm accent-accent" id="id_line_items-0-location">\n                </td>\n                <td class="py-2 text-right">\n                  <input type="number" name="line_items-0-amount" step="0.01" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent text-sm accent-accent" id="id_line_items-0-amount">\n                </td>\n              </tr>\n              \n            </tbody>\n          </table>\n        </div>\n\n        <div class="flex items-center gap-4 mt-4">\n          <button type="submit"\n            class="bg-accent hover:bg-accent-dark text-surface font-extrabold px-6 py-3 rounded-xl transition-all shadow-lg shadow-accent/20">\n            Create Invoice\n          </button>\n          <button type="button" onclick="reloadFiltered()"\n            class="bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold px-4 py-3 rounded-xl transition-colors">\n            Load Shipments\n          </button>\n        </div>\n      </div>\n    </form>\n  </div>\n</div>\n\n<style>\n  #line-items-table input, #line-items-table select {\n    width: 100%;\n    background: transparent;\n    border: 1px solid transparent;\n    border-radius: 0.5rem;\n    padding: 0.375rem 0.5rem;\n    color: #e2e8f0;\n    font-size: 0.875rem;\n    transition: all 0.15s;\n  }\n  #line-items-table input:hover, #line-items-table select:hover {\n    background: rgba(51, 65, 85, 0.5);\n  }\n  #line-items-table input:focus, #line-items-table select:focus {\n    outline: none;\n    background: rgba(51, 65, 85, 0.8);\n    border-color: #f59e0b;\n  }\n  #line-items-table input::placeholder {\n    color: #64748b;\n  }\n  #line-items-table input[type="checkbox"] {\n    width: auto;\n    accent-color: #f59e0b;\n  }\n  #line-items-table input[type="number"] {\n    text-align: right;\n  }\n  #line-items-table input[type="hidden"] {\n    display: none;\n  }\n  #line-items-table select {\n    background: transparent;\n  }\n</style>\n\n<script>\n  let totalForms = 1;\n  \n  function addLineItem() {\n    const tbody = document.getElementById(\'line-items-body\');\n    const emptyRow = document.getElementById(\'empty-row\');\n    if (emptyRow) emptyRow.remove();\n    \n    const row = document.createElement(\'tr\');\n    row.className = \'border-b border-slate-700/50\';\n    row.innerHTML = `\n      <td class="py-2 pr-4">\n        <button type="button" onclick="removeLineItem(this)" class="text-slate-500 hover:text-red-400 p-1">\n          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">\n            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>\n          </svg>\n        </button>\n        <input type="hidden" name="form-${totalForms}-id" id="id_form-${totalForms}-id">\n      </td>\n      <td class="py-2 pr-4">\n        <input type="date" name="form-${totalForms}-date_incurred" id="id_form-${totalForms}-date_incurred">\n      </td>\n      <td class="py-2 pr-4">\n        <input type="text" name="form-${totalForms}-description" id="id_form-${totalForms}-description" placeholder="Description">\n      </td>\n      <td class="py-2 pr-4">\n        <input type="text" name="form-${totalForms}-booking_no" id="id_form-${totalForms}-booking_no" placeholder="Booking #">\n      </td>\n      <td class="py-2 pr-4">\n        <input type="text" name="form-${totalForms}-container_no" id="id_form-${totalForms}-container_no" placeholder="Container #">\n      </td>\n      <td class="py-2 pr-4">\n        <input type="text" name="form-${totalForms}-seal_no" id="id_form-${totalForms}-seal_no" placeholder="Seal #">\n      </td>\n      <td class="py-2 pr-4">\n        <input type="text" name="form-${totalForms}-location" id="id_form-${totalForms}-location" placeholder="Location">\n      </td>\n      <td class="py-2 text-right">\n        <input type="number" name="form-${totalForms}-amount" id="id_form-${totalForms}-amount" step="0.01" min="0" placeholder="0.00">\n      </td>\n    `;\n    tbody.appendChild(row);\n    totalForms++;\n    updateManagementForm();\n  }\n\n  function removeLineItem(btn) {\n    const row = btn.closest(\'tr\');\n    const tbody = document.getElementById(\'line-items-body\');\n    const inputs = row.querySelectorAll(\'input[name$="-description"], input[name$="-amount"]\');\n    const hasData = Array.from(inputs).some(i => i.value);\n    const idInput = row.querySelector(\'input[name$="-id"]\');\n    \n    if (idInput && idInput.value) {\n      const deleteInput = document.createElement(\'input\');\n      deleteInput.type = \'hidden\';\n      deleteInput.name = idInput.name.replace(\'-id\', \'-DELETE\');\n      deleteInput.value = \'on\';\n      row.appendChild(deleteInput);\n      row.style.display = \'none\';\n    } else {\n      row.remove();\n      if (tbody.querySelectorAll(\'tr\').length === 0) {\n        tbody.innerHTML = \'<tr id="empty-row" class="border-b border-slate-700/50"><td colspan="8" class="py-8 text-center text-slate-500">No line items. Click "Add Manual Item" to add one.</td></tr>\';\n      }\n    }\n    updateManagementForm();\n  }\n\n  function updateManagementForm() {\n    document.getElementById(\'id_form-TOTAL_FORMS\').value = document.querySelectorAll(\'#line-items-body tr:not([style*="display: none"])\').length;\n  }\n\n  function reloadFiltered() {\n    const customer = document.querySelector(\'[name="customer"]\').value;\n    const startDate = document.querySelector(\'[name="start_date"]\').value;\n    const endDate = document.querySelector(\'[name="end_date"]\').value;\n    \n    if (!customer) {\n      alert(\'Please select a customer first.\');\n      return;\n    }\n    \n    const params = new URLSearchParams();\n    params.set(\'customer\', customer);\n    if (startDate) params.set(\'start_date\', startDate);\n    if (endDate) params.set(\'end_date\', endDate);\n    \n    window.location.href = window.location.pathname + \'?\' + params.toString();\n  }\n\n  document.addEventListener(\'DOMContentLoaded\', function() {\n    const customer = document.querySelector(\'[name="customer"]\');\n    const startDate = document.querySelector(\'[name="start_date"]\');\n    const endDate = document.querySelector(\'[name="end_date"]\');\n    \n    [customer, startDate, endDate].forEach(function(el) {\n      if (el) {\n        el.addEventListener(\'change\', function() {\n          reloadFiltered();\n        });\n      }\n    });\n  });\n</script>\n\n            </div>\n        </main>\n    </div>\n    \n</body>\n\n</html>'
+======================================================================
+FAIL: test_shipment_cannot_be_invoiced_twice (qa.tests.test_invoices_and_import.InvoiceCreate.test_shipment_cannot_be_invoiced_twice)
+[INV-DOUBLE] nothing stops the same shipment appearing on two invoices.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_invoices_and_import.py", line 81, in test_shipment_cannot_be_invoiced_twice
+    self.assertEqual(InvoiceLineItem.objects.filter(shipment=self.s1).count(), 1)
+AssertionError: 2 != 1
+======================================================================
+FAIL: test_email_does_not_downgrade_a_paid_invoice (qa.tests.test_invoices_and_import.InvoiceEmail.test_email_does_not_downgrade_a_paid_invoice)
+[INV-PAID-RESET] re-sending a PAID invoice flips it to 'sent' and wipes paid_at, removing it from revenue.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_invoices_and_import.py", line 134, in test_email_does_not_downgrade_a_paid_invoice
+    self.assertEqual((inv.status, inv.paid_at), ("paid", date(2026, 1, 20)))
+AssertionError: Tuples differ: ('sent', None) != ('paid', datetime.date(2026, 1, 20))
+First differing element 0:
+'sent'
+'paid'
+- ('sent', None)
++ ('paid', datetime.date(2026, 1, 20))
+======================================================================
+FAIL: test_sending_email_requires_post (qa.tests.test_invoices_and_import.InvoiceEmail.test_sending_email_requires_post)
+[INV-GET-EMAIL] a plain GET (link, prefetch, crawler) emails the customer and changes status.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_invoices_and_import.py", line 126, in test_sending_email_requires_post
+    self.assertEqual(len(mail.outbox), 0)
+AssertionError: 1 != 0
+======================================================================
+FAIL: test_removing_a_line_returns_the_shipment_to_confirmed (qa.tests.test_invoices_and_import.InvoiceLifecycle.test_removing_a_line_returns_the_shipment_to_confirmed)
+[INV-RESTORE] only invoice_delete restores status; removing one line leaves the shipment 'invoiced' forever.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_invoices_and_import.py", line 94, in test_removing_a_line_returns_the_shipment_to_confirmed
+    self.assertEqual(self.s1.status, ShipmentStatus.CONFIRMED)
+AssertionError: 'invoiced' != ShipmentStatus.CONFIRMED
+======================================================================
+FAIL: test_expense_list (qa.tests.test_performance.QueryCounts.test_expense_list)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_performance.py", line 48, in test_expense_list
+    self.assert_flat(self.grow(mk, "/expenses/"), "expense list")
+  File "D:\Projects\FilaTrucking\qa\tests\test_performance.py", line 32, in assert_flat
+    self.assertLessEqual(b, a + 4, f"{what}: {a} queries for 3 rows -> {b} queries for 30 rows (N+1)")
+AssertionError: 44 not less than or equal to 14 : expense list: 10 queries for 3 rows -> 44 queries for 30 rows (N+1)
+======================================================================
+FAIL: test_invoice_list (qa.tests.test_performance.QueryCounts.test_invoice_list)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_performance.py", line 43, in test_invoice_list
+    self.assert_flat(self.grow(mk, "/invoices/"), "invoice list")
+  File "D:\Projects\FilaTrucking\qa\tests\test_performance.py", line 32, in assert_flat
+    self.assertLessEqual(b, a + 4, f"{what}: {a} queries for 3 rows -> {b} queries for 30 rows (N+1)")
+AssertionError: 24 not less than or equal to 11 : invoice list: 7 queries for 3 rows -> 24 queries for 30 rows (N+1)
+======================================================================
+FAIL: test_maintenance_list (qa.tests.test_performance.QueryCounts.test_maintenance_list)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_performance.py", line 54, in test_maintenance_list
+    self.assert_flat(self.grow(mk, "/vehicles/maintenance/"), "maintenance list")
+  File "D:\Projects\FilaTrucking\qa\tests\test_performance.py", line 32, in assert_flat
+    self.assertLessEqual(b, a + 4, f"{what}: {a} queries for 3 rows -> {b} queries for 30 rows (N+1)")
+AssertionError: 33 not less than or equal to 10 : maintenance list: 6 queries for 3 rows -> 33 queries for 30 rows (N+1)
+======================================================================
+FAIL: test_shipment_list (qa.tests.test_performance.QueryCounts.test_shipment_list)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_performance.py", line 38, in test_shipment_list
+    self.assert_flat(self.grow(mk, "/shipments/"), "shipment list")
+  File "D:\Projects\FilaTrucking\qa\tests\test_performance.py", line 32, in assert_flat
+    self.assertLessEqual(b, a + 4, f"{what}: {a} queries for 3 rows -> {b} queries for 30 rows (N+1)")
+AssertionError: 33 not less than or equal to 10 : shipment list: 6 queries for 3 rows -> 33 queries for 30 rows (N+1)
+======================================================================
+FAIL: test_vehicle_list (qa.tests.test_performance.QueryCounts.test_vehicle_list)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_performance.py", line 59, in test_vehicle_list
+    self.assert_flat(self.grow(mk, "/vehicles/"), "vehicle list")
+  File "D:\Projects\FilaTrucking\qa\tests\test_performance.py", line 32, in assert_flat
+    self.assertLessEqual(b, a + 4, f"{what}: {a} queries for 3 rows -> {b} queries for 30 rows (N+1)")
+AssertionError: 33 not less than or equal to 10 : vehicle list: 6 queries for 3 rows -> 33 queries for 30 rows (N+1)
+======================================================================
+FAIL: test_scheduled_monthly_run_reports_the_month_that_just_ended (qa.tests.test_reports_tasks_vehicles.StatementTasks.test_scheduled_monthly_run_reports_the_month_that_just_ended)
+[TASK-PERIOD] beat fires on the 1st at 01:00 with no args; the task then reports the *new, empty* month.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_reports_tasks_vehicles.py", line 37, in test_scheduled_monthly_run_reports_the_month_that_just_ended
+    r = tasks.generate_monthly_statement()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\celery\local.py", line 182, in __call__
+    return self._get_current_object()(*a, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\.venv\Lib\site-packages\celery\app\task.py", line 411, in __call__
+    return self.run(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\FilaTrucking\FilaTrucking\shipments\tasks.py", line 46, in generate_monthly_statement
+    "driver_pay_total": str(driver_pay_total),
+                            ^^^^^^^^^^^^^^^^
+NameError: name 'driver_pay_total' is not defined
+During handling of the above exception, another exception occurred:
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_reports_tasks_vehicles.py", line 39, in test_scheduled_monthly_run_reports_the_month_that_just_ended
+    self.fail("task crashes first (see TASK-NAMEERROR); period logic cannot even be evaluated")
+AssertionError: task crashes first (see TASK-NAMEERROR); period logic cannot even be evaluated
+======================================================================
+FAIL: test_scheduled_yearly_run_reports_the_year_that_just_ended (qa.tests.test_reports_tasks_vehicles.StatementTasks.test_scheduled_yearly_run_reports_the_year_that_just_ended)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_reports_tasks_vehicles.py", line 45, in test_scheduled_yearly_run_reports_the_year_that_just_ended
+    self.assertEqual(r["year"], 2026)
+AssertionError: 2027 != 2026
+======================================================================
+FAIL: test_statement_view_rejects_bad_month (qa.tests.test_reports_tasks_vehicles.StatementTasks.test_statement_view_rejects_bad_month) (q='month=13')
+[RPT-PARAM] ?month=13 / ?month=abc -> ValueError -> 500.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_reports_tasks_vehicles.py", line 58, in test_statement_view_rejects_bad_month
+    self.assertEqual(self.client.get(f"/reports/financial/monthly/?{q}").status_code, 400)
+AssertionError: 500 != 400
+======================================================================
+FAIL: test_statement_view_rejects_bad_month (qa.tests.test_reports_tasks_vehicles.StatementTasks.test_statement_view_rejects_bad_month) (q='month=abc')
+[RPT-PARAM] ?month=13 / ?month=abc -> ValueError -> 500.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_reports_tasks_vehicles.py", line 58, in test_statement_view_rejects_bad_month
+    self.assertEqual(self.client.get(f"/reports/financial/monthly/?{q}").status_code, 400)
+AssertionError: 500 != 400
+======================================================================
+FAIL: test_statement_view_rejects_bad_month (qa.tests.test_reports_tasks_vehicles.StatementTasks.test_statement_view_rejects_bad_month) (q='year=99999')
+[RPT-PARAM] ?month=13 / ?month=abc -> ValueError -> 500.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_reports_tasks_vehicles.py", line 58, in test_statement_view_rejects_bad_month
+    self.assertEqual(self.client.get(f"/reports/financial/monthly/?{q}").status_code, 400)
+AssertionError: 500 != 400
+======================================================================
+FAIL: test_deleting_a_vehicle_keeps_ifta_history (qa.tests.test_reports_tasks_vehicles.Vehicles.test_deleting_a_vehicle_keeps_ifta_history)
+[DATA-CASCADE] Vehicle -> IFTAMileage / Maintenance are CASCADE; deleting a truck erases its IFTA + service history.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_reports_tasks_vehicles.py", line 109, in test_deleting_a_vehicle_keeps_ifta_history
+    self.assertTrue(IFTAMileage.objects.exists())
+AssertionError: False is not true
+======================================================================
+FAIL: test_maintenance_service_date_is_editable (qa.tests.test_reports_tasks_vehicles.Vehicles.test_maintenance_service_date_is_editable)
+[VEH-DATE] Maintenance.date is auto_now_add, so historical services cannot be entered with their real date.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_reports_tasks_vehicles.py", line 91, in test_maintenance_service_date_is_editable
+    self.assertTrue(Maintenance._meta.get_field("date").editable)
+AssertionError: False is not true
+======================================================================
+FAIL: test_sync_for_vehicle_without_gomotive_id_shows_a_message (qa.tests.test_reports_tasks_vehicles.Vehicles.test_sync_for_vehicle_without_gomotive_id_shows_a_message)
+[VEH-NAME] vehicles/views.py reads `vehicle.name`, a field that was removed -> AttributeError -> 500.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_reports_tasks_vehicles.py", line 87, in test_sync_for_vehicle_without_gomotive_id_shows_a_message
+    self.assertEqual(r.status_code, 302)
+AssertionError: 500 != 302
+======================================================================
+FAIL: test_ingest_secret_is_configurable_through_environment (qa.tests.test_whatsapp_api.SecretHandling.test_ingest_secret_is_configurable_through_environment)
+[WA-SECRET] docker-compose sets WHATSAPP_INGEST_SECRET, but settings.py never reads it, so api.py always
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_whatsapp_api.py", line 113, in test_ingest_secret_is_configurable_through_environment
+    self.assertTrue(out == "some-other-value", "env var WHATSAPP_INGEST_SECRET is ignored; hard-coded default used")
+AssertionError: False is not true : env var WHATSAPP_INGEST_SECRET is ignored; hard-coded default used
+======================================================================
+FAIL: test_anonymous_cannot_list_groups (qa.tests.test_whatsapp_api.StatusEndpointsAreNotPublic.test_anonymous_cannot_list_groups)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_whatsapp_api.py", line 36, in test_anonymous_cannot_list_groups
+    self.assertIn(self.client.get(f"{BASE}/groups/").status_code, (401, 403))
+AssertionError: 200 not found in (401, 403)
+======================================================================
+FAIL: test_anonymous_cannot_read_logs (qa.tests.test_whatsapp_api.StatusEndpointsAreNotPublic.test_anonymous_cannot_read_logs)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_whatsapp_api.py", line 32, in test_anonymous_cannot_read_logs
+    self.assertIn(self.client.get(f"{BASE}/logs/").status_code, (401, 403))
+AssertionError: 200 not found in (401, 403)
+======================================================================
+FAIL: test_anonymous_cannot_read_qr_code (qa.tests.test_whatsapp_api.StatusEndpointsAreNotPublic.test_anonymous_cannot_read_qr_code)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_whatsapp_api.py", line 26, in test_anonymous_cannot_read_qr_code
+    self.assertIn(r.status_code, (401, 403), "pairing QR is readable without login")
+AssertionError: 200 not found in (401, 403) : pairing QR is readable without login
+======================================================================
+FAIL: test_anonymous_cannot_read_status (qa.tests.test_whatsapp_api.StatusEndpointsAreNotPublic.test_anonymous_cannot_read_status)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_whatsapp_api.py", line 29, in test_anonymous_cannot_read_status
+    self.assertIn(self.client.get(f"{BASE}/status/").status_code, (401, 403))
+AssertionError: 200 not found in (401, 403)
+======================================================================
+FAIL: test_last_error_is_cleared_once_connected (qa.tests.test_whatsapp_api.StatusLifecycle.test_last_error_is_cleared_once_connected)
+[WA-STALE-ERR] the settings page keeps showing the last error after a successful reconnect.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_whatsapp_api.py", line 60, in test_last_error_is_cleared_once_connected
+    self.assertFalse(WhatsAppConfig.get_instance().last_error)
+AssertionError: 'boom' is not false
+======================================================================
+FAIL: test_qr_is_cleared_once_connected (qa.tests.test_whatsapp_api.StatusLifecycle.test_qr_is_cleared_once_connected)
+[WA-STALE-QR] sidecar sends qr_code=null when connected; Django keeps the old QR forever.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_whatsapp_api.py", line 54, in test_qr_is_cleared_once_connected
+    self.assertFalse(WhatsAppConfig.get_instance().qr_code_data)
+AssertionError: '2@OLD-QR' is not false
+======================================================================
+FAIL: test_logs_endpoint_rejects_non_numeric_limit (qa.tests.test_whatsapp_api.TriggerEndpoints.test_logs_endpoint_rejects_non_numeric_limit)
+[WA-LIMIT] ?limit=abc -> uncaught ValueError -> HTTP 500.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_whatsapp_api.py", line 100, in test_logs_endpoint_rejects_non_numeric_limit
+    self.assertEqual(self.client.get(f"{BASE}/logs/?limit=abc").status_code, 400)
+AssertionError: 500 != 400
+======================================================================
+FAIL: test_trigger_sync_keeps_groups_the_admin_disabled (qa.tests.test_whatsapp_api.TriggerEndpoints.test_trigger_sync_keeps_groups_the_admin_disabled)
+[WA-SYNC-RESET] 'Sync groups' silently re-enables every group (is_active=True in update_or_create defaults).
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_whatsapp_api.py", line 82, in test_trigger_sync_keeps_groups_the_admin_disabled
+    self.assertFalse(g.is_active)
+AssertionError: True is not false
+======================================================================
+FAIL: test_json_array_body_is_a_client_error_not_500 (qa.tests.test_whatsapp_ingest.IngestAuthAndRobustness.test_json_array_body_is_a_client_error_not_500)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_whatsapp_ingest.py", line 50, in test_json_array_body_is_a_client_error_not_500
+    self.assertEqual(self.ingest(raw="[]").status_code, 400)
+AssertionError: 500 != 400
+======================================================================
+FAIL: test_non_string_text_is_a_client_error_not_500 (qa.tests.test_whatsapp_ingest.IngestAuthAndRobustness.test_non_string_text_is_a_client_error_not_500)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_whatsapp_ingest.py", line 53, in test_non_string_text_is_a_client_error_not_500
+    self.assertEqual(self.ingest(raw=json.dumps({"text": 12345, "sender": "x"})).status_code, 400)
+AssertionError: 500 != 400
+======================================================================
+FAIL: test_chat_noise_is_ignored_silently (qa.tests.test_whatsapp_ingest.IngestBusinessRules.test_chat_noise_is_ignored_silently)
+[WA-NOISE] Drivers chat in the group. Chit-chat must not become an error row nor a bot reply.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_whatsapp_ingest.py", line 80, in test_chat_noise_is_ignored_silently
+    self.assertEqual(j.get("status"), "ignored", f"got {j}")
+AssertionError: 'flagged' != 'ignored'
+- flagged
++ ignored
+ : got {'status': 'flagged', 'message': 'Missing fields, flagged for manual review.', 'message_id': 1}
+======================================================================
+FAIL: test_chat_noise_response_cannot_trigger_a_sidecar_reply (qa.tests.test_whatsapp_ingest.IngestBusinessRules.test_chat_noise_response_cannot_trigger_a_sidecar_reply)
+sidecar/index.js replies when status=='flagged' or reply_message is present.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_whatsapp_ingest.py", line 86, in test_chat_noise_response_cannot_trigger_a_sidecar_reply
+    self.assertNotEqual(j.get("status"), "flagged")
+AssertionError: 'flagged' == 'flagged'
+======================================================================
+FAIL: test_driver_is_resolved_from_whatsapp_jid (qa.tests.test_whatsapp_ingest.IngestBusinessRules.test_driver_is_resolved_from_whatsapp_jid)
+[WA-DRIVER] sender arrives as '<digits>@s.whatsapp.net'; Driver.phone_number is E.164.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_whatsapp_ingest.py", line 97, in test_driver_is_resolved_from_whatsapp_jid
+    self.assertEqual(Shipment.objects.get().driver, self.driver)
+AssertionError: None != <Driver: Moe Driver>
+======================================================================
+FAIL: test_message_without_date_uses_business_local_date (qa.tests.test_whatsapp_ingest.IngestBusinessRules.test_message_without_date_uses_business_local_date)
+[WA-TZ] 02:30 UTC on Jan 6 is 8:30 pm Jan 5 in Illinois (PRD: Illinois fleet); TIME_ZONE is UTC.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_whatsapp_ingest.py", line 102, in test_message_without_date_uses_business_local_date
+    self.assertEqual(str(Shipment.objects.get().date), "2026-01-05")
+AssertionError: '2026-01-06' != '2026-01-05'
+- 2026-01-06
+?          ^
++ 2026-01-05
+?          ^
+======================================================================
+FAIL: test_missing_rate_falls_back_to_customer_default_rate (qa.tests.test_whatsapp_ingest.IngestBusinessRules.test_missing_rate_falls_back_to_customer_default_rate)
+[WA-RATE] customer.default_rate=400; PRD: 'each customer has a default rate'.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_whatsapp_ingest.py", line 92, in test_missing_rate_falls_back_to_customer_default_rate
+    self.assertEqual(Shipment.objects.get().amount, Decimal("400.00"))
+AssertionError: Decimal('0.00') != Decimal('400.00')
+======================================================================
+FAIL: test_same_whatsapp_message_delivered_twice_creates_one_shipment (qa.tests.test_whatsapp_ingest.IngestBusinessRules.test_same_whatsapp_message_delivered_twice_creates_one_shipment)
+[WA-DEDUPE] Baileys can re-emit messages after reconnect; the payload has no message id to dedupe on.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Projects\FilaTrucking\qa\tests\test_whatsapp_ingest.py", line 108, in test_same_whatsapp_message_delivered_twice_creates_one_shipment
+    self.assertEqual(Shipment.objects.count(), 1)
+AssertionError: 2 != 1
+----------------------------------------------------------------------
+Ran 69 tests in 16.949s
+FAILED (failures=42, errors=2, skipped=1)
+Destroying test database for alias 'default' ('file:memorydb_default?mode=memory&cache=shared')...
+ OK
+System check identified no issues (0 silenced).

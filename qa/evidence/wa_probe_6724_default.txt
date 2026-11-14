@@ -1,0 +1,6 @@
+[default] using WA Web version 2.3000.1034074495
+[default] no version passed: library default is used
+QR_RECEIVED (WhatsApp accepted the client)
+[default] RESULT: QR_RECEIVED (WhatsApp accepted the client)
+CLOSED statusCode=undefined location=undefined
+NOTE: the line '[default] using WA Web version 2.3000.1034074495' above is a log-label artefact of the probe; in default mode NO version is passed and Baileys 6.7.24 uses its bundled 2.3000.1043857760 (see lib/Defaults/baileys-version.json).

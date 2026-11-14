@@ -1,0 +1,29 @@
+=== noise ===
+RESULT replies_sent_to_group=["⚠️ System flagged the shipment: Missing fields, flagged for manual review."]
+(exit=0)
+=== crash ===
+RESULT process_exit_code=1
+(exit=1)
+=== restart_dup ===
+RESULT http_status=200
+RESULT sockets_created_by_one_restart_call=2
+RESULT sockets_still_open_with_same_credentials=2
+(exit=0)
+=== interval_leak ===
+RESULT open_events=4
+RESULT 30s_intervals_registered_never_cleared=4
+(exit=0)
+=== noauth_api ===
+RESULT GET /api/qr-code (no auth)={"status":200,"leaks_qr":true}
+RESULT GET /api/logs (no auth)=200
+RESULT GET /api/groups (no auth)=200
+RESULT DELETE /api/auth (no auth)=200
+RESULT session_files_left_after_unauthenticated_DELETE=[]
+(exit=0)
+=== dedupe ===
+RESULT posts_to_django_for_one_message_id_delivered_twice=2
+(exit=0)
+=== reconnect_loop ===
+RESULT reconnect_attempts_in_13s=5
+RESULT seconds_between_attempts=[3.4,3,3,3]
+(exit=0)
