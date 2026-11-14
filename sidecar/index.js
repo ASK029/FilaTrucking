@@ -10,7 +10,15 @@ const fs = require('fs');
 // ============================================================================
 
 const DJANGO_API_URL = process.env.DJANGO_API_URL || 'http://127.0.0.1:8000/shipments/api/ingest/';
-const DJANGO_SECRET = process.env.DJANGO_SECRET || 'fila_secret_2026';
+// Shared secret with Django (QA-004). Same value as WHATSAPP_INGEST_SECRET on the Django side.
+// No default: a value that ships in the repository is public. Refuse to start without a real one.
+const DJANGO_SECRET = (process.env.DJANGO_SECRET || '').trim();
+const COMPROMISED_SECRETS = new Set(['fila_secret_2026']);
+if (DJANGO_SECRET.length < 16 || COMPROMISED_SECRETS.has(DJANGO_SECRET)) {
+    console.error('FATAL: DJANGO_SECRET is missing, shorter than 16 characters, or a value that was published in git. ' +
+        'Set it to the same random value as WHATSAPP_INGEST_SECRET on the Django service.');
+    process.exit(1);
+}
 const TARGET_GROUP_ID = process.env.TARGET_GROUP_ID || '';
 const PORT = process.env.PORT || 3001;
 

@@ -111,3 +111,38 @@ class SecretHandling(QABase):
         out = subprocess.run([sys.executable, "-c", code], env=env, cwd=settings.BASE_DIR,
                              capture_output=True, text=True).stdout.strip().splitlines()[-1]
         self.assertTrue(out == "some-other-value", "env var WHATSAPP_INGEST_SECRET is ignored; hard-coded default used")
+
+    def _settings_import(self, **env):
+        code = ("import os,django;os.environ['DJANGO_SETTINGS_MODULE']='FilaTrucking.settings';django.setup();"
+                "from django.conf import settings;print('OK', len(settings.WHATSAPP_INGEST_SECRET))")
+        base = {k: v for k, v in os.environ.items() if k != "WHATSAPP_INGEST_SECRET"}
+        base.update(DATABASE_URL="sqlite:///:memory:", CELERY_BROKER_URL="memory://", SECRET_KEY="x" * 60)
+        base.update(env)
+        return subprocess.run([sys.executable, "-c", code], env=base, cwd=settings.BASE_DIR,
+                              capture_output=True, text=True)
+
+    def test_production_refuses_to_start_without_the_secret(self):
+        """[QA-004] no default value: DEBUG=False and no WHATSAPP_INGEST_SECRET must fail fast."""
+        r = self._settings_import(DEBUG="False", ALLOWED_HOSTS="example.org")
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("WHATSAPP_INGEST_SECRET", r.stderr)
+
+    def test_the_secret_that_was_published_in_git_is_rejected(self):
+        """[QA-004] the old constant is public; configuring it again must fail."""
+        r = self._settings_import(DEBUG="False", ALLOWED_HOSTS="example.org", WHATSAPP_INGEST_SECRET="fila_secret_2026")
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("published", r.stderr)
+
+    def test_short_secret_is_rejected(self):
+        r = self._settings_import(DEBUG="False", ALLOWED_HOSTS="example.org", WHATSAPP_INGEST_SECRET="short")
+        self.assertNotEqual(r.returncode, 0)
+
+    def test_old_public_secret_no_longer_authenticates(self):
+        """[QA-004] the value from the repository must get 401 on every bearer-protected call."""
+        old = {"HTTP_AUTHORIZATION": "Bearer fila_secret_2026"}
+        r = self.client.post("/shipments/api/ingest/", data=json.dumps({"text": "A\nB\nC"}),
+                             content_type="application/json", **old)
+        self.assertEqual(r.status_code, 401)
+        r = self.client.post(f"{BASE}/update-status/", data=json.dumps({"sidecar_status": "connected"}),
+                             content_type="application/json", **old)
+        self.assertEqual(r.status_code, 401)

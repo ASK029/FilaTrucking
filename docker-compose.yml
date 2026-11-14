@@ -44,7 +44,7 @@ services:
       - DATABASE_URL=mysql://filatrucking:${MYSQL_PASSWORD}@mysql:3306/filatrucking
       - SECRET_KEY=${SECRET_KEY}
       - DEBUG=${DEBUG:-True}
-      - WHATSAPP_INGEST_SECRET=fila_secret_2026
+      - WHATSAPP_INGEST_SECRET=${WHATSAPP_INGEST_SECRET:?set WHATSAPP_INGEST_SECRET in .env (see .env.example)}
       - WHATSAPP_SIDECAR_URL=http://sidecar:3001
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
@@ -75,7 +75,7 @@ services:
     environment:
       - NODE_ENV=development
       - DJANGO_API_URL=http://django:8000/shipments/api/ingest/
-      - DJANGO_SECRET=fila_secret_2026
+      - DJANGO_SECRET=${WHATSAPP_INGEST_SECRET:?set WHATSAPP_INGEST_SECRET in .env (see .env.example)}
     volumes:
       - auth_data:/app/sidecar/auth_info_baileys
       - ./sidecar/logs:/app/sidecar/logs

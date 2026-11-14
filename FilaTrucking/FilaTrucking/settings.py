@@ -15,6 +15,7 @@ from pathlib import Path
 from celery.schedules import crontab
 from dotenv import load_dotenv
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -187,6 +188,29 @@ CELERY_ENABLE_UTC = True
 
 # WhatsApp Sidecar configuration
 WHATSAPP_SIDECAR_URL = os.environ.get("WHATSAPP_SIDECAR_URL", "http://localhost:3001")
+
+# Shared secret between Django and the sidecar (QA-004). It authenticates BOTH directions
+# (sidecar -> Django ingest/status calls and Django -> sidecar control calls), so it must be
+# long, random and only ever live in the server's .env. There is deliberately no default.
+# Generate one with:  python -c "import secrets; print(secrets.token_urlsafe(48))"
+WHATSAPP_INGEST_SECRET = os.environ.get("WHATSAPP_INGEST_SECRET", "").strip()
+# Values that were committed to the (public) repository: never acceptable again.
+_COMPROMISED_WHATSAPP_SECRETS = {"fila_secret_2026"}
+if WHATSAPP_INGEST_SECRET in _COMPROMISED_WHATSAPP_SECRETS:
+    raise ImproperlyConfigured(
+        "WHATSAPP_INGEST_SECRET is set to a value that was published in the git repository. "
+        "Generate a new random secret and use the same value for the Django and sidecar services."
+    )
+if not WHATSAPP_INGEST_SECRET:
+    if DEBUG:
+        # Local development only: a random per-process secret keeps the endpoints closed.
+        # Set WHATSAPP_INGEST_SECRET in .env to let a local sidecar talk to this server.
+        import secrets as _secrets
+        WHATSAPP_INGEST_SECRET = _secrets.token_urlsafe(32)
+    else:
+        raise ImproperlyConfigured("WHATSAPP_INGEST_SECRET must be set (see .env.example).")
+elif len(WHATSAPP_INGEST_SECRET) < 16:
+    raise ImproperlyConfigured("WHATSAPP_INGEST_SECRET is too short (use at least 16 random characters).")
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'

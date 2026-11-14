@@ -1,3 +1,4 @@
+import hmac
 import json
 import re
 import requests
@@ -16,15 +17,26 @@ from customers.models import Customer
 from drivers.models import Driver
 from vehicles.models import Vehicle
 
-WHATSAPP_SECRET = getattr(settings, 'WHATSAPP_INGEST_SECRET', 'fila_secret_2026')
+WHATSAPP_SECRET = settings.WHATSAPP_INGEST_SECRET  # no default: see settings.py (QA-004)
 WHATSAPP_SIDECAR_URL = getattr(settings, 'WHATSAPP_SIDECAR_URL', 'http://localhost:3001')
+
+
+def has_valid_bearer(request):
+    """True when the request carries 'Authorization: Bearer <shared secret>' (constant-time compare)."""
+    header = request.headers.get("Authorization", "")
+    scheme, _, token = header.partition(" ")
+    if scheme != "Bearer" or not token:
+        return False
+    return hmac.compare_digest(token.encode(), WHATSAPP_SECRET.encode())
+
+
+def _sidecar_headers():
+    return {"Authorization": f"Bearer {WHATSAPP_SECRET}"}
 
 @csrf_exempt
 @require_POST
 def ingest_whatsapp_message(request):
-    auth_header = request.headers.get("Authorization", "")
-    expected_header = f"Bearer {WHATSAPP_SECRET}"
-    if not auth_header or auth_header != expected_header:
+    if not has_valid_bearer(request):
         return JsonResponse({"error": "Unauthorized"}, status=401)
     
     try:
@@ -423,10 +435,8 @@ def whatsapp_groups(request):
 
 def check_auth(request):
     """Check if request has valid Bearer token OR is from authenticated user."""
-    auth_header = request.headers.get("Authorization", "")
-    if auth_header.startswith("Bearer "):
-        expected_header = f"Bearer {WHATSAPP_SECRET}"
-        return auth_header == expected_header
+    if request.headers.get("Authorization", "").startswith("Bearer "):
+        return has_valid_bearer(request)
     # Allow authenticated Django users
     return request.user.is_authenticated
 
@@ -600,7 +610,7 @@ def trigger_restart_connection(request):
         import requests
         
         sidecar_url = f"{WHATSAPP_SIDECAR_URL}/api/restart"
-        headers = {"Authorization": f"Bearer {WHATSAPP_SECRET}"}
+        headers = _sidecar_headers()
         
         response = requests.post(sidecar_url, headers=headers, timeout=10)
         
@@ -627,7 +637,7 @@ def trigger_clear_auth(request):
         import requests
         
         sidecar_url = f"{WHATSAPP_SIDECAR_URL}/api/auth"
-        headers = {"Authorization": f"Bearer {WHATSAPP_SECRET}"}
+        headers = _sidecar_headers()
         
         response = requests.delete(sidecar_url, headers=headers, timeout=10)
         
