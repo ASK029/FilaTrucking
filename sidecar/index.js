@@ -1,4 +1,4 @@
-const { default: makeWASocket, useMultiFileAuthState, DisconnectReason } = require('@whiskeysockets/baileys');
+const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion } = require('@whiskeysockets/baileys');
 const qrcode = require('qrcode-terminal');
 const axios = require('axios');
 const express = require('express');
@@ -113,16 +113,43 @@ async function sendGroupsToDjango() {
 // WhatsApp Bot
 // ============================================================================
 
+// WhatsApp rejects clients that announce an outdated WhatsApp-Web version with HTTP 405
+// ("Connection Failure"). Never hard-code it (QA-001): ask the Baileys project for the current
+// one on every (re)connect and fall back to the version bundled with the installed Baileys.
+// WA_VERSION="2,3000,1234567890" forces a value (e.g. for diagnosing).
+async function resolveWaVersion() {
+    if (process.env.WA_VERSION) {
+        const parts = process.env.WA_VERSION.split(',').map((n) => parseInt(n.trim(), 10));
+        if (parts.length === 3 && parts.every(Number.isFinite)) return parts;
+        addLog('warning', 'Ignoring malformed WA_VERSION (expected "2,3000,123456789")');
+    }
+    try {
+        if (typeof fetchLatestBaileysVersion === 'function') {
+            const { version, error } = await fetchLatestBaileysVersion();
+            if (Array.isArray(version) && !error) return version;
+            addLog('warning', `Could not fetch the latest WhatsApp-Web version (${error ? error.message : 'no version'}), using the bundled one`);
+        }
+    } catch (err) {
+        addLog('warning', `Could not fetch the latest WhatsApp-Web version (${err.message}), using the bundled one`);
+    }
+    return undefined;
+}
+
 async function startBot() {
     const authDir = path.join(process.cwd(), 'auth_data');
     const { state, saveCreds } = await useMultiFileAuthState(authDir);
 
-    sock = makeWASocket({
+    const socketConfig = {
         auth: state,
-        version: [2, 3000, 1034074495],
         browser: ['Fila Trucking', 'Safari', '15.0'],
         printQRInTerminal: false,
-    });
+    };
+    const waVersion = await resolveWaVersion();
+    if (waVersion) {
+        socketConfig.version = waVersion; // only set when known: an explicit undefined would override Baileys' default
+        addLog('info', `Using WhatsApp-Web version ${waVersion.join('.')}`);
+    }
+    sock = makeWASocket(socketConfig);
 
     sock.ev.on('creds.update', saveCreds);
 

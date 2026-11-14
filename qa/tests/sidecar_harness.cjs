@@ -42,6 +42,10 @@ const fakeAxios = {
 };
 const fakeBaileys = {
   default: makeWASocket,
+  fetchLatestBaileysVersion: async () => {
+    if (process.env.HARNESS_FETCH === 'fail') throw new Error('github unreachable');
+    return { version: [2, 3000, 999], isLatest: true };
+  },
   useMultiFileAuthState: async () => ({ state: {}, saveCreds: async () => {} }),
   DisconnectReason: { loggedOut: 401 },
 };
@@ -75,6 +79,11 @@ const groupMsg = (text, id = 'MSG1') => ({
   require(path.join(sidecarDir, 'index.js'));
   await sleep(400);
   const s0 = sockets[0];
+
+  if (scenario === 'version') {
+    out('socket_version_option', s0.opts.version === undefined ? 'undefined' : s0.opts.version);
+    out('has_version_key', Object.prototype.hasOwnProperty.call(s0.opts, 'version'));
+  }
 
   if (scenario === 'noise') {
     // Django's real answer to chit-chat (see qa/tests/test_whatsapp_ingest.py::test_chat_noise_*):
