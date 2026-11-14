@@ -1,0 +1,165 @@
+Step 2 - Fetching and parsing CSS - CSS string
+Invalid or unsupported selector, '::note-call '
+Invalid or unsupported selector, '::note-marker '
+Invalid or unsupported selector, '::note-callback '
+Step 2 - Fetching and parsing CSS - CSS string
+Step 2 - Fetching and parsing CSS - CSS string
+
+(process:26976): GLib-GIO-WARNING **: 17:35:29.574: Unexpectedly, UWP app `Microsoft.OutlookForWindows_1.2026.908.200_x64__8wekyb3d8bbwe' (AUMId `Microsoft.OutlookForWindows_8wekyb3d8bbwe!Microsoft.OutlookforWindows') supports 5 extensions but has no verbs
+
+(process:26976): GLib-GIO-WARNING **: 17:35:29.627: Unexpectedly, UWP app `Microsoft.ScreenSketch_11.2608.41.0_x64__8wekyb3d8bbwe' (AUMId `Microsoft.ScreenSketch_8wekyb3d8bbwe!App') supports 29 extensions but has no verbs
+
+(process:26976): GLib-GIO-WARNING **: 17:35:29.673: Unexpectedly, UWP app `Clipchamp.Clipchamp_4.7.10220.0_x64__yxz26nhyzhsrt' (AUMId `Clipchamp.Clipchamp_yxz26nhyzhsrt!App') supports 41 extensions but has no verbs
+[14/Nov/2026 17:35:35] "GET /auth/login/ HTTP/1.1" 200 9498
+[14/Nov/2026 17:35:35] "GET /auth/login/ HTTP/1.1" 200 9498
+[14/Nov/2026 17:35:35] "GET /static/vendor/alpine-collapse.min.js HTTP/1.1" 200 1448
+[14/Nov/2026 17:35:35] "GET /static/css/app.css HTTP/1.1" 200 38686
+[14/Nov/2026 17:35:35] "GET /static/vendor/alpine.min.js HTTP/1.1" 200 44758
+[14/Nov/2026 17:35:37] "POST /auth/login/ HTTP/1.1" 302 0
+[14/Nov/2026 17:35:37] "GET / HTTP/1.1" 200 43319
+[14/Nov/2026 17:35:37] "GET /shipments/1/ HTTP/1.1" 200 36141
+[14/Nov/2026 17:35:38] "GET /shipments/2/ HTTP/1.1" 200 35408
+[14/Nov/2026 17:35:38] "GET /invoices/1/ HTTP/1.1" 200 41965
+D:\Projects\FilaTrucking\qa\tools\audit\venv_deps\Lib\site-packages\django\views\generic\list.py:91: UnorderedObjectListWarning: Pagination may yield inconsistent results with an unordered object_list: <class 'vehicles.models.Vehicle'> QuerySet.
+  return self.paginator_class(
+[14/Nov/2026 17:35:39] "GET /vehicles/ HTTP/1.1" 200 40757
+[14/Nov/2026 17:35:39] "GET /reports/financial/monthly/ HTTP/1.1" 200 51760
+[14/Nov/2026 17:35:40] "GET /reports/financial/yearly/ HTTP/1.1" 200 49615
+[14/Nov/2026 17:35:41] "GET /auth/login/ HTTP/1.1" 200 9498
+[14/Nov/2026 17:35:41] "GET /static/css/app.css HTTP/1.1" 200 38686
+[14/Nov/2026 17:35:41] "GET /static/vendor/alpine-collapse.min.js HTTP/1.1" 200 1448
+[14/Nov/2026 17:35:41] "GET /static/vendor/alpine.min.js HTTP/1.1" 200 44758
+[14/Nov/2026 17:35:42] "POST /auth/login/ HTTP/1.1" 302 0
+[14/Nov/2026 17:35:42] "GET / HTTP/1.1" 200 43319
+[14/Nov/2026 17:35:43] "GET /shipments/1/ HTTP/1.1" 200 36141
+[14/Nov/2026 17:35:43] "GET /shipments/2/ HTTP/1.1" 200 35408
+[14/Nov/2026 17:35:44] "GET /invoices/1/ HTTP/1.1" 200 41965
+[14/Nov/2026 17:35:44] "GET /vehicles/ HTTP/1.1" 200 40757
+[14/Nov/2026 17:35:45] "GET /reports/financial/monthly/ HTTP/1.1" 200 51760
+[14/Nov/2026 17:35:45] "GET /reports/financial/yearly/ HTTP/1.1" 200 49615
+[14/Nov/2026 17:35:51] "GET /auth/login/ HTTP/1.1" 200 9498
+[14/Nov/2026 17:35:51] "GET /static/css/app.css HTTP/1.1" 200 38686
+[14/Nov/2026 17:35:51] "GET /static/vendor/alpine-collapse.min.js HTTP/1.1" 200 1448
+[14/Nov/2026 17:35:51] "GET /static/vendor/alpine.min.js HTTP/1.1" 200 44758
+[14/Nov/2026 17:35:53] "POST /auth/login/ HTTP/1.1" 302 0
+[14/Nov/2026 17:35:53] "GET / HTTP/1.1" 200 43319
+[14/Nov/2026 17:35:53] "GET /reports/financial/monthly/ HTTP/1.1" 200 51760
+[14/Nov/2026 17:35:54] "GET /shipments/1/ HTTP/1.1" 200 36141
+[14/Nov/2026 17:36:02] "GET /customers/ HTTP/1.1" 302 0
+[14/Nov/2026 17:36:02] "GET /auth/login/?next=/customers/ HTTP/1.1" 200 9498
+[14/Nov/2026 17:36:02] "GET /static/css/app.css HTTP/1.1" 200 38686
+[14/Nov/2026 17:36:02] "GET /static/vendor/alpine-collapse.min.js HTTP/1.1" 200 1448
+[14/Nov/2026 17:36:02] "GET /static/vendor/alpine.min.js HTTP/1.1" 200 44758
+[14/Nov/2026 17:36:03] "POST /auth/login/?next=/customers/ HTTP/1.1" 200 10147
+[14/Nov/2026 17:36:05] "POST /auth/login/?next=/customers/ HTTP/1.1" 302 0
+[14/Nov/2026 17:36:05] "GET /customers/ HTTP/1.1" 200 39653
+[14/Nov/2026 17:36:05] "GET /customers/create/ HTTP/1.1" 200 35263
+[14/Nov/2026 17:36:05] "POST /auth/logout/ HTTP/1.1" 302 0
+[14/Nov/2026 17:36:05] "GET /auth/login/ HTTP/1.1" 200 9498
+[14/Nov/2026 17:36:06] "GET /customers/ HTTP/1.1" 302 0
+[14/Nov/2026 17:36:06] "GET /auth/login/?next=/customers/ HTTP/1.1" 200 9498
+[14/Nov/2026 17:36:06] "GET /shipments/ HTTP/1.1" 302 0
+[14/Nov/2026 17:36:06] "GET /auth/login/?next=/shipments/ HTTP/1.1" 200 9498
+[14/Nov/2026 17:36:07] "GET /invoices/1/lines/ HTTP/1.1" 302 0
+[14/Nov/2026 17:36:07] "GET /auth/login/?next=/invoices/1/lines/ HTTP/1.1" 200 9498
+[14/Nov/2026 17:36:07] "GET /invoices/create/ HTTP/1.1" 302 0
+[14/Nov/2026 17:36:07] "GET /auth/login/?next=/invoices/create/ HTTP/1.1" 200 9498
+[14/Nov/2026 17:36:08] "GET /shipments/create/ HTTP/1.1" 302 0
+[14/Nov/2026 17:36:08] "GET /auth/login/?next=/shipments/create/ HTTP/1.1" 200 9498
+[14/Nov/2026 17:36:08] "GET /shipments/ HTTP/1.1" 302 0
+[14/Nov/2026 17:36:08] "GET /auth/login/?next=/shipments/ HTTP/1.1" 200 9498
+[14/Nov/2026 17:36:39,169] - Broken pipe from ('127.0.0.1', 7760)
+[14/Nov/2026 17:36:39,169] - Broken pipe from ('127.0.0.1', 7759)
+[14/Nov/2026 17:36:39,169] - Broken pipe from ('127.0.0.1', 7761)
+[14/Nov/2026 17:36:39,181] - Broken pipe from ('127.0.0.1', 7768)
+[14/Nov/2026 17:36:52] "GET /auth/login/ HTTP/1.1" 200 9498
+[14/Nov/2026 17:36:52] "GET /static/vendor/alpine-collapse.min.js HTTP/1.1" 200 1448
+[14/Nov/2026 17:36:52] "GET /static/css/app.css HTTP/1.1" 200 38686
+[14/Nov/2026 17:36:52] "GET /static/vendor/alpine.min.js HTTP/1.1" 200 44758
+[14/Nov/2026 17:36:53] "POST /auth/login/ HTTP/1.1" 302 0
+[14/Nov/2026 17:36:53] "GET / HTTP/1.1" 200 43319
+[14/Nov/2026 17:36:54] "GET /invoices/create/ HTTP/1.1" 200 57830
+[14/Nov/2026 17:37:07] "GET /customers/ HTTP/1.1" 302 0
+[14/Nov/2026 17:37:07] "GET /auth/login/?next=/customers/ HTTP/1.1" 200 9498
+[14/Nov/2026 17:37:07] "GET /static/css/app.css HTTP/1.1" 200 38686
+[14/Nov/2026 17:37:07] "GET /static/vendor/alpine-collapse.min.js HTTP/1.1" 200 1448
+[14/Nov/2026 17:37:07] "GET /static/vendor/alpine.min.js HTTP/1.1" 200 44758
+[14/Nov/2026 17:37:08] "POST /auth/login/?next=/customers/ HTTP/1.1" 200 10147
+[14/Nov/2026 17:37:09] "POST /auth/login/?next=/customers/ HTTP/1.1" 302 0
+[14/Nov/2026 17:37:09] "GET /customers/ HTTP/1.1" 200 39653
+[14/Nov/2026 17:37:09] "GET /customers/create/ HTTP/1.1" 200 35263
+[14/Nov/2026 17:37:10] "GET /customers/ HTTP/1.1" 200 39653
+[14/Nov/2026 17:37:11] "GET /shipments/ HTTP/1.1" 200 69334
+[14/Nov/2026 17:37:12] "GET /invoices/1/lines/ HTTP/1.1" 200 72677
+[14/Nov/2026 17:37:12] "GET /invoices/create/ HTTP/1.1" 200 57830
+[14/Nov/2026 17:37:13] "GET /shipments/create/ HTTP/1.1" 200 38734
+[14/Nov/2026 17:37:14] "GET /shipments/ HTTP/1.1" 200 69334
+[14/Nov/2026 17:37:14] "POST /shipments/create/ HTTP/1.1" 302 0
+[14/Nov/2026 17:37:14] "GET /shipments/ HTTP/1.1" 200 69392
+[14/Nov/2026 17:37:15] "GET /shipments/ HTTP/1.1" 200 69392
+[14/Nov/2026 17:37:15] "GET /shipments/settings/whatsapp/ HTTP/1.1" 200 62154
+[14/Nov/2026 17:37:15] "GET /static/vendor/qrcode.js HTTP/1.1" 200 33782
+[14/Nov/2026 17:37:15] "GET /shipments/api/whatsapp/status/ HTTP/1.1" 200 554
+[14/Nov/2026 17:37:15] "GET /shipments/api/whatsapp/qr-code/ HTTP/1.1" 200 92
+[14/Nov/2026 17:37:20] "GET /shipments/api/whatsapp/qr-code/ HTTP/1.1" 200 92
+[14/Nov/2026 17:37:20] "GET /shipments/api/whatsapp/status/ HTTP/1.1" 200 554
+[14/Nov/2026 17:37:21] "GET / HTTP/1.1" 200 43319
+[14/Nov/2026 17:37:22] "GET /auth/login/ HTTP/1.1" 200 9498
+[14/Nov/2026 17:37:22] "GET /static/css/app.css HTTP/1.1" 200 38686
+[14/Nov/2026 17:37:22] "GET /static/vendor/alpine-collapse.min.js HTTP/1.1" 200 1448
+[14/Nov/2026 17:37:22] "GET /static/vendor/alpine.min.js HTTP/1.1" 200 44758
+[14/Nov/2026 17:37:23] "POST /auth/login/ HTTP/1.1" 302 0
+[14/Nov/2026 17:37:23] "GET / HTTP/1.1" 200 43319
+Method Not Allowed (GET): /auth/logout/
+Method Not Allowed (GET): /auth/logout/
+[14/Nov/2026 17:37:24] "GET /auth/logout/ HTTP/1.1" 405 0
+[14/Nov/2026 17:37:25] "GET / HTTP/1.1" 200 43319
+[14/Nov/2026 17:37:25] "POST /auth/logout/ HTTP/1.1" 302 0
+[14/Nov/2026 17:37:25] "GET /auth/login/ HTTP/1.1" 200 9498
+[14/Nov/2026 17:37:25] "GET /customers/ HTTP/1.1" 302 0
+[14/Nov/2026 17:37:25] "GET /auth/login/?next=/customers/ HTTP/1.1" 200 9498
+Not Found: /does-not-exist/
+Not Found: /does-not-exist/
+[14/Nov/2026 17:37:25] "GET /does-not-exist/ HTTP/1.1" 404 5285
+[14/Nov/2026 17:37:37] "GET /customers/ HTTP/1.1" 302 0
+[14/Nov/2026 17:37:37] "GET /auth/login/?next=/customers/ HTTP/1.1" 200 9498
+[14/Nov/2026 17:37:37] "GET /static/css/app.css HTTP/1.1" 200 38686
+[14/Nov/2026 17:37:37] "GET /static/vendor/alpine-collapse.min.js HTTP/1.1" 200 1448
+[14/Nov/2026 17:37:37] "GET /static/vendor/alpine.min.js HTTP/1.1" 200 44758
+[14/Nov/2026 17:37:39] "POST /auth/login/?next=/customers/ HTTP/1.1" 200 10147
+[14/Nov/2026 17:37:40] "POST /auth/login/?next=/customers/ HTTP/1.1" 302 0
+[14/Nov/2026 17:37:40] "GET /customers/ HTTP/1.1" 200 39653
+[14/Nov/2026 17:37:40] "GET /customers/create/ HTTP/1.1" 200 35263
+[14/Nov/2026 17:37:41] "GET /customers/ HTTP/1.1" 200 39653
+[14/Nov/2026 17:37:42] "GET /shipments/ HTTP/1.1" 200 69392
+[14/Nov/2026 17:37:42] "GET /invoices/1/lines/ HTTP/1.1" 200 73157
+[14/Nov/2026 17:37:43] "GET /invoices/create/ HTTP/1.1" 200 58070
+[14/Nov/2026 17:37:44] "GET /shipments/create/ HTTP/1.1" 200 38734
+[14/Nov/2026 17:37:44] "GET /shipments/ HTTP/1.1" 200 69392
+[14/Nov/2026 17:37:45] "POST /shipments/create/ HTTP/1.1" 302 0
+[14/Nov/2026 17:37:45] "GET /shipments/ HTTP/1.1" 200 69444
+[14/Nov/2026 17:37:45] "GET /shipments/ HTTP/1.1" 200 69444
+[14/Nov/2026 17:37:45] "GET /shipments/settings/whatsapp/ HTTP/1.1" 200 62154
+[14/Nov/2026 17:37:45] "GET /static/vendor/qrcode.js HTTP/1.1" 200 33782
+[14/Nov/2026 17:37:45] "GET /shipments/api/whatsapp/status/ HTTP/1.1" 200 554
+[14/Nov/2026 17:37:45] "GET /shipments/api/whatsapp/qr-code/ HTTP/1.1" 200 92
+[14/Nov/2026 17:37:50] "GET /shipments/api/whatsapp/status/ HTTP/1.1" 200 554
+[14/Nov/2026 17:37:50] "GET /shipments/api/whatsapp/qr-code/ HTTP/1.1" 200 92
+[14/Nov/2026 17:37:52] "GET / HTTP/1.1" 200 43319
+[14/Nov/2026 17:37:53] "GET /auth/login/ HTTP/1.1" 200 9498
+[14/Nov/2026 17:37:53] "GET /static/css/app.css HTTP/1.1" 200 38686
+[14/Nov/2026 17:37:53] "GET /static/vendor/alpine-collapse.min.js HTTP/1.1" 200 1448
+[14/Nov/2026 17:37:53] "GET /static/vendor/alpine.min.js HTTP/1.1" 200 44758
+[14/Nov/2026 17:37:54] "POST /auth/login/ HTTP/1.1" 302 0
+[14/Nov/2026 17:37:54] "GET / HTTP/1.1" 200 43319
+Method Not Allowed (GET): /auth/logout/
+Method Not Allowed (GET): /auth/logout/
+[14/Nov/2026 17:37:55] "GET /auth/logout/ HTTP/1.1" 405 0
+[14/Nov/2026 17:37:55] "GET / HTTP/1.1" 200 43319
+[14/Nov/2026 17:37:56] "POST /auth/logout/ HTTP/1.1" 302 0
+[14/Nov/2026 17:37:56] "GET /auth/login/ HTTP/1.1" 200 9498
+[14/Nov/2026 17:37:56] "GET /customers/ HTTP/1.1" 302 0
+[14/Nov/2026 17:37:56] "GET /auth/login/?next=/customers/ HTTP/1.1" 200 9498
+Not Found: /does-not-exist/
+Not Found: /does-not-exist/
+[14/Nov/2026 17:37:56] "GET /does-not-exist/ HTTP/1.1" 404 5285

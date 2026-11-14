@@ -29,13 +29,20 @@
   (a multi-line `{# #}` template comment printed my notes at the top of every page, fixed before it was committed).
 * `docker compose config` for both compose files, `nginx -t` in the real `nginx:alpine` image, `collectstatic` with hashed names.
 
+### Sidecar image: built and run (correction: I first reported it as stopped)
+
+The sidecar build finished on its own. I ran the image locally with a dummy secret and no Django: it started as uid 1000 (not root),
+fetched the current WhatsApp-Web version, **and WhatsApp accepted it and issued a pairing QR** (no QR scanned, nothing sent);
+`/health` answered `ok`, `/api/status` without the secret answered 401, `auth_data` was owned by `node`. This is the end-to-end proof of QA-001/002/022/025
+for the sidecar. The container and image were deleted afterwards.
+
 ### What I could NOT verify, and what you must do
 
 | Item | Why | You |
 |---|---|---|
 | WhatsApp re-pairing with the new Baileys on the server | needs your QR scan and the server | `qa/DEPLOYMENT.md` section 7 |
 | WeasyPrint 68.1 -> 70.0 invoice/statement **PDFs** | native libraries are missing on this Windows machine, PDFs were stubbed | open one invoice PDF after deploying |
-| Docker image builds (Django, sidecar) | I started both and stopped them after about 25 minutes: the Debian mirror was still downloading the first apt step at a few KB/s, as in Phase 1 (not a build failure; logs in `qa/evidence/docker_build_*.log`). The Dockerfiles, entrypoint and compose files were checked statically, by tests and with `docker compose config` / `nginx -t` | `docker compose ... build` on the server, then `docker compose ps` should show every service healthy |
+| Django Docker image build | I stopped it after about 25 minutes: the Debian mirror was still on the first apt step at a few KB/s, as in Phase 1 (not a build failure; `qa/evidence/docker_build_django.log`). Dockerfile and compose files were checked statically, by tests, and with `docker compose config` / `nginx -t`. (**The sidecar image did build and was run, see below.**) | `docker compose ... build` on the server, then `docker compose ps` should show every service healthy |
 | The GitHub Actions workflow | it has not run on GitHub; every step was run locally | push and look |
 | Rotating the leaked secrets, DB passwords, firewall, off-server backups, purging the public git history | server/GitHub actions, or destructive | `qa/DEPLOYMENT.md` sections 0, 4, 8, 9 |
 
