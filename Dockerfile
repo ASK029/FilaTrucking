@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y \
 
 # Copy requirements first for better caching
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt gunicorn whitenoise
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy Django project (FilaTrucking folder becomes /app/FilaTrucking)
 COPY FilaTrucking/ ./FilaTrucking/

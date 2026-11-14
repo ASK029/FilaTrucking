@@ -3,7 +3,10 @@
 # usage: qa/run_tests.sh [labels...]   (default: qa.tests shipments vehicles customers drivers)
 set -u
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-PY="$ROOT/.venv/Scripts/python"; [ -x "$PY" ] || PY="$ROOT/.venv/bin/python"
+# Prefer a venv built from requirements.txt (qa/tools/audit/venv_deps: python -m venv ... && pip install -r requirements.txt)
+# over the developer's .venv, which may lag behind the pinned versions.
+PY="${PY:-$ROOT/qa/tools/audit/venv_deps/Scripts/python}"
+[ -x "$PY" ] || PY="$ROOT/.venv/Scripts/python"; [ -x "$PY" ] || PY="$ROOT/.venv/bin/python"
 export PYTHONPATH="$ROOT"
 export DOTENV_PATH="$ROOT/qa/.no-such-env"   # hermetic: never read a developer's real .env
 export DATABASE_URL="sqlite:///:memory:"

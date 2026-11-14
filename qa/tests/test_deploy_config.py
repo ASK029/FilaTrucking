@@ -122,3 +122,31 @@ class NoCredentialsInTrackedFiles(SimpleTestCase):
                 continue
             for m in re.finditer(r"django-insecure-[^\s'\"`]+", text):
                 self.assertTrue(m.group(0).startswith("django-insecure-local-development-only"), f"{name}: {m.group(0)[:20]}…")
+
+
+class PythonDependencies(SimpleTestCase):
+    """[QA-021] requirements.txt is the single, fully pinned dependency list used by the Docker build."""
+
+    def lines(self):
+        raw = (ROOT / "requirements.txt").read_bytes()
+        self.assertFalse(raw.startswith((b"\xef\xbb\xbf", b"\xff\xfe", b"\xfe\xff")), "must be plain UTF-8 without BOM")
+        return [ln.strip() for ln in raw.decode("utf-8").splitlines() if ln.strip() and not ln.startswith("#")]
+
+    def test_every_requirement_is_pinned(self):
+        for ln in self.lines():
+            self.assertRegex(ln, r"^[A-Za-z0-9_.\-]+==[A-Za-z0-9_.\-]+$", ln)
+
+    def test_installed_django_matches_the_pin_and_is_a_patched_release(self):
+        import django
+        pins = dict(ln.split("==") for ln in self.lines())
+        self.assertEqual(django.get_version(), pins["Django"])
+        major_minor_patch = tuple(int(x) for x in pins["Django"].split(".")[:3])
+        self.assertGreaterEqual(major_minor_patch, (6, 0, 8), "Django 6.0.1 has 40+ published security advisories")
+
+    def test_unused_and_duplicate_requirement_files_are_gone(self):
+        for name in ("requirements_clean.txt", "requirements_utf8.txt"):
+            self.assertFalse((ROOT / name).exists(), f"{name} was a stale copy of requirements.txt")
+
+    def test_dockerfile_installs_only_from_the_pinned_file(self):
+        text = (ROOT / "Dockerfile").read_text(encoding="utf-8")
+        self.assertRegex(text, r"pip install --no-cache-dir -r requirements.txt\s*\n")
