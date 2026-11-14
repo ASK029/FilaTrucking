@@ -405,9 +405,11 @@ def invoice_email(request, pk):
     
     try:
         email.send()
-        invoice.status = "sent"
-        invoice.paid_at = None
-        invoice.save(update_fields=["status", "paid_at"])
+        # Only a draft becomes 'sent'. Re-sending a sent/paid invoice must not change its status or wipe paid_at:
+        # statements count PAID invoices by paid_at, so the old unconditional reset removed revenue (QA-013).
+        if invoice.status == InvoiceStatus.DRAFT:
+            invoice.status = InvoiceStatus.SENT
+            invoice.save(update_fields=["status"])
         messages.success(request, f"Invoice emailed to {customer.email}")
     except Exception as e:
         messages.error(request, f"Failed to send email: {str(e)}")

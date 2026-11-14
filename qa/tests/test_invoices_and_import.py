@@ -246,3 +246,27 @@ class InvoiceFormAddManualItem(InvoiceBase):
         self.assertEqual(r.status_code, 302)
         inv = Invoice.objects.get()
         self.assertEqual((inv.line_items.get().description, inv.total_amount), ("Yard rent", Decimal("75.00")))
+
+
+class InvoiceEmailStatusRules(InvoiceBase):
+    def send(self, inv):
+        with mock.patch("shipments.views.HTML", FakeHTML):
+            self.client.post(f"/invoices/{inv.pk}/email/")
+        inv.refresh_from_db()
+        return inv
+
+    def test_draft_becomes_sent(self):
+        self.assertEqual(self.send(self.invoice_with(self.s1)).status, InvoiceStatus.SENT)
+
+    def test_sent_stays_sent_and_paid_keeps_status_and_paid_at(self):
+        sent = self.send(self.invoice_with(self.s1, status=InvoiceStatus.SENT))
+        self.assertEqual(sent.status, InvoiceStatus.SENT)
+        paid = self.send(self.invoice_with(self.s2, status=InvoiceStatus.PAID, paid_at=date(2026, 1, 20)))
+        self.assertEqual((paid.status, paid.paid_at), (InvoiceStatus.PAID, date(2026, 1, 20)))
+
+    def test_failed_send_changes_nothing(self):
+        inv = self.invoice_with(self.s1)
+        with mock.patch("shipments.views.HTML", FakeHTML), mock.patch("django.core.mail.EmailMessage.send", side_effect=OSError("smtp down")):
+            self.client.post(f"/invoices/{inv.pk}/email/")
+        inv.refresh_from_db()
+        self.assertEqual(inv.status, InvoiceStatus.DRAFT)
