@@ -291,3 +291,49 @@ class VehicleFixesQA040(QABase):
     def test_maintenance_delete_confirmation_names_the_truck(self):
         m = Maintenance.objects.create(vehicle=self.vehicle, cost=1, service_provider="x", description="d")
         self.assertContains(self.client.get(f"/vehicles/maintenance/{m.pk}/delete/"), self.vehicle.registration_number)
+
+
+class RecurringInvoicesQA042(QABase):
+    def shipment(self, customer, amount, container="C"):
+        return Shipment.objects.create(customer=customer, date=date(2026, 1, 5), booking="B", container=container, seal="S",
+                                       location="CHI", amount=amount, status=ShipmentStatus.CONFIRMED)
+
+    def other_customer(self):
+        from customers.models import Customer
+        return Customer.objects.create(name="Beta Lines", abbreviation="BL", phone_number="+13125550111", address="2 Main St",
+                                       email="ap@beta.example", default_rate=Decimal("1"))
+
+    def run_task(self):
+        with mock.patch("shipments.tasks.today_local", return_value=date(2026, 2, 3)):
+            return tasks.generate_recurring_invoices()
+
+    def test_a_shipment_without_a_rate_is_left_confirmed_and_the_rest_are_invoiced(self):
+        unpriced = self.shipment(self.customer, None, "NO-RATE")
+        priced = self.shipment(self.customer, Decimal("400"), "PRICED")
+        self.assertEqual(self.run_task(), 1)
+        unpriced.refresh_from_db(); priced.refresh_from_db()
+        self.assertEqual((unpriced.status, priced.status), (ShipmentStatus.CONFIRMED, ShipmentStatus.INVOICED))
+        inv = Invoice.objects.get()
+        self.assertEqual((inv.line_items.count(), inv.total_amount), (1, Decimal("400.00")))
+
+    def test_one_customers_failure_does_not_stop_the_others(self):
+        other = self.other_customer()
+        self.shipment(self.customer, Decimal("400"), "A")
+        self.shipment(other, Decimal("500"), "B")
+        real_create = Invoice.objects.create
+
+        def flaky(**kw):
+            if kw.get("customer_id") == self.customer.pk:
+                raise RuntimeError("boom")
+            return real_create(**kw)
+
+        with mock.patch.object(Invoice.objects, "create", side_effect=flaky):
+            created = self.run_task()
+        self.assertEqual(created, 1)
+        self.assertEqual(Invoice.objects.get().customer, other)
+        self.assertEqual(Shipment.objects.get(container="A").status, ShipmentStatus.CONFIRMED)  # failed customer untouched
+
+    def test_only_unpriced_shipments_means_no_invoice_and_no_crash(self):
+        self.shipment(self.customer, None)
+        self.assertEqual(self.run_task(), 0)
+        self.assertEqual(Invoice.objects.count(), 0)

@@ -4,12 +4,17 @@ from calendar import monthrange
 from datetime import date, timedelta
 from decimal import Decimal
 
+import logging
+
 from celery import shared_task
 from django.db import transaction
 from django.db.models import Sum
 from django.utils import timezone
 
 from .models import Expense, ExpenseCategory, FinancialStatement, Invoice, InvoiceLineItem, InvoiceStatus, Shipment, ShipmentStatus
+
+
+logger = logging.getLogger(__name__)
 
 
 def today_local() -> date:
@@ -122,10 +127,13 @@ def generate_recurring_invoices() -> int:
     start_date = date(period_year, period_month, 1)
     end_date = date(period_year, period_month, last_day)
 
-    shipments_qs = Shipment.objects.filter(
-        status=ShipmentStatus.CONFIRMED,
-        date__range=(start_date, end_date),
-    ).select_related("customer")
+    confirmed = Shipment.objects.filter(status=ShipmentStatus.CONFIRMED, date__range=(start_date, end_date))
+    # A shipment without a rate cannot become an invoice line (the column is NOT NULL): leave it 'confirmed' for the admin
+    # to price instead of letting one such row abort the whole nightly run (QA-042).
+    skipped = confirmed.filter(amount__isnull=True).count()
+    if skipped:
+        logger.warning("Recurring invoices: %s confirmed shipment(s) have no amount and were left out", skipped)
+    shipments_qs = confirmed.filter(amount__isnull=False).select_related("customer")
 
     created_invoices = 0
 
@@ -143,29 +151,32 @@ def generate_recurring_invoices() -> int:
         if existing_invoice:
             continue
 
-        with transaction.atomic():
-            invoice = Invoice.objects.create(
-                customer_id=customer_id,
-                invoice_date=today,
-            )
-
-            for s in shipments:
-                InvoiceLineItem.objects.create(
-                    invoice=invoice,
-                    shipment=s,
-                    date_incurred=s.date,
-                    description=f"Shipment {s.container}",
-                    booking_no=s.booking,
-                    container_no=s.container,
-                    seal_no=s.seal,
-                    location=s.location,
-                    amount=s.amount,
+        try:
+            with transaction.atomic():  # one customer's failure rolls back only that customer's draft
+                invoice = Invoice.objects.create(
+                    customer_id=customer_id,
+                    invoice_date=today,
                 )
-                s.status = ShipmentStatus.INVOICED
-                s.save(update_fields=["status"])
 
-            invoice.calculate_total()
+                for s in shipments:
+                    InvoiceLineItem.objects.create(
+                        invoice=invoice,
+                        shipment=s,
+                        date_incurred=s.date,
+                        description=f"Shipment {s.container}",
+                        booking_no=s.booking,
+                        container_no=s.container,
+                        seal_no=s.seal,
+                        location=s.location,
+                        amount=s.amount,
+                    )
+                    s.status = ShipmentStatus.INVOICED
+                    s.save(update_fields=["status"])
+
+                invoice.calculate_total()
             created_invoices += 1
+        except Exception:
+            logger.exception("Recurring invoices: could not create the draft for customer %s", customer_id)
 
     return created_invoices
 
