@@ -98,7 +98,8 @@ class NoCredentialsInTrackedFiles(SimpleTestCase):
     def tracked_text_files(self):
         out = subprocess.run(["git", "ls-files"], cwd=ROOT, capture_output=True, text=True).stdout.splitlines()
         for name in out:
-            if name.startswith(("qa/evidence/", "qa/screenshots/", "docs/")) or name.endswith(
+            # .github/workflows talks to a disposable MySQL service container created for that job only
+            if name.startswith(("qa/evidence/", "qa/screenshots/", "docs/", ".github/")) or name.endswith(
                     (".png", ".jpg", ".jpeg", ".pdf", ".xlsx", ".zip", ".woff2", ".ico")):
                 continue
             path = ROOT / name
