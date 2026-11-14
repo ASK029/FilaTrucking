@@ -97,6 +97,16 @@ class InvoiceLineItemForm(TailwindFormMixin, forms.ModelForm):
         if not shipment:
             return cleaned_data
 
+        # A shipment is billed once (QA-038): refuse it when a line of ANOTHER invoice already carries it.
+        elsewhere = InvoiceLineItem.objects.filter(shipment=shipment).exclude(invoice_id=self.instance.invoice_id)
+        if self.instance.pk:
+            elsewhere = elsewhere.exclude(pk=self.instance.pk)
+        taken = elsewhere.first() if self.instance.invoice_id else InvoiceLineItem.objects.filter(shipment=shipment).first()
+        if taken:
+            raise forms.ValidationError(
+                f"Shipment {shipment.container} is already on invoice #{taken.invoice_id}. Remove it there first."
+            )
+
         if not cleaned_data.get("date_incurred"):
             cleaned_data["date_incurred"] = shipment.date
         if not cleaned_data.get("description"):

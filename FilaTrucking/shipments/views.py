@@ -211,13 +211,19 @@ def invoice_add_lines(request, invoice_pk):
     if request.method == "POST":
         formset = InvoiceLineItemFormSet(request.POST, instance=invoice)
         if formset.is_valid():
-            formset.save()
-            invoice.calculate_total()
-            # Update shipment statuses to 'invoiced'
-            for item in invoice.line_items.all():
-                if item.shipment:
-                    item.shipment.status = ShipmentStatus.INVOICED
-                    item.shipment.save()
+            with transaction.atomic():
+                before = set(invoice.line_items.exclude(shipment__isnull=True).values_list("shipment_id", flat=True))
+                formset.save()
+                invoice.calculate_total()
+                # shipments on the invoice are 'invoiced'...
+                for item in invoice.line_items.select_related("shipment"):
+                    if item.shipment and item.shipment.status != ShipmentStatus.INVOICED:
+                        item.shipment.status = ShipmentStatus.INVOICED
+                        item.shipment.save(update_fields=["status"])
+                # ...and a shipment whose line was removed goes back to 'confirmed' (it used to stay 'invoiced' forever,
+                # unreachable for any future invoice) (QA-038)
+                after = set(invoice.line_items.exclude(shipment__isnull=True).values_list("shipment_id", flat=True))
+                Shipment.objects.filter(pk__in=before - after, status=ShipmentStatus.INVOICED).update(status=ShipmentStatus.CONFIRMED)
             return redirect("invoice_detail", pk=invoice.pk)
     else:
         formset = InvoiceLineItemFormSet(instance=invoice)

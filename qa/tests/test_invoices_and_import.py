@@ -298,3 +298,44 @@ class InvoiceEmailIsPostOnlyQA014(InvoiceBase):
     def test_smtp_calls_have_a_timeout(self):
         from django.conf import settings
         self.assertTrue(0 < settings.EMAIL_TIMEOUT <= 30)
+
+
+class InvoiceLifecycleQA038(InvoiceBase):
+    def test_creating_a_second_invoice_with_a_billed_shipment_shows_a_clear_error(self):
+        first = self.invoice_with(self.s1)
+        data = {"customer": self.customer.pk, "invoice_date": "2026-01-10", "status": "draft"}
+        data.update(formset_data(PREFIX, [line(self.s1)]))
+        r = self.client.post("/invoices/create/", data)
+        self.assertEqual(r.status_code, 200)  # form re-rendered with the error, nothing saved
+        self.assertContains(r, f"already on invoice #{first.pk}")
+        self.assertEqual(Invoice.objects.count(), 1)
+
+    def test_resaving_an_invoice_with_its_own_lines_is_fine(self):
+        inv = self.invoice_with(self.s1)
+        li = inv.line_items.get()
+        data = formset_data(PREFIX, [dict(line(self.s1), id=li.pk, invoice=inv.pk, amount="425.00")], initial=1)
+        r = self.client.post(f"/invoices/{inv.pk}/lines/", data)
+        self.assertEqual(r.status_code, 302)
+        inv.refresh_from_db()
+        self.assertEqual(inv.total_amount, Decimal("425.00"))
+
+    def test_removed_line_makes_the_shipment_billable_again(self):
+        inv = self.invoice_with(self.s1)
+        self.s1.status = ShipmentStatus.INVOICED
+        self.s1.save()
+        li = inv.line_items.get()
+        self.client.post(f"/invoices/{inv.pk}/lines/", formset_data(PREFIX, [dict(line(self.s1), id=li.pk, invoice=inv.pk, DELETE="on")], initial=1))
+        self.s1.refresh_from_db()
+        self.assertEqual(self.s1.status, ShipmentStatus.CONFIRMED)
+        # ...and can now go on another invoice
+        other = Invoice.objects.create(customer=self.customer, invoice_date=date(2026, 1, 12))
+        r = self.client.post(f"/invoices/{other.pk}/lines/", formset_data(PREFIX, [line(self.s1)]))
+        self.assertEqual(r.status_code, 302)
+        self.s1.refresh_from_db()
+        self.assertEqual(self.s1.status, ShipmentStatus.INVOICED)
+
+    def test_adding_a_line_marks_its_shipment_invoiced(self):
+        inv = Invoice.objects.create(customer=self.customer, invoice_date=date(2026, 1, 12))
+        self.client.post(f"/invoices/{inv.pk}/lines/", formset_data(PREFIX, [line(self.s2)]))
+        self.s2.refresh_from_db()
+        self.assertEqual(self.s2.status, ShipmentStatus.INVOICED)
