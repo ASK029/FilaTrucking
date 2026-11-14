@@ -83,10 +83,17 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
 
 
+def release(response):
+    """Close a FileResponse's file without response.close(): that fires request_finished -> close_old_connections,
+    which kills the test's own DB connection on MySQL (and an open file blocks temp-dir cleanup on Windows)."""
+    for closer in getattr(response, "_resource_closers", []):
+        closer()
+
+
 class UploadsQA023(QABase):
     def setUp(self):
         super().setUp()
-        self._tmp = tempfile.TemporaryDirectory()
+        self._tmp = tempfile.TemporaryDirectory(ignore_cleanup_errors=True)
         self.addCleanup(self._tmp.cleanup)
         self._override = override_settings(MEDIA_ROOT=self._tmp.name)
         self._override.enable()
@@ -117,7 +124,7 @@ class UploadsQA023(QABase):
         self.assertEqual(b"".join(r.streaming_content), b"%PDF-1.4 fake")
         self.assertEqual(r["Content-Type"], "application/pdf")
         self.assertEqual(r["X-Content-Type-Options"], "nosniff")
-        r.close()
+        release(r)
 
     def test_path_traversal_and_missing_files_are_404(self):
         self.login()
@@ -135,7 +142,7 @@ class UploadsQA023(QABase):
         doc = DriverDocument.objects.create(driver=self.driver, name="x", document=SimpleUploadedFile("a.docx", b"PK"))
         r = self.client.get(f"/media/{doc.document.name}")
         self.assertIn("attachment", r["Content-Disposition"])
-        r.close()  # release the file handle (Windows cannot delete an open temp file)
+        release(r)
 
     def test_dangerous_extensions_and_oversize_files_are_rejected(self):
         from django.core.exceptions import ValidationError
