@@ -5,6 +5,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import EmailMessage
+from django.db import transaction
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
@@ -87,28 +88,39 @@ def invoice_create(request):
         return redirect_to_login(request.get_full_path())
 
     if request.method == "POST":
+        # Validate the invoice AND its line items before anything is written, and write them in one
+        # transaction: the old code saved the invoice first, so a bad line left an empty orphan invoice and the
+        # page came back with the user's input thrown away (QA-011).
         form = InvoiceForm(request.POST)
-        if form.is_valid():
-            invoice = form.save(commit=False)
-            invoice.save()
-            
-            start_date = form.cleaned_data.get("start_date")
-            end_date = form.cleaned_data.get("end_date")
-            
-            formset = InvoiceLineItemFormSet(request.POST, instance=invoice)
-            if formset.is_valid():
+        formset = InvoiceLineItemFormSet(request.POST, instance=form.instance)
+        form_ok = form.is_valid()
+        formset_ok = formset.is_valid()  # evaluate both so every error is shown at once
+        if form_ok and formset_ok:
+            with transaction.atomic():
+                invoice = form.save()
+                formset.instance = invoice
                 formset.save()
                 invoice.calculate_total()
-                
-                for item in invoice.line_items.all():
+
+                for item in invoice.line_items.select_related("shipment"):
                     if item.shipment and item.shipment.status == ShipmentStatus.CONFIRMED:
                         item.shipment.status = ShipmentStatus.INVOICED
-                        item.shipment.save()
-                
-                messages.success(request, f"Invoice created for {invoice.customer.name}")
-                return redirect("invoice_detail", pk=invoice.pk)
-    else:
-        form = InvoiceForm()
+                        item.shipment.save(update_fields=["status"])
+
+            messages.success(request, f"Invoice created for {invoice.customer.name}")
+            return redirect("invoice_detail", pk=invoice.pk)
+        return render(
+            request,
+            "shipments/invoice_form.html",
+            {
+                "form": form,
+                "formset": formset,
+                "start_date": request.POST.get("start_date", ""),
+                "end_date": request.POST.get("end_date", ""),
+            },
+        )
+
+    form = InvoiceForm()
 
     customer_id = request.GET.get("customer")
     start_date = request.GET.get("start_date", "").strip()
