@@ -270,3 +270,30 @@ class InvoiceEmailStatusRules(InvoiceBase):
             self.client.post(f"/invoices/{inv.pk}/email/")
         inv.refresh_from_db()
         self.assertEqual(inv.status, InvoiceStatus.DRAFT)
+
+
+class InvoiceEmailIsPostOnlyQA014(InvoiceBase):
+    def test_get_redirects_without_sending_or_changing_anything(self):
+        inv = self.invoice_with(self.s1)
+        with mock.patch("shipments.views.HTML", FakeHTML):
+            r = self.client.get(f"/invoices/{inv.pk}/email/")
+        self.assertEqual(r.status_code, 302)
+        inv.refresh_from_db()
+        self.assertEqual((len(mail.outbox), inv.status), (0, InvoiceStatus.DRAFT))
+
+    def test_detail_page_uses_a_csrf_protected_form_not_a_link(self):
+        inv = self.invoice_with(self.s1)
+        html = self.client.get(f"/invoices/{inv.pk}/").content.decode()
+        self.assertNotIn(f'<a href="/invoices/{inv.pk}/email/"', html)
+        self.assertRegex(html, rf'<form method="post" action="/invoices/{inv.pk}/email/"[^>]*>\s*<input type="hidden" name="csrfmiddlewaretoken"')
+
+    def test_csrf_is_enforced_on_the_email_post(self):
+        from django.test import Client
+        inv = self.invoice_with(self.s1)
+        c = Client(enforce_csrf_checks=True)
+        c.force_login(self.user)
+        self.assertEqual(c.post(f"/invoices/{inv.pk}/email/").status_code, 403)
+
+    def test_smtp_calls_have_a_timeout(self):
+        from django.conf import settings
+        self.assertTrue(0 < settings.EMAIL_TIMEOUT <= 30)

@@ -76,15 +76,20 @@
         </svg>
         Download PDF
       </a>
-      <a href="{% url 'invoice_email' invoice.pk %}"
-        class="flex-1 md:flex-none text-center bg-accent hover:bg-accent-dark text-surface px-6 py-2 rounded-xl text-sm font-black transition-all shadow-lg shadow-accent/20 uppercase tracking-wider flex items-center justify-center gap-2">
+      {# QA-014: sending an email changes state, so it is a POST (with CSRF), never a link a prefetcher can follow #}
+      <form method="post" action="{% url 'invoice_email' invoice.pk %}" class="flex-1 md:flex-none flex"
+        onsubmit="return confirm('Email invoice #{{ invoice.pk }} to {{ invoice.customer.email|default:"the customer"|escapejs }}?');">
+        {% csrf_token %}
+      <button type="submit"
+        class="w-full text-center bg-accent hover:bg-accent-dark text-surface px-6 py-2 rounded-xl text-sm font-black transition-all shadow-lg shadow-accent/20 uppercase tracking-wider flex items-center justify-center gap-2">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
           </path>
         </svg>
         Email Customer
-      </a>
+      </button>
+      </form>
     </div>
   </div>
 

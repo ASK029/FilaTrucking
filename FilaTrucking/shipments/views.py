@@ -350,10 +350,12 @@ def invoice_pdf(request, pk):
 
 
 def invoice_email(request, pk):
-    """Email the invoice PDF to the customer."""
+    """Email the invoice PDF to the customer. POST only (it sends mail and may change the status)."""
     if not request.user.is_authenticated:
         from django.contrib.auth.views import redirect_to_login
         return redirect_to_login(request.get_full_path())
+    if request.method != "POST":
+        return redirect("invoice_detail", pk=pk)
 
     invoice = get_object_or_404(Invoice, pk=pk)
     customer = invoice.customer

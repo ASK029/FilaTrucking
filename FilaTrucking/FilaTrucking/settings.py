@@ -233,6 +233,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
+# Without a timeout a stalled SMTP server blocks a gunicorn worker until it is killed (QA-014)
+EMAIL_TIMEOUT = 15
 
 # Logging for production
 LOGGING = {
