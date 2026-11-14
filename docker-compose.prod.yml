@@ -160,6 +160,10 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    # nginx reads its certificate once at start. certbot renews every ~60 days but cannot signal this container,
+    # so the old certificate kept being served until it expired (QA-026). Reloading every 6 hours picks up a renewed
+    # certificate within hours at no cost (a reload is graceful, no dropped requests).
+    command: ["/bin/sh", "-c", "(while :; do sleep 6h; nginx -s reload; done) & exec nginx -g 'daemon off;'"]
     depends_on:
       - django
     networks:

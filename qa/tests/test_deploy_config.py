@@ -211,3 +211,23 @@ class ProductionHardeningQA025(SimpleTestCase):
                 self.assertEqual(svc["logging"]["options"]["max-size"], "10m")
                 if name != "certbot":
                     self.assertIn("mem_limit", svc)
+
+
+class CertificateRenewalQA026(SimpleTestCase):
+    def test_nginx_reloads_periodically_so_renewed_certificates_are_picked_up(self):
+        """[QA-026] certbot renews into a shared volume, but nginx only read the certificate at start-up."""
+        command = " ".join(compose("docker-compose.prod.yml")["services"]["nginx"]["command"])
+        self.assertIn("nginx -s reload", command)
+        match = re.search(r"sleep (\d+)h", command)
+        self.assertIsNotNone(match)
+        self.assertLessEqual(int(match.group(1)), 12, "reload at least twice a day (certbot renews 30 days before expiry)")
+        self.assertIn("exec nginx -g 'daemon off;'", command)  # nginx stays PID 1 so signals/restarts work
+
+    def test_certbot_still_renews_regularly(self):
+        text = (ROOT / "docker-compose.prod.yml").read_text(encoding="utf-8")
+        self.assertIn("certbot renew", text)
+
+    def test_nginx_config_has_no_deprecated_http2_listen_flag(self):
+        conf = (ROOT / "nginx.conf").read_text(encoding="utf-8")
+        self.assertNotIn("ssl http2", conf)
+        self.assertIn("http2 on;", conf)
