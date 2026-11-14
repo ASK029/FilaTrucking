@@ -202,3 +202,51 @@ class StatementCategoriesQA037(QABase):
         m.to_truck(apps, None)
         pay.refresh_from_db()
         self.assertEqual(pay.category, "truck")
+
+
+class ProtectedHistoryQA039(QABase):
+    def setUp(self):
+        super().setUp()
+        self.login()
+
+    def test_truck_with_history_cannot_be_deleted_and_the_user_is_told_why(self):
+        IFTAMileage.objects.create(vehicle=self.vehicle, state_code="IL", month=1, year=2026, miles=1)
+        Maintenance.objects.create(vehicle=self.vehicle, cost=1, service_provider="x", description="d")
+        r = self.client.post(f"/vehicles/{self.vehicle.pk}/delete/", follow=True)
+        self.assertTrue(Vehicle.objects.filter(pk=self.vehicle.pk).exists())
+        self.assertEqual((IFTAMileage.objects.count(), Maintenance.objects.count()), (1, 1))
+        self.assertEqual(r.redirect_chain[-1][0], f"/vehicles/{self.vehicle.pk}/")
+        text = " ".join(str(m) for m in r.context["messages"])
+        self.assertIn("Set its status to Retired", text)
+        self.assertIn("IFTA", text)
+
+    def test_truck_without_history_can_still_be_deleted(self):
+        v = Vehicle.objects.create(registration_number="T-OLD", model="m", chassis_number="1OLD")
+        self.assertEqual(self.client.post(f"/vehicles/{v.pk}/delete/").status_code, 302)
+        self.assertFalse(Vehicle.objects.filter(pk=v.pk).exists())
+
+    def test_driver_with_pay_history_cannot_be_deleted(self):
+        Expense.objects.create(date=date(2026, 1, 5), category=ExpenseCategory.DRIVER, amount=Decimal("300"), driver=self.driver)
+        r = self.client.post(f"/drivers/{self.driver.pk}/delete/", follow=True)
+        from drivers.models import Driver
+        self.assertTrue(Driver.objects.filter(pk=self.driver.pk).exists())
+        self.assertEqual(Expense.objects.get().driver, self.driver)  # pay history keeps its driver
+        self.assertIn("Inactive", " ".join(str(m) for m in r.context["messages"]))
+
+    def test_database_level_protection_covers_bulk_deletes_and_the_admin(self):
+        from django.db.models import ProtectedError
+        from customers.models import Customer
+        Shipment.objects.create(customer=self.customer, date=date(2026, 1, 5), booking="B", container="C", seal="S",
+                                amount=Decimal("1"), status=ShipmentStatus.CONFIRMED)
+        Invoice.objects.create(customer=self.customer, invoice_date=date(2026, 1, 5))
+        with self.assertRaises(ProtectedError):
+            Customer.objects.filter(pk=self.customer.pk).delete()
+        self.assertEqual((Shipment.objects.count(), Invoice.objects.count()), (1, 1))
+
+    def test_vehicle_status_badges_use_the_stored_codes(self):
+        """The templates compared with 'active'/'maintenance', so every truck was labelled 'Retired'."""
+        Vehicle.objects.filter(pk=self.vehicle.pk).update(status="IU")
+        self.assertContains(self.client.get("/vehicles/"), "In Use")
+        self.assertContains(self.client.get(f"/vehicles/{self.vehicle.pk}/"), "In Use")
+        Vehicle.objects.filter(pk=self.vehicle.pk).update(status="RE")
+        self.assertContains(self.client.get("/vehicles/"), "Retired")

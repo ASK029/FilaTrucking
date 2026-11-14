@@ -19,9 +19,10 @@ class ShipmentStatus(models.TextChoices):
 
 
 class Shipment(models.Model):
-    driver = models.ForeignKey(Driver, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Driver")
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, verbose_name="Customer")
-    vehicle = models.ForeignKey(Vehicle, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Truck Numbe")
+    # PROTECT everywhere (QA-039): deleting a customer/driver/truck must never silently erase or blank billing history
+    driver = models.ForeignKey(Driver, on_delete=models.PROTECT, null=True, blank=True, verbose_name="Driver")
+    customer = models.ForeignKey(Customer, on_delete=models.PROTECT, verbose_name="Customer")
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.PROTECT, null=True, blank=True, verbose_name="Truck Numbe")
 
     date = models.DateField(verbose_name="Shipment Date")
     booking = models.CharField(max_length=50, verbose_name="Booking #")
@@ -85,7 +86,7 @@ class InvoiceStatus(models.TextChoices):
 
 class Invoice(models.Model):
     customer = models.ForeignKey(
-        Customer, on_delete=models.CASCADE, related_name="invoices"
+        Customer, on_delete=models.PROTECT, related_name="invoices"
     )
     invoice_date = models.DateField()
     status = models.CharField(
@@ -157,10 +158,10 @@ class Expense(models.Model):
     )
     amount = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Amount ($)")
     vehicle = models.ForeignKey(
-        Vehicle, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Truck Number"
+        Vehicle, on_delete=models.PROTECT, null=True, blank=True, verbose_name="Truck Number"
     )
     driver = models.ForeignKey(
-        Driver, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Driver"
+        Driver, on_delete=models.PROTECT, null=True, blank=True, verbose_name="Driver"
     )
     notes = models.TextField(blank=True, verbose_name="Notes")
     receipt = models.FileField(

@@ -1,4 +1,5 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
+from FilaTrucking.mixins import ProtectedDeleteMixin
 from django.db import transaction
 from django.urls import reverse_lazy
 from django.views.generic import (
@@ -110,7 +111,9 @@ class DriverUpdateView(LoginRequiredMixin, UpdateView):
             return self.render_to_response(self.get_context_data(form=form))
 
 
-class DriverDeleteView(LoginRequiredMixin, DeleteView):
+class DriverDeleteView(ProtectedDeleteMixin, LoginRequiredMixin, DeleteView):
+    protected_message = "This driver has shipments or expenses (driver pay) and cannot be deleted. Set the driver to Inactive instead."
+    protected_redirect = "driver_detail"
     model = Driver
     template_name = "drivers/driver_confirm_delete.html"
     success_url = reverse_lazy("driver_list")

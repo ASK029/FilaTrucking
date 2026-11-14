@@ -7,15 +7,15 @@
   <div>
     <div class="flex items-center gap-3">
       <h1 class="text-2xl font-bold text-slate-100">{{ vehicle.registration_number }}</h1>
-      {% if vehicle.status == 'active' %}
+      {% if vehicle.status == 'AV' or vehicle.status == 'IU' %}
       <span
-        class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-emerald-400/10 text-emerald-400 border border-emerald-400/20">Active</span>
-      {% elif vehicle.status == 'maintenance' %}
+        class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-emerald-400/10 text-emerald-400 border border-emerald-400/20">{{ vehicle.get_status_display }}</span>
+      {% elif vehicle.status == 'MA' %}
       <span
-        class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-amber-400/10 text-amber-400 border border-amber-400/20">Maintenance</span>
+        class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-amber-400/10 text-amber-400 border border-amber-400/20">{{ vehicle.get_status_display }}</span>
       {% else %}
       <span
-        class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-400/10 text-slate-400 border border-slate-400/20">Retired</span>
+        class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-400/10 text-slate-400 border border-slate-400/20">{{ vehicle.get_status_display }}</span>
       {% endif %}
     </div>
     <p class="text-sm text-slate-400 mt-1">{{ vehicle.year }} {{ vehicle.Manufacturer }} {{ vehicle.model }}</p>

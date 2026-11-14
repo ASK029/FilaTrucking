@@ -10,6 +10,7 @@ class Status(models.TextChoices):
     Available = 'AV', 'Available'
     InUse = 'IU', 'In Use'
     Maintenance = 'MA', 'Maintenance'
+    Retired = 'RE', 'Retired'  # out of the fleet but its history stays (QA-039)
 
 class Ownership(models.TextChoices):
     CompanyOwned = 'CO', 'Company Owned'
@@ -75,7 +76,7 @@ class IFTAMileage(models.Model):
 
     vehicle = models.ForeignKey(
         Vehicle,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         verbose_name="Truck Number",
         related_name="ifta_mileage_entries",
     )
@@ -109,7 +110,7 @@ class IFTAMileage(models.Model):
 
 class Maintenance(models.Model):
     # Vehicle
-    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, verbose_name="Vehicle")
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.PROTECT, verbose_name="Vehicle")
 
     cost = models.DecimalField(max_digits=10, decimal_places=2)
     service_provider = models.CharField(max_length=40)

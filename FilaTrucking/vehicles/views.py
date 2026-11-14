@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from FilaTrucking.mixins import ProtectedDeleteMixin
 from django.db.models import Sum
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
@@ -67,7 +68,9 @@ class VehicleUpdateView(LoginRequiredMixin, UpdateView):
     success_url = reverse_lazy("vehicle_list")
 
 
-class VehicleDeleteView(LoginRequiredMixin, DeleteView):
+class VehicleDeleteView(ProtectedDeleteMixin, LoginRequiredMixin, DeleteView):
+    protected_message = "This truck has IFTA, maintenance, expense or shipment history and cannot be deleted. Set its status to Retired instead."
+    protected_redirect = "vehicle_detail"
     model = Vehicle
     template_name = "vehicles/vehicle_confirm_delete.html"
     success_url = reverse_lazy("vehicle_list")
