@@ -1,0 +1,42 @@
+{# One invoice line row. Used for every bound form and for formset.empty_form (the template new rows are cloned from). #}
+              <tr class="border-b border-slate-700/50 group {% if form.initial.shipment %}bg-blue-500/5{% endif %}">
+                <td class="py-2 pr-4 align-top pt-3">
+                  {% if form.instance.pk %}
+                    {% if form.DELETE %}
+                      <label class="flex items-center cursor-pointer">
+                        {{ form.DELETE }}
+                        <span class="sr-only">Delete</span>
+                      </label>
+                    {% endif %}
+                  {% else %}
+                    <button type="button" onclick="removeLineItem(this)" class="text-slate-500 hover:text-red-400 p-1">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                      </svg>
+                    </button>
+                  {% endif %}
+                  {{ form.id }}
+                  {% if form.shipment %}{{ form.shipment }}{% endif %}
+                </td>
+                <td class="py-2 pr-4">
+                  {{ form.date_incurred }}
+                </td>
+                <td class="py-2 pr-4">
+                  {{ form.description }}
+                </td>
+                <td class="py-2 pr-4">
+                  {{ form.booking_no }}
+                </td>
+                <td class="py-2 pr-4">
+                  {{ form.container_no }}
+                </td>
+                <td class="py-2 pr-4">
+                  {{ form.seal_no }}
+                </td>
+                <td class="py-2 pr-4">
+                  {{ form.location }}
+                </td>
+                <td class="py-2 text-right">
+                  {{ form.amount }}
+                </td>
+              </tr>

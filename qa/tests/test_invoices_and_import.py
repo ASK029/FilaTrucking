@@ -215,3 +215,34 @@ class InvoiceLinesXss(InvoiceBase):
         raw = re.search(r'<script id="shipment-data" type="application/json">(.*?)</script>', html, re.S).group(1)
         data = json.loads(raw)
         self.assertEqual(data[str(self.s1.pk)]["container_no"], "C1")
+
+
+class InvoiceFormAddManualItem(InvoiceBase):
+    """[QA-012] 'Add Manual Item' built rows named form-N-* / id_form-TOTAL_FORMS, but the formset prefix is
+    line_items: the JS threw a TypeError and nothing it created would have been posted."""
+
+    def test_page_has_no_hardcoded_form_prefix_and_ships_a_template_row(self):
+        html = self.client.get("/invoices/create/").content.decode()
+        self.assertIn(f'id="id_{PREFIX}-TOTAL_FORMS"', html)
+        self.assertNotIn("id_form-TOTAL_FORMS", html)
+        self.assertNotIn("form-${totalForms}", html)
+        self.assertIn(f'name="{PREFIX}-__prefix__-amount"', html)  # the <template> row cloned by the JS
+
+    def test_a_row_cloned_from_the_template_is_saved(self):
+        import re
+        html = self.client.get("/invoices/create/").content.decode()
+        names = set(re.findall(rf'name="({PREFIX}-__prefix__-[a-z_]+)"', html))
+        self.assertTrue({f"{PREFIX}-__prefix__-description", f"{PREFIX}-__prefix__-amount"} <= names, names)
+        # what the JS does: replace __prefix__ with the next index and bump TOTAL_FORMS
+        data = {"customer": self.customer.pk, "invoice_date": "2026-01-10", "status": "draft",
+                f"{PREFIX}-TOTAL_FORMS": "1", f"{PREFIX}-INITIAL_FORMS": "0",
+                f"{PREFIX}-MIN_NUM_FORMS": "0", f"{PREFIX}-MAX_NUM_FORMS": "1000"}
+        values = {"date_incurred": "2026-01-11", "description": "Yard rent", "booking_no": "", "container_no": "",
+                  "seal_no": "", "location": "CHI", "amount": "75.00"}
+        for n in names:
+            field = n.rsplit("-", 1)[1]
+            data[n.replace("__prefix__", "0")] = values.get(field, "")
+        r = self.client.post("/invoices/create/", data)
+        self.assertEqual(r.status_code, 302)
+        inv = Invoice.objects.get()
+        self.assertEqual((inv.line_items.get().description, inv.total_amount), ("Yard rent", Decimal("75.00")))
