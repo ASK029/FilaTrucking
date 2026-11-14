@@ -249,3 +249,21 @@ class StatusAndGroupsQA019(QABase):
         self.assertEqual(r.json()["groups_synced"], 2)
         g.refresh_from_db()
         self.assertEqual((g.group_name, g.participant_count, g.is_active), ("Renamed", 9, False))
+
+
+class NewGroupsAreOptInQA020(QABase):
+    def test_a_newly_discovered_group_is_not_listened_to_until_the_admin_enables_it(self):
+        r = self.client.post(f"{BASE}/sync-groups/", data=json.dumps({"groups": [{"jid": "9-9@g.us", "name": "Family", "participants": 7}]}),
+                             content_type="application/json", **BEARER)
+        self.assertEqual(r.status_code, 200)
+        self.assertFalse(WhatsAppGroup.objects.get().is_active)
+        listed = self.client.get(f"{BASE}/groups/", **BEARER).json()["groups"]
+        self.assertEqual([g["is_active"] for g in listed], [False])
+
+    def test_trigger_sync_creates_new_groups_disabled(self):
+        self.login()
+        resp = mock.Mock(status_code=200)
+        resp.json.return_value = {"groups": [{"jid": "7-7@g.us", "name": "Neighbours", "participants": 4}]}
+        with mock.patch("requests.get", return_value=resp):
+            self.client.post(f"{BASE}/trigger-sync/")
+        self.assertFalse(WhatsAppGroup.objects.get().is_active)

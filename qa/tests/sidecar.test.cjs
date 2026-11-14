@@ -45,7 +45,7 @@ test('QA-002 the sidecar REST API rejects every call without the shared secret',
                    'DELETE /api/auth (wrong secret)', 'DELETE /api/auth (Basic scheme)']) {
     assert.strictEqual(res[k], 401, k);
   }
-  assert.deepStrictEqual(res.session_files_left_after_unauthenticated_calls, ['creds.json']);
+  assert.deepStrictEqual([...res.session_files_left_after_unauthenticated_calls].sort(), ['_active_groups.json', 'creds.json']);
 });
 
 test('QA-002 /health stays open but reveals nothing; the right secret is accepted', () => {
@@ -103,12 +103,12 @@ test('QA-015 ordinary disconnects back off from 3 s up to a 5 min cap, with jitt
 test('QA-015 per-status policy: 401 clears the dead session, 440 waits >= 60 s, 515 reconnects at once', () => {
   const { res } = run('close_codes');
   const r = res.per_status_code;
-  assert.strictEqual(r['401'].auth_files_left, 0, 'logged out: session wiped so a fresh QR can be issued');
+  assert.strictEqual(r['401'].auth_files_left, 1, 'logged out: creds wiped (only the _active_groups.json cache remains) so a fresh QR can be issued');
   assert.ok(r['401'].delay_ms <= 3000);
   assert.ok(r['440'].delay_ms >= 60000, 'connection replaced: do not fight the other session');
   assert.ok(r['515'].delay_ms <= 1000);
-  assert.strictEqual(r['515'].auth_files_left, 1, '515 must not touch the session');
-  assert.strictEqual(r['405'].auth_files_left, 1, '405 must not touch the session');
+  assert.strictEqual(r['515'].auth_files_left, 2, '515 must not touch the session');
+  assert.strictEqual(r['405'].auth_files_left, 2, '405 must not touch the session');
   assert.ok(r['405'].delay_ms >= 48000);
 });
 
@@ -164,10 +164,28 @@ test('QA-018 unsent messages survive a sidecar restart', () => {
 
 test('QA-018 clearing the WhatsApp session keeps the unsent-message queue', () => {
   const { res } = run('clear_auth_keeps_queue', FAST_RETRY);
-  assert.deepStrictEqual(res.files_after_clear_auth, ['_outbox.json']);
+  assert.deepStrictEqual(res.files_after_clear_auth, ['_active_groups.json', '_outbox.json']);
 });
 
 test('QA-018 the WhatsApp message id is sent to Django (it deduplicates on it)', () => {
   const { res } = run('dedupe');
   assert.deepStrictEqual(res.message_id_sent_to_django, ['SAME-ID', 'SAME-ID']);
+});
+
+test('QA-020 the group filter fails closed', () => {
+  const { res } = run('fail_closed');
+  assert.strictEqual(res.a_nothing_loaded_yet, 0, 'before the list is known nothing is processed');
+  assert.strictEqual(res.b_django_says_no_group_is_enabled, 0, 'an empty list means "listen nowhere", not "listen everywhere"');
+  assert.strictEqual(res.c_enabled_group, 1);
+  assert.strictEqual(res.d_disabled_group, 0);
+  assert.strictEqual(res.e_unknown_group, 0);
+  assert.strictEqual(res.f_direct_chat, 0, '1:1 chats are never dispatch messages');
+  assert.strictEqual(res.g_django_unreachable_keeps_last_list, 1, 'a failed refresh must keep the last good list');
+  assert.strictEqual(res.h_django_unreachable_still_ignores_others, 0, '...and must not widen it');
+  assert.deepStrictEqual(res.cache_file, ['120363@g.us']);
+});
+
+test('QA-020 a restart while Django is down uses the enabled-groups copy on disk', () => {
+  const { res } = run('cache_only');
+  assert.strictEqual(res.processed_with_django_down_and_cache_on_disk, 1);
 });

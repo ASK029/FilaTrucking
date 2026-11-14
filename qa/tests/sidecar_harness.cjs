@@ -101,6 +101,12 @@ const groupMsg = (text, id = 'MSG1') => ({
                message: { conversation: text }, messageTimestamp: 1767225600 }],
 });
 
+const CLOSED_SCENARIOS = ['fail_closed'];
+if (!CLOSED_SCENARIOS.includes(scenario)) {
+  // most scenarios talk to a group the admin has enabled: provide the sidecar's on-disk copy of that list
+  fs.mkdirSync(path.join(work, 'auth_data'), { recursive: true });
+  fs.writeFileSync(path.join(work, 'auth_data', '_active_groups.json'), JSON.stringify(['120363@g.us']));
+}
 if (scenario === 'outbox_restore') {
   djangoPostImpl = async (url, body) => ({ data: { status: 'success', reply_message: 'Recorded ' + body.message_id } });
   // simulate a sidecar that died holding one unsent message
@@ -321,6 +327,38 @@ if (scenario === 'outbox_restore') {
     fs.writeFileSync(path.join(work, 'auth_data', 'creds.json'), '{"fake":"session"}');
     await authed('DELETE', '/api/auth');
     out('files_after_clear_auth', fs.readdirSync(path.join(work, 'auth_data')).sort());
+  }
+
+  if (scenario === 'fail_closed') {
+    const group = (jid, active) => ({ group_jid: jid, group_name: jid, is_active: active });
+    const msgIn = (jid, id) => ({ type: 'notify', messages: [{ key: { remoteJid: jid, participant: 'p@s.whatsapp.net', fromMe: false, id },
+      message: { conversation: 'BK1\nCONT1\nSEAL1' }, messageTimestamp: 1767225600 }] });
+    const attempt = async (jid, id) => { const before = posts.length; s0.ev.emit('messages.upsert', msgIn(jid, id)); await sleep(80); return posts.length - before; };
+
+    out('a_nothing_loaded_yet', await attempt('120363@g.us', 'A'));
+    djangoGetImpl = async () => ({ data: { groups: [] } });
+    s0.ev.emit('connection.update', { connection: 'open' }); await sleep(150);
+    out('b_django_says_no_group_is_enabled', await attempt('120363@g.us', 'B'));
+    djangoGetImpl = async () => ({ data: { groups: [group('120363@g.us', true), group('999@g.us', false)] } });
+    s0.ev.emit('connection.update', { connection: 'open' }); await sleep(150);
+    out('c_enabled_group', await attempt('120363@g.us', 'C'));
+    out('d_disabled_group', await attempt('999@g.us', 'D'));
+    out('e_unknown_group', await attempt('555@g.us', 'E'));
+    out('f_direct_chat', await attempt('13125550101@s.whatsapp.net', 'F'));
+    djangoGetImpl = async () => { throw new Error('django is restarting'); };
+    s0.ev.emit('connection.update', { connection: 'open' }); await sleep(150);
+    out('g_django_unreachable_keeps_last_list', await attempt('120363@g.us', 'G'));
+    out('h_django_unreachable_still_ignores_others', await attempt('555@g.us', 'H'));
+    out('cache_file', JSON.parse(fs.readFileSync(path.join(work, 'auth_data', '_active_groups.json'), 'utf8')));
+  }
+
+  if (scenario === 'cache_only') {
+    // restart while Django is down: the enabled-groups list comes from the on-disk copy
+    djangoGetImpl = async () => { throw new Error('django is restarting'); };
+    s0.ev.emit('connection.update', { connection: 'open' }); await sleep(150);
+    s0.ev.emit('messages.upsert', groupMsg('BK1\nCONT1\nSEAL1', 'CACHE-1'));
+    await sleep(100);
+    out('processed_with_django_down_and_cache_on_disk', posts.filter((p) => p.url.includes('/ingest/')).length);
   }
 
   if (scenario === 'dedupe') {

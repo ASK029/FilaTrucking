@@ -223,7 +223,7 @@ function clearAuthFiles() {
     const authPath = AUTH_DIR();
     fs.mkdirSync(authPath, { recursive: true });
     for (const file of fs.readdirSync(authPath)) {
-        if (file.startsWith('_outbox')) continue; // unsent driver messages are not part of the WhatsApp session
+        if (file.startsWith('_')) continue; // _outbox.json / _active_groups.json are not part of the WhatsApp session
         try {
             fs.rmSync(path.join(authPath, file), { recursive: true, force: true });
         } catch (e) {
@@ -425,19 +425,16 @@ async function handleIncomingMessage(msg) {
     const messageContent = msg.message.conversation || msg.message.extendedTextMessage?.text;
     if (!messageContent) return;
 
-    // Check if message is from an active group (if any groups are marked active)
+    // Fail closed (QA-020): only messages from groups the admin explicitly enabled are processed. Until the list
+    // has been loaded (from Django, or the last good copy on disk) and whenever it is empty, NOTHING is processed,
+    // instead of "listen and answer everywhere" as before.
     const msgGroupJid = msg.key.remoteJid;
     const isGroupMessage = msgGroupJid && msgGroupJid.endsWith('@g.us');
 
     if (isGroupMessage) {
-        // If we have active groups configured, only listen to those
-        if (activeGroupJids.size > 0 && !activeGroupJids.has(msgGroupJid)) {
-            return; // Skip messages from inactive groups
-        }
-        // If no active groups configured (empty set), listen to all groups
-    } else if (TARGET_GROUP_ID) {
-        // Legacy: only listen to specific group for individual chats
-        if (msg.key.remoteJid !== TARGET_GROUP_ID) return;
+        if (!activeGroupJids.has(msgGroupJid)) return;
+    } else if (!(TARGET_GROUP_ID && msgGroupJid === TARGET_GROUP_ID)) {
+        return; // 1:1 chats, broadcasts and status updates are never dispatch messages
     }
 
     const sender = msg.key.participant || msg.key.remoteJid;
@@ -574,6 +571,7 @@ async function processOutbox() {
 }
 
 function startOutbox() {
+    loadActiveGroupsCache();
     loadOutbox();
     if (!outboxTimer) outboxTimer = setInterval(() => processOutbox().catch((e) => addLog('error', `Retry queue failed: ${e.message}`)), OUTBOX_INTERVAL_MS);
 }
@@ -600,6 +598,31 @@ async function fetchGroups() {
     }
 }
 
+// Active (enabled) groups: Django is the source of truth; the last good answer is cached on disk so a sidecar
+// restart while Django is down does not turn the bot deaf (or, worse, open).
+const ACTIVE_GROUPS_FILE = () => path.join(AUTH_DIR(), '_active_groups.json');
+
+function loadActiveGroupsCache() {
+    try {
+        const cached = JSON.parse(fs.readFileSync(ACTIVE_GROUPS_FILE(), 'utf8'));
+        if (Array.isArray(cached)) {
+            activeGroupJids = new Set(cached.filter((j) => typeof j === 'string'));
+            addLog('info', `Loaded ${activeGroupJids.size} enabled group(s) from the local cache`);
+        }
+    } catch (err) {
+        if (err.code !== 'ENOENT') addLog('warning', `Could not read the enabled-groups cache: ${err.message}`);
+    }
+}
+
+function saveActiveGroupsCache() {
+    try {
+        fs.mkdirSync(AUTH_DIR(), { recursive: true });
+        fs.writeFileSync(ACTIVE_GROUPS_FILE(), JSON.stringify([...activeGroupJids]));
+    } catch (err) {
+        addLog('warning', `Could not save the enabled-groups cache: ${err.message}`);
+    }
+}
+
 // Fetch active (checked) groups from Django
 async function fetchActiveGroupsFromDjango() {
     try {
@@ -610,22 +633,20 @@ async function fetchActiveGroupsFromDjango() {
             headers: { 'Authorization': `Bearer ${DJANGO_SECRET}` },
             timeout: 5000
         });
-
-        activeGroupJids.clear();
-
-        if (response.data && response.data.groups) {
-            for (const group of response.data.groups) {
-                if (group.is_active) {
-                    activeGroupJids.add(group.group_jid);
-                }
-            }
+        if (!response.data || !Array.isArray(response.data.groups)) {
+            throw new Error('unexpected answer from Django');
         }
 
+        const fresh = new Set();
+        for (const group of response.data.groups) {
+            if (group.is_active) fresh.add(group.group_jid);
+        }
+        activeGroupJids = fresh;
+        saveActiveGroupsCache();
         addLog('info', `Active groups: ${activeGroupJids.size} enabled for listening`);
     } catch (err) {
-        addLog('warning', `Could not fetch active groups: ${err.message}`);
-        // If we can't fetch, assume ALL groups are active
-        activeGroupJids.clear();
+        // keep the last known list (never "assume all groups are active", which is what this used to do)
+        addLog('warning', `Could not fetch active groups, keeping the last known list (${activeGroupJids.size}): ${err.message}`);
     }
 }
 

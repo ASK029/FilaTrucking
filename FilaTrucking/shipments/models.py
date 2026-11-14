@@ -301,8 +301,10 @@ class WhatsAppGroup(models.Model):
         help_text="WhatsApp group identifier (e.g., 123456789-1234567890@g.us)"
     )
     group_name = models.CharField(max_length=255, verbose_name="Group Name")
+    # Opt-in (QA-020): a newly discovered group is ignored until the admin ticks it. Defaulting to True made the
+    # bot read (and answer in) every group the linked phone belongs to, family groups included.
     is_active = models.BooleanField(
-        default=True,
+        default=False,
         verbose_name="Active (Listen to this group)",
         help_text="If unchecked, messages from this group will be ignored"
     )
