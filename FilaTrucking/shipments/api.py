@@ -548,8 +548,11 @@ def whatsapp_logs(request):
     """Get recent WhatsApp logs with optional pagination."""
     if not check_auth(request):
         return JsonResponse(UNAUTHORIZED, status=401)
-    limit = int(request.GET.get("limit", 100))
-    offset = int(request.GET.get("offset", 0))
+    try:
+        limit = min(max(int(request.GET.get("limit", 100)), 1), 500)  # at most 500 rows per call
+        offset = max(int(request.GET.get("offset", 0)), 0)
+    except ValueError:
+        return JsonResponse({"error": "limit and offset must be whole numbers"}, status=400)
     
     logs = WhatsAppLog.objects.all()[offset:offset + limit]
     total = WhatsAppLog.objects.count()

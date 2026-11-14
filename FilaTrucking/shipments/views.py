@@ -2,6 +2,7 @@ import json
 from datetime import date
 
 from django.conf import settings
+from django.core.exceptions import BadRequest
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import EmailMessage
@@ -20,6 +21,8 @@ from django.views.generic import (
     TemplateView,
 )
 from django.views import View
+
+from FilaTrucking.params import date_param
 
 try:
     from weasyprint import HTML
@@ -132,12 +135,14 @@ def invoice_create(request):
     form = InvoiceForm()
 
     customer_id = request.GET.get("customer")
-    start_date = request.GET.get("start_date", "").strip()
-    end_date = request.GET.get("end_date", "").strip()
+    start_date = date_param(request, "start_date")
+    end_date = date_param(request, "end_date")
     
     customer_obj = None
     if customer_id:
         from .models import Customer
+        if not customer_id.isdigit():
+            raise BadRequest("'customer' must be a customer id")
         customer_obj = get_object_or_404(Customer, pk=customer_id)
         form.fields["customer"].initial = customer_obj
     
@@ -200,8 +205,8 @@ def invoice_add_lines(request, invoice_pk):
 
     invoice = get_object_or_404(Invoice, pk=invoice_pk)
     
-    start_date = request.GET.get("start_date", "").strip()
-    end_date = request.GET.get("end_date", "").strip()
+    start_date = date_param(request, "start_date")
+    end_date = date_param(request, "end_date")
     
     if request.method == "POST":
         formset = InvoiceLineItemFormSet(request.POST, instance=invoice)

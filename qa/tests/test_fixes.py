@@ -277,3 +277,48 @@ class SystemSettingsSecretsQA031(QABase):
             r = self.client.post("/settings/test/motive/", {"motive_api_key": ""})
         client.assert_called_once_with(api_key=self.MOTIVE)
         self.assertTrue(r.json()["success"])
+
+
+class QueryStringValidationQA036(QABase):
+    def setUp(self):
+        super().setUp()
+        self.login()
+
+    def test_statement_pages_and_pdfs_reject_garbage_with_400(self):
+        for url in ("/reports/financial/monthly/", "/reports/financial/monthly/pdf/"):
+            for q in ("month=13", "month=0", "month=abc", "month=-1", "year=99999", "year=1", "year=2026.5", "month=1;2"):
+                with self.subTest(url=url, q=q):
+                    self.assertEqual(self.client.get(f"{url}?{q}").status_code, 400)
+        for url in ("/reports/financial/yearly/", "/reports/financial/yearly/pdf/"):
+            for q in ("year=abc", "year=99999", "year=0"):
+                with self.subTest(url=url, q=q):
+                    self.assertEqual(self.client.get(f"{url}?{q}").status_code, 400)
+
+    def test_valid_parameters_and_empty_values_still_work(self):
+        self.assertEqual(self.client.get("/reports/financial/monthly/?year=2026&month=2").status_code, 200)
+        self.assertEqual(self.client.get("/reports/financial/monthly/?year=&month=").status_code, 200)  # defaults
+        self.assertEqual(self.client.get("/reports/financial/yearly/?year=2025").status_code, 200)
+
+    def test_invoice_form_filters_reject_bad_dates_and_customer_ids(self):
+        for q in ("start_date=abc", "end_date=2026-13-45", "customer=abc", "customer=1;drop"):
+            with self.subTest(q=q):
+                self.assertEqual(self.client.get(f"/invoices/create/?customer={self.customer.pk}&{q}" if "customer=" not in q
+                                                 else f"/invoices/create/?{q}").status_code, 400)
+        self.assertEqual(self.client.get(f"/invoices/create/?customer={self.customer.pk}&start_date=2026-01-01&end_date=2026-01-31").status_code, 200)
+        self.assertEqual(self.client.get("/invoices/create/?customer=999999").status_code, 404)
+
+    def test_invoice_lines_page_rejects_bad_dates(self):
+        from shipments.models import Invoice
+        inv = Invoice.objects.create(customer=self.customer, invoice_date=date(2026, 1, 1))
+        self.assertEqual(self.client.get(f"/invoices/{inv.pk}/lines/?start_date=nope").status_code, 400)
+        self.assertEqual(self.client.get(f"/invoices/{inv.pk}/lines/?start_date=2026-01-01").status_code, 200)
+
+    def test_whatsapp_logs_limit_and_offset(self):
+        from shipments.models import WhatsAppLog
+        for i in range(600):
+            WhatsAppLog.objects.create(level="info", message=f"m{i}")
+        j = self.client.get("/shipments/api/whatsapp/logs/?limit=100000").json()
+        self.assertEqual((len(j["logs"]), j["limit"]), (500, 500))  # clamped
+        self.assertEqual(self.client.get("/shipments/api/whatsapp/logs/?limit=abc").status_code, 400)
+        self.assertEqual(self.client.get("/shipments/api/whatsapp/logs/?offset=x").status_code, 400)
+        self.assertEqual(len(self.client.get("/shipments/api/whatsapp/logs/?limit=-5").json()["logs"]), 1)

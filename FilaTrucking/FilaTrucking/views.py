@@ -19,6 +19,8 @@ from django.shortcuts import redirect
 from django.contrib import messages
 from django.utils import timezone
 
+from .params import int_param
+
 logger = logging.getLogger(__name__)
 
 
@@ -250,8 +252,8 @@ def _paid_invoices_in_range(start_date, end_date):
 def monthly_statement(request):
     """Monthly financial statement matching the CSV layout."""
     today = timezone.localdate()
-    year = int(request.GET.get("year", today.year))
-    month = int(request.GET.get("month", today.month))
+    year = int_param(request, "year", today.year, 2000, 2100)
+    month = int_param(request, "month", today.month, 1, 12)
 
     _, last_day = monthrange(year, month)
     start_date = date(year, month, 1)
@@ -326,7 +328,7 @@ def monthly_statement(request):
 def yearly_statement(request):
     """Yearly financial statement – per-month per-category grid matching the CSV."""
     today = timezone.localdate()
-    year = int(request.GET.get("year", today.year))
+    year = int_param(request, "year", today.year, 2000, 2100)
 
     start_date = date(year, 1, 1)
     end_date = date(year, 12, 31)
@@ -408,8 +410,8 @@ def monthly_statement_pdf(request):
         )
 
     today = timezone.localdate()
-    year = int(request.GET.get("year", today.year))
-    month = int(request.GET.get("month", today.month))
+    year = int_param(request, "year", today.year, 2000, 2100)
+    month = int_param(request, "month", today.month, 1, 12)
 
     _, last_day = monthrange(year, month)
     start_date = date(year, month, 1)
@@ -473,7 +475,7 @@ def yearly_statement_pdf(request):
         )
 
     today = timezone.localdate()
-    year = int(request.GET.get("year", today.year))
+    year = int_param(request, "year", today.year, 2000, 2100)
 
     start_date = date(year, 1, 1)
     end_date = date(year, 12, 31)
