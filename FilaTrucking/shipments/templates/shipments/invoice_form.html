@@ -59,7 +59,13 @@
       </div>
 
       {{ formset.management_form }}
-      {{ formset.non_form_errors }}
+      {% if formset.total_error_count %}
+      <div class="mb-4 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-300" role="alert">
+        <p class="font-semibold mb-1">Please fix the line items:</p>
+        {{ formset.non_form_errors }}
+        {% for f in formset %}{% if f.errors %}<p>Line {{ forloop.counter }}: {% for field, errs in f.errors.items %}{{ errs|join:" " }} {% endfor %}</p>{% endif %}{% endfor %}
+      </div>
+      {% endif %}
 
       <div class="pt-6 border-t border-slate-700/50">
         <div class="flex items-center justify-between mb-4">
