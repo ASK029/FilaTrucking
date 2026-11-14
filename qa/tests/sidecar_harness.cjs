@@ -1,7 +1,8 @@
 // QA harness: loads the REAL sidecar/index.js with Baileys + axios + qrcode-terminal stubbed out.
 // No WhatsApp connection is ever made. Each scenario is run in its own process:
 //   node qa/tests/sidecar_harness.cjs <scenario>
-// Scenarios: noise | crash | restart_dup | interval_leak | noauth_api | reconnect_loop | dedupe
+// Scenarios: version | noise | crash | restart_dup | interval_leak | noauth_api | reconnect_loop | close_codes |
+//            qr_timeouts | no_stacking | dedupe
 const Module = require('module');
 const path = require('path');
 const fs = require('fs');
@@ -36,9 +37,10 @@ function makeWASocket(opts) {
 }
 const posts = [];
 let djangoPostImpl = async () => ({ data: { status: 'success' } });
+let djangoGetImpl = async () => ({ data: { groups: [] } });
 const fakeAxios = {
   post: async (url, body) => { posts.push({ url, body }); return djangoPostImpl(url, body); },
-  get: async () => ({ data: { groups: [] } }),
+  get: async (url) => djangoGetImpl(url),
 };
 const fakeBaileys = {
   default: makeWASocket,
@@ -47,7 +49,7 @@ const fakeBaileys = {
     return { version: [2, 3000, 999], isLatest: true };
   },
   useMultiFileAuthState: async () => ({ state: {}, saveCreds: async () => {} }),
-  DisconnectReason: { loggedOut: 401 },
+  DisconnectReason: { loggedOut: 401, connectionReplaced: 440, restartRequired: 515, timedOut: 408, connectionClosed: 428 },
 };
 const origLoad = Module._load;
 Module._load = function (request, parent, isMain) {
@@ -56,10 +58,31 @@ Module._load = function (request, parent, isMain) {
   if (request === 'qrcode-terminal') return { generate() {} };
   return origLoad.apply(this, arguments);
 };
-// track long-lived intervals (index.js registers a 30 s poll on every 'open')
+// track long-lived intervals (index.js registers a 30 s poll)
 const intervals = [];
 const origSetInterval = global.setInterval;
 global.setInterval = function (fn, ms, ...a) { const h = origSetInterval(fn, ms, ...a); intervals.push({ ms, h }); return h; };
+// "fake clock" for reconnect delays: record every timer >= 400 ms and never really wait for it
+const timers = [];
+const origSetTimeout = global.setTimeout;
+let fakeClock = false;
+global.setTimeout = function (fn, ms, ...a) {
+  if (fakeClock && ms >= 400) {
+    const rec = { ms, fn, cleared: false };
+    timers.push(rec);
+    const h = origSetTimeout(() => {}, 1);
+    rec.handle = h;
+    return h;
+  }
+  return origSetTimeout(fn, ms, ...a);
+};
+const origClearTimeout = global.clearTimeout;
+global.clearTimeout = function (h) {
+  for (const t of timers) if (t.handle === h) t.cleared = true;
+  return origClearTimeout(h);
+};
+const pendingTimers = () => timers.filter((t) => !t.cleared && !t.fired);
+const fire = (t) => { t.fired = true; t.fn(); };
 
 const SECRET = process.env.DJANGO_SECRET;
 function req(method, p, body, headers = {}) {
@@ -71,6 +94,7 @@ function req(method, p, body, headers = {}) {
   });
 }
 const authed = (method, p, body) => req(method, p, body, { Authorization: `Bearer ${SECRET}` });
+const closeEvent = (code) => ({ connection: 'close', lastDisconnect: { error: { message: 'x', output: { statusCode: code } } } });
 const groupMsg = (text, id = 'MSG1') => ({
   type: 'notify',
   messages: [{ key: { remoteJid: '120363@g.us', participant: '13125550101@s.whatsapp.net', fromMe: false, id },
@@ -110,17 +134,24 @@ const groupMsg = (text, id = 'MSG1') => ({
     await sleep(200);
     const before = sockets.length;
     const r = await authed('POST', '/api/restart');
-    await sleep(5500);
+    await sleep(2500);
     out('http_status', r.status);
     out('sockets_created_by_one_restart_call', sockets.length - before);
     out('sockets_still_open_with_same_credentials', sockets.filter((s) => !s.ended).length);
+    // and a double-click on "Restart" must still produce a single new socket
+    const before2 = sockets.length;
+    await authed('POST', '/api/restart');
+    await authed('POST', '/api/restart');
+    await sleep(2500);
+    out('sockets_created_by_two_quick_restart_calls', sockets.length - before2);
+    out('sockets_open_after_two_quick_restarts', sockets.filter((s) => !s.ended).length);
   }
 
   if (scenario === 'interval_leak') {
     for (let i = 0; i < 4; i++) s0.ev.emit('connection.update', { connection: 'open' });
     await sleep(300);
     out('open_events', 4);
-    out('30s_intervals_registered_never_cleared', intervals.filter((i) => i.ms === 30000).length);
+    out('30s_intervals_registered', intervals.filter((i) => i.ms === 30000).length);
   }
 
   if (scenario === 'noauth_api') {
@@ -144,15 +175,67 @@ const groupMsg = (text, id = 'MSG1') => ({
   }
 
   if (scenario === 'reconnect_loop') {
-    // WhatsApp keeps answering 405: how does the sidecar behave?
-    const t0 = Date.now();
-    const kick = (s) => setTimeout(() => s.ev.emit('connection.update', { connection: 'close', lastDisconnect: { error: { output: { statusCode: 405 }, data: { reason: '405' } } } }), 10);
-    const origPush = sockets.push.bind(sockets);
-    sockets.push = (s) => { kick(s); return origPush(s); };
-    kick(s0);
-    await sleep(13000);
-    out('reconnect_attempts_in_13s', sockets.length);
-    out('seconds_between_attempts', sockets.slice(1).map((s, i) => +((s.createdAt - sockets[i].createdAt) / 1000).toFixed(1)));
+    // WhatsApp keeps answering with a status code: how long does the sidecar wait between attempts?
+    fakeClock = true;
+    const code = parseInt(process.env.HARNESS_CODE || '405', 10);
+    const delays = [];
+    let current = s0;
+    for (let i = 0; i < 12; i++) {
+      current.ev.emit('connection.update', closeEvent(code));
+      await sleep(30);
+      const pending = pendingTimers();
+      if (pending.length !== 1) { out('pending_timers_after_close', pending.length); break; }
+      delays.push(Math.round(pending[0].ms / 1000));
+      fire(pending[0]);
+      await sleep(60);
+      current = sockets[sockets.length - 1];
+    }
+    out('delays_seconds', delays);
+    out('sockets_created', sockets.length);
+  }
+
+  if (scenario === 'close_codes') {
+    fakeClock = true;
+    fs.mkdirSync(path.join(work, 'auth_data'), { recursive: true });
+    const res = {};
+    for (const code of [401, 440, 515, 405, 428]) {
+      fs.writeFileSync(path.join(work, 'auth_data', 'creds.json'), '{"fake":"session"}');
+      const cur = sockets[sockets.length - 1];
+      cur.ev.emit('connection.update', closeEvent(code));
+      await sleep(50);
+      const pending = pendingTimers();
+      res[code] = { delay_ms: pending.length ? pending[0].ms : null, auth_files_left: fs.readdirSync(path.join(work, 'auth_data')).length };
+      pending.forEach(fire);
+      await sleep(80);
+    }
+    out('per_status_code', res);
+  }
+
+  if (scenario === 'qr_timeouts') {
+    // pairing: QR shown, nobody scans, WhatsApp closes with 408 over and over -> short capped delays
+    fakeClock = true;
+    const delays = [];
+    let current = s0;
+    for (let i = 0; i < 8; i++) {
+      current.ev.emit('connection.update', { qr: '2@QR' + i });
+      current.ev.emit('connection.update', closeEvent(408));
+      await sleep(30);
+      const p = pendingTimers();
+      delays.push(Math.round(p[0].ms / 1000));
+      fire(p[0]);
+      await sleep(60);
+      current = sockets[sockets.length - 1];
+    }
+    out('delays_seconds', delays);
+  }
+
+  if (scenario === 'no_stacking') {
+    fakeClock = true;
+    s0.ev.emit('connection.update', closeEvent(428));
+    await sleep(30);
+    await authed('POST', '/api/restart');
+    await authed('POST', '/api/restart');
+    out('pending_restart_timers_after_close_plus_two_restarts', pendingTimers().length);
   }
 
   if (scenario === 'dedupe') {
