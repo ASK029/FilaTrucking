@@ -272,3 +272,38 @@ class BaseImagesQA028(SimpleTestCase):
         text = (ROOT / "deploy" / "README.md").read_text(encoding="utf-8")
         self.assertIn("8.4", text)
         self.assertIn("rehearse", text.lower())
+
+
+def _deploy_check(**env):
+    """Run `manage.py check --deploy` with a clean environment; returns (returncode, output)."""
+    keep = {k: v for k, v in os.environ.items() if k in ("PATH", "SYSTEMROOT", "TEMP", "TMP", "PYTHONPATH", "HOME", "USERPROFILE")}
+    keep["DOTENV_PATH"] = str(ROOT / "qa" / ".no-such-env")
+    keep.update(env)
+    r = subprocess.run([sys.executable, "manage.py", "check", "--deploy"], env=keep, cwd=dj_settings.BASE_DIR,
+                       capture_output=True, text=True)
+    return r.returncode, r.stdout + r.stderr
+
+
+PROD_ENV = dict(GOOD, DEBUG="False", ALLOWED_HOSTS="example.org", CSRF_TRUSTED_ORIGINS="https://example.org",
+                SECRET_KEY="Zq8!vXr3#Lm9@tWp2$Fj7&Hd5^Nb1*Kc4(Ys6)Ge0+Ua-Ox_RiTlEwQyPnMbVcXzAsDfGhJkLq")
+
+
+class ProductionSecurityFlagsQA029(SimpleTestCase):
+    def test_secure_by_default_with_nothing_but_the_required_variables(self):
+        code, out = _deploy_check(**PROD_ENV)
+        self.assertIn("no issues", out, out)  # zero `check --deploy` warnings
+
+    def test_insecure_flags_are_still_reported_when_someone_turns_them_off(self):
+        code, out = _deploy_check(**PROD_ENV, SECURE_SSL_REDIRECT="False", SESSION_COOKIE_SECURE="False")
+        self.assertIn("security.W008", out)
+        self.assertIn("security.W012", out)
+
+    def test_the_security_block_exists_exactly_once(self):
+        text = (ROOT / "FilaTrucking" / "FilaTrucking" / "settings.py").read_text(encoding="utf-8")
+        self.assertEqual(text.count("SECURE_HSTS_SECONDS ="), 1)
+        self.assertEqual(text.count("SESSION_COOKIE_SECURE ="), 1)
+
+    def test_session_age_comment_matches_the_value(self):
+        text = (ROOT / "FilaTrucking" / "FilaTrucking" / "settings.py").read_text(encoding="utf-8")
+        self.assertIn("SESSION_COOKIE_AGE = 60 * 60", text)
+        self.assertNotIn("30 minutes", text)

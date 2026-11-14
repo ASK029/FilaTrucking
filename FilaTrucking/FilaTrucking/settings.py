@@ -51,19 +51,6 @@ ALLOWED_HOSTS = [h.strip() for h in os.environ.get('ALLOWED_HOSTS', 'localhost,1
 
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if o.strip()]
 
-# Production Security Settings
-if not DEBUG:
-    SECURE_SSL_REDIRECT = True
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    SECURE_HSTS_SECONDS = 31536000
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    SECURE_BROWSER_XSS_FILTER = True
-    X_FRAME_OPTIONS = 'DENY'
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -174,15 +161,21 @@ STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
 ]
 
+def _env_flag(name, default):
+    return os.environ.get(name, str(default)).strip().lower() in ('1', 'true', 'yes', 'on')
+
+
+# Production security settings: ONE block (it used to exist twice), secure by default whenever DEBUG is off (QA-029).
+# nginx terminates TLS and sets X-Forwarded-Proto, so Django can tell requests are HTTPS. The three flags can still be
+# overridden from .env, but the default is "on": the server's .env had SECURE_SSL_REDIRECT=False.
 if not DEBUG:
-    SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'True') == 'True'
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'True') == 'True'
-    CSRF_COOKIE_SECURE = os.environ.get('CSRF_COOKIE_SECURE', 'True') == 'True'
+    SECURE_SSL_REDIRECT = _env_flag('SECURE_SSL_REDIRECT', True)
+    SESSION_COOKIE_SECURE = _env_flag('SESSION_COOKIE_SECURE', True)
+    CSRF_COOKIE_SECURE = _env_flag('CSRF_COOKIE_SECURE', True)
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
-    SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = 'DENY'
 
@@ -190,7 +183,7 @@ LOGIN_URL = '/auth/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/auth/login/'
 
-# Session expires after 30 minutes of inactivity
+# Sessions last 60 minutes (the cookie is refreshed on activity only if SESSION_SAVE_EVERY_REQUEST is set)
 SESSION_COOKIE_AGE = 60 * 60  # seconds
 
 # Expire session when browser is closed
