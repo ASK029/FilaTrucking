@@ -65,8 +65,9 @@ services:
     tty: true
     command: python manage.py runserver 0.0.0.0:8000
 
-  # WhatsApp Sidecar (Node.js)
-  whatsapp-sidecar:
+  # WhatsApp Sidecar (Node.js). The service name must be 'sidecar': Django's WHATSAPP_SIDECAR_URL points at http://sidecar:3001
+  # (it was called whatsapp-sidecar, so every Sync/Restart/Clear-auth button failed with a connection error) (QA-041)
+  sidecar:
     build:
       context: ./sidecar
       dockerfile: Dockerfile
@@ -77,7 +78,7 @@ services:
       - DJANGO_API_URL=http://django:8000/shipments/api/ingest/
       - DJANGO_SECRET=${WHATSAPP_INGEST_SECRET:?set WHATSAPP_INGEST_SECRET in .env (see .env.example)}
     volumes:
-      - auth_data:/app/sidecar/auth_info_baileys
+      - auth_data:/app/sidecar/auth_data   # the code stores the session in ./auth_data (was auth_info_baileys: the login was lost on every rebuild)
       - ./sidecar/logs:/app/sidecar/logs
     ports:
       - "127.0.0.1:3001:3001"  # loopback only (QA-002): the API controls the WhatsApp session

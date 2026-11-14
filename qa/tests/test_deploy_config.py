@@ -307,3 +307,26 @@ class ProductionSecurityFlagsQA029(SimpleTestCase):
         text = (ROOT / "FilaTrucking" / "FilaTrucking" / "settings.py").read_text(encoding="utf-8")
         self.assertIn("SESSION_COOKIE_AGE = 60 * 60", text)
         self.assertNotIn("30 minutes", text)
+
+
+class DevComposeQA041(SimpleTestCase):
+    def test_django_can_reach_the_sidecar_by_the_configured_name(self):
+        dev = compose("docker-compose.yml")["services"]
+        url = next(e for e in dev["django"]["environment"] if e.startswith("WHATSAPP_SIDECAR_URL="))
+        host = re.match(r"WHATSAPP_SIDECAR_URL=http://([^:/]+):(\d+)", url).group(1)
+        self.assertIn(host, dev, "WHATSAPP_SIDECAR_URL points at a service that does not exist")
+        self.assertEqual(host, next(iter(n for n in compose("docker-compose.prod.yml")["services"] if "sidecar" in n)), "dev and prod service names differ")
+
+    def test_the_session_volume_is_mounted_where_the_code_writes_it(self):
+        dev = compose("docker-compose.yml")["services"]["sidecar"]
+        self.assertIn("auth_data:/app/sidecar/auth_data", " ".join(v.split("#")[0].strip() for v in dev["volumes"]))
+        index_js = (ROOT / "sidecar" / "index.js").read_text(encoding="utf-8")
+        self.assertIn("'auth_data'", index_js)
+        self.assertNotIn("auth_info_baileys", " ".join(dev["volumes"]))
+
+    def test_every_compose_file_parses_and_names_resolve(self):
+        for name in ("docker-compose.yml", "docker-compose.prod.yml"):
+            services = compose(name)["services"]
+            for svc_name, svc in services.items():
+                for dep in (svc.get("depends_on") or {}):
+                    self.assertIn(dep, services, f"{name}: {svc_name} depends on unknown service {dep}")
