@@ -116,16 +116,21 @@ class InvoiceLineItemForm(TailwindFormMixin, forms.ModelForm):
 
 
 class SystemSettingsForm(TailwindFormMixin, forms.ModelForm):
+    """Stored secrets are NEVER rendered back into the page (QA-031): the fields stay empty, a hint says whether a value is
+    stored, and an empty submission keeps the stored value. (They used to be written into the HTML in clear text.)"""
+
     motive_api_key = forms.CharField(
         required=False,
-        widget=forms.PasswordInput(render_value=True, attrs={'placeholder': 'Paste your Motive API key here'}),
+        widget=forms.PasswordInput(render_value=False, attrs={'placeholder': 'Paste your Motive API key here', 'autocomplete': 'off'}),
         label="Motive API Key"
     )
     email_password = forms.CharField(
         required=False,
-        widget=forms.PasswordInput(render_value=True, attrs={'placeholder': 'Enter email app password'}),
+        widget=forms.PasswordInput(render_value=False, attrs={'placeholder': 'Enter email app password', 'autocomplete': 'new-password'}),
         label="Email Password"
     )
+    clear_motive_api_key = forms.BooleanField(required=False, label="Remove the stored Motive API key")
+    clear_email_password = forms.BooleanField(required=False, label="Remove the stored email password")
 
     class Meta:
         model = SystemSettings
@@ -134,24 +139,30 @@ class SystemSettingsForm(TailwindFormMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Reorder fields to look better
-        field_order = ['motive_api_key', 'email_host_user', 'email_password', 'email_from_email']
+        field_order = ['motive_api_key', 'clear_motive_api_key', 'email_host_user', 'email_password',
+                       'clear_email_password', 'email_from_email']
         self.order_fields(field_order)
-        
+
         if self.instance and self.instance.pk:
-            # Pre-fill from encrypted storage
-            self.fields['motive_api_key'].initial = self.instance.get_motive_api_key()
-            self.fields['email_password'].initial = self.instance.get_email_password()
+            if self.instance.get_motive_api_key():
+                self.fields['motive_api_key'].help_text = "A key is stored. Leave empty to keep it, or paste a new one to replace it."
+            if self.instance.get_email_password():
+                self.fields['email_password'].help_text = "A password is stored. Leave empty to keep it, or enter a new one to replace it."
 
     def save(self, commit=True):
         instance = super().save(commit=False)
         motive_key = self.cleaned_data.get('motive_api_key')
         email_pass = self.cleaned_data.get('email_password')
-        
-        if motive_key is not None:
+
+        if self.cleaned_data.get('clear_motive_api_key'):
+            instance.set_motive_api_key("")
+        elif motive_key:
             instance.set_motive_api_key(motive_key)
-        if email_pass is not None:
+        if self.cleaned_data.get('clear_email_password'):
+            instance.set_email_password("")
+        elif email_pass:
             instance.set_email_password(email_pass)
-            
+
         if commit:
             instance.save()
         return instance

@@ -219,3 +219,61 @@ class LoginThrottleQA030(QABase):
         self.assertIn("limit_req_zone", conf)
         self.assertRegex(conf, r"location = /auth/login/ \{\s*limit_req zone=login")
         self.assertIn("CACHE_URL=redis://redis:6379/1", " ".join(compose("docker-compose.prod.yml")["services"]["django"]["environment"]))
+
+
+class SystemSettingsSecretsQA031(QABase):
+    MOTIVE = "MOTIVE-KEY-FOR-QA-12345"
+    SMTP = "SMTP-PASSWORD-FOR-QA-67890"
+
+    def setUp(self):
+        super().setUp()
+        from shipments.models import SystemSettings
+        s = SystemSettings.get_instance()
+        s.set_motive_api_key(self.MOTIVE)
+        s.set_email_password(self.SMTP)
+        s.email_host_user = "dispatch@example.org"
+        s.save()
+        self.login()
+
+    def stored(self):
+        from shipments.models import SystemSettings
+        s = SystemSettings.objects.get()
+        return s.get_motive_api_key(), s.get_email_password(), s.email_host_user
+
+    def post(self, **over):
+        data = {"motive_api_key": "", "email_password": "", "email_host_user": "dispatch@example.org", "email_from_email": ""}
+        data.update(over)
+        return self.client.post("/settings/system/", data)
+
+    def test_page_never_contains_the_stored_secrets_but_says_they_exist(self):
+        html = self.client.get("/settings/system/").content.decode()
+        self.assertNotIn(self.MOTIVE, html)
+        self.assertNotIn(self.SMTP, html)
+        self.assertIn("A key is stored", html)
+        self.assertIn("A password is stored", html)
+
+    def test_saving_with_empty_fields_keeps_the_stored_values(self):
+        self.assertEqual(self.post(email_host_user="new@example.org").status_code, 302)
+        self.assertEqual(self.stored(), (self.MOTIVE, self.SMTP, "new@example.org"))
+
+    def test_a_new_value_replaces_the_stored_one(self):
+        self.post(motive_api_key="NEW-KEY-1")
+        self.assertEqual(self.stored()[:2], ("NEW-KEY-1", self.SMTP))
+
+    def test_remove_checkboxes_clear_the_values(self):
+        self.post(clear_motive_api_key="on", clear_email_password="on")
+        self.assertEqual(self.stored()[:2], ("", ""))
+
+    def test_secrets_are_still_encrypted_at_rest(self):
+        from shipments.models import SystemSettings
+        s = SystemSettings.objects.get()
+        raw = [getattr(s, f.name) for f in s._meta.fields if isinstance(getattr(s, f.name), str)]
+        self.assertFalse([v for v in raw if self.MOTIVE in v or self.SMTP in v], "a secret is stored in clear text")
+
+    def test_test_connection_buttons_fall_back_to_the_stored_key(self):
+        from unittest import mock
+        with mock.patch("vehicles.gomotive_client.GoMotiveClient") as client:
+            client.return_value.test_connection.return_value = True
+            r = self.client.post("/settings/test/motive/", {"motive_api_key": ""})
+        client.assert_called_once_with(api_key=self.MOTIVE)
+        self.assertTrue(r.json()["success"])

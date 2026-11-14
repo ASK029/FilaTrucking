@@ -42,6 +42,8 @@
                 <div>
                     <label class="block text-sm font-medium text-muted mb-2">Motive API Key</label>
                     {{ form.motive_api_key }}
+                    {% if form.motive_api_key.help_text %}<p class="mt-2 text-xs text-slate-400">{{ form.motive_api_key.help_text }}</p>{% endif %}
+                    <label class="mt-2 flex items-center gap-2 text-xs text-slate-400 min-h-[44px] md:min-h-0">{{ form.clear_motive_api_key }} {{ form.clear_motive_api_key.label }}</label>
                     {% if form.motive_api_key.errors %}
                         <p class="mt-2 text-sm text-red-400">{{ form.motive_api_key.errors.0 }}</p>
                     {% endif %}
@@ -75,6 +77,8 @@
                 <div class="md:col-span-2">
                     <label class="block text-sm font-medium text-muted mb-2">SMTP Password</label>
                     {{ form.email_password }}
+                    {% if form.email_password.help_text %}<p class="mt-2 text-xs text-slate-400">{{ form.email_password.help_text }}</p>{% endif %}
+                    <label class="mt-2 flex items-center gap-2 text-xs text-slate-400 min-h-[44px] md:min-h-0">{{ form.clear_email_password }} {{ form.clear_email_password.label }}</label>
                     {% if form.email_password.errors %}
                         <p class="mt-2 text-sm text-red-400">{{ form.email_password.errors.0 }}</p>
                     {% endif %}
