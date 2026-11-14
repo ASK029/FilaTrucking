@@ -57,3 +57,42 @@ class QueryCounts(QABase):
         def mk(i):
             Vehicle.objects.create(registration_number=f"V{i}", model="m", chassis_number=f"VIN{i}", driver=self.driver)
         self.assert_flat(self.grow(mk, "/vehicles/"), "vehicle list")
+
+
+class PaginationQA034(QABase):
+    def setUp(self):
+        super().setUp()
+        self.login()
+
+    def test_shipments_are_paginated_25_per_page_with_working_links(self):
+        Shipment.objects.bulk_create([
+            Shipment(customer=self.customer, date=date(2026, 1, 5), booking=f"B{i}", container=f"C{i:03d}", seal="S",
+                     location="CHI", amount=Decimal("1")) for i in range(60)])
+        html1 = self.client.get("/shipments/").content.decode()
+        self.assertIn("Showing", html1)
+        r2 = self.client.get("/shipments/?page=2")
+        self.assertEqual(len(r2.context["shipments"]), 25)
+        self.assertEqual(len(self.client.get("/shipments/?page=3").context["shipments"]), 10)
+        self.assertEqual(self.client.get("/shipments/?page=4").status_code, 404)
+        self.assertContains(self.client.get("/shipments/"), "?page=2")
+
+    def test_pagination_links_keep_the_search_query(self):
+        from customers.models import Customer
+        for i in range(60):
+            Customer.objects.create(name=f"Acme {i}", abbreviation=f"A{i}", phone_number="+13125550100", address="x",
+                                    email=f"a{i}@example.org", default_rate=Decimal("1"))
+        r = self.client.get("/customers/?q=Acme")
+        self.assertContains(r, "?page=2&amp;q=Acme")
+
+    def test_each_list_page_renders_exactly_one_pagination_control(self):
+        for url in ("/shipments/", "/invoices/", "/expenses/", "/vehicles/maintenance/", "/vehicles/", "/customers/", "/drivers/"):
+            with self.subTest(url=url):
+                self.assertLessEqual(self.client.get(url).content.decode().count('aria-label="Pagination"'), 1)
+
+    def test_maintenance_list_pages_work_with_the_python_side_sort(self):
+        for i in range(60):
+            v = Vehicle.objects.create(registration_number=f"PT{i}", model="m", chassis_number=f"PV{i}")
+            Maintenance.objects.create(vehicle=v, cost=1, service_provider="x", description="d")
+        for sort in ("", "?sort=date", "?sort=vehicle"):
+            r = self.client.get("/vehicles/maintenance/" + sort)
+            self.assertEqual((r.status_code, len(r.context["logs"])), (200, 50))

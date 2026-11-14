@@ -94,22 +94,5 @@
   </div>
 </div>
 
-{% if is_paginated %}
-<div class="flex items-center justify-between mt-6">
-  <div class="text-sm text-slate-400">
-    Showing <span class="font-medium text-slate-200">{{ page_obj.start_index }}</span> to <span
-      class="font-medium text-slate-200">{{ page_obj.end_index }}</span> of <span class="font-medium text-slate-200">{{ paginator.count }}</span> invoices
-  </div>
-  <div class="flex gap-2">
-    {% if page_obj.has_previous %}
-    <a href="?page={{ page_obj.previous_page_number }}"
-      class="bg-slate-800 border border-slate-700 text-slate-300 px-4 py-2 rounded-xl text-sm font-medium hover:bg-slate-700 transition">Previous</a>
-    {% endif %}
-    {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}"
-      class="bg-slate-800 border border-slate-700 text-slate-300 px-4 py-2 rounded-xl text-sm font-medium hover:bg-slate-700 transition">Next</a>
-    {% endif %}
-  </div>
-</div>
-{% endif %}
+{% include "partials/pagination.html" with noun="invoices" %}
 {% endblock %}

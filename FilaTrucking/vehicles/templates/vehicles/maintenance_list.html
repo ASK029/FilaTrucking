@@ -109,20 +109,7 @@
     </table>
   </div>
 
-  {% if is_paginated %}
-  <div class="mt-6 flex items-center justify-between">
-    <div class="flex gap-2">
-      {% if page_obj.has_previous %}
-      <a href="?page={{ page_obj.previous_page_number }}"
-        class="bg-surface border border-slate-700 px-4 py-2 rounded-xl text-xs hover:bg-slate-800 transition-colors">Previous</a>
-      {% endif %}
-      {% if page_obj.has_next %}
-      <a href="?page={{ page_obj.next_page_number }}"
-        class="bg-surface border border-slate-700 px-4 py-2 rounded-xl text-xs hover:bg-slate-800 transition-colors">Next</a>
-      {% endif %}
-    </div>
-    <span class="text-xs text-muted">Page {{ page_obj.number }} of {{ paginator.num_pages }}</span>
-  </div>
-  {% endif %}
+  
 </div>
+{% include "partials/pagination.html" with noun="maintenance records" %}
 {% endblock %}

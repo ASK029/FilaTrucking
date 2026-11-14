@@ -17,6 +17,7 @@ class DriverListView(LoginRequiredMixin, ListView):
     model = Driver
     template_name = "drivers/driver_list.html"
     context_object_name = "drivers"
+    paginate_by = 50
 
 
 class DriverDetailView(LoginRequiredMixin, DetailView):

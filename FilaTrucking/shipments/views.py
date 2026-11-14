@@ -41,6 +41,11 @@ class ShipmentListView(LoginRequiredMixin, ListView):
     model = Shipment
     template_name = "shipments/shipment_list.html"
     context_object_name = "shipments"
+    paginate_by = 25  # unbounded before (QA-034)
+
+    def get_queryset(self):
+        # the list shows customer, driver and vehicle of every row: fetch them in the same query (N+1 before)
+        return super().get_queryset().select_related("customer", "driver", "vehicle")
 
 
 class ShipmentDetailView(LoginRequiredMixin, DetailView):
@@ -74,6 +79,9 @@ class InvoiceListView(LoginRequiredMixin, ListView):
     template_name = "shipments/invoice_list.html"
     context_object_name = "invoices"
     paginate_by = 20
+
+    def get_queryset(self):
+        return super().get_queryset().select_related("customer")
 
 
 class InvoiceDetailView(LoginRequiredMixin, DetailView):
@@ -456,6 +464,9 @@ class ExpenseListView(LoginRequiredMixin, ListView):
     template_name = "shipments/expense_list.html"
     context_object_name = "expenses"
     paginate_by = 20
+
+    def get_queryset(self):
+        return super().get_queryset().select_related("vehicle", "driver")
 
 
 class ExpenseCreateView(LoginRequiredMixin, CreateView):

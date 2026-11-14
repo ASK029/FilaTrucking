@@ -20,6 +20,10 @@ class VehicleListView(LoginRequiredMixin, ListView):
     model = Vehicle
     template_name = "vehicles/vehicle_list.html"
     context_object_name = "vehicles"
+    paginate_by = 50
+
+    def get_queryset(self):
+        return super().get_queryset().select_related("driver")
 
 
 class VehicleDetailView(LoginRequiredMixin, DetailView):
@@ -208,7 +212,7 @@ class MaintenanceListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         # We process search/filter here if needed, then sort in python
-        qs = super().get_queryset()
+        qs = super().get_queryset().select_related("vehicle")  # status/sorting read the vehicle of every row
         
         # Sort by HTTP GET params as well if provided
         sort_param = self.request.GET.get('sort', 'status')
