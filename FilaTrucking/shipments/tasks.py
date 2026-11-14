@@ -8,73 +8,89 @@ from celery import shared_task
 from django.db import transaction
 from django.db.models import Sum
 
-from .models import Expense, ExpenseCategory, Invoice, InvoiceLineItem, InvoiceStatus, Shipment, ShipmentStatus
+from .models import Expense, ExpenseCategory, FinancialStatement, Invoice, InvoiceLineItem, InvoiceStatus, Shipment, ShipmentStatus
+
+
+def _previous_month(today: date) -> tuple[int, int]:
+    return (today.year - 1, 12) if today.month == 1 else (today.year, today.month - 1)
+
+
+def _period_figures(start_date: date, end_date: date) -> dict:
+    """Revenue counts PAID invoices by paid_at (PRD); driver pay is the DRIVER expense category."""
+    revenue = (
+        Invoice.objects.filter(status=InvoiceStatus.PAID, paid_at__range=(start_date, end_date))
+        .aggregate(total=Sum("total_amount"))["total"] or Decimal("0")
+    )
+    expenses = Expense.objects.filter(date__range=(start_date, end_date))
+    total_expenses = expenses.aggregate(total=Sum("amount"))["total"] or Decimal("0")
+    driver_pay_total = (
+        expenses.filter(category=ExpenseCategory.DRIVER).aggregate(total=Sum("amount"))["total"] or Decimal("0")
+    )
+    cents = Decimal("0.01")  # databases differ in what SUM() returns ('300' vs '300.00'): always report cents
+    return {
+        "revenue": revenue.quantize(cents),
+        "total_expenses": total_expenses.quantize(cents),
+        "driver_pay_total": driver_pay_total.quantize(cents),
+        "net_profit": (revenue - total_expenses).quantize(cents),
+    }
 
 
 @shared_task
 def generate_monthly_statement(year: int | None = None, month: int | None = None) -> dict:
-    """Compute monthly financial aggregates for the given period.
+    """Compute and store the financial figures of one month (QA-009).
 
-    Returns a lightweight dict so the task result can be inspected in Celery.
+    Called by Celery beat with no arguments on the 1st, it reports the month that just ended (the old code
+    reported the brand-new, empty month). Pass year/month explicitly to (re)generate any period.
+    The result is saved as a FinancialStatement row (one per month, updated on re-run) and returned as a dict.
     """
-    today = date.today()
-    year = int(year or today.year)
-    month = int(month or today.month)
+    if year is None and month is None:
+        year, month = _previous_month(date.today())
+    else:
+        today = date.today()
+        year = int(year or today.year)
+        month = int(month or today.month)
 
     _, last_day = monthrange(year, month)
     start_date = date(year, month, 1)
     end_date = date(year, month, last_day)
+    figures = _period_figures(start_date, end_date)
 
-    invoices = Invoice.objects.filter(
-        status=InvoiceStatus.PAID,
-        paid_at__range=(start_date, end_date),
+    FinancialStatement.objects.update_or_create(
+        period_type=FinancialStatement.PeriodType.MONTHLY, year=year, month=month,
+        defaults={"start_date": start_date, "end_date": end_date, **figures},
     )
-    revenue = invoices.aggregate(total=Sum("total_amount"))["total"] or Decimal("0")
-
-    expenses = Expense.objects.filter(date__range=(start_date, end_date))
-    total_expenses = expenses.aggregate(total=Sum("amount"))["total"] or Decimal("0")
-
-    net_profit = revenue - total_expenses
 
     return {
         "year": year,
         "month": month,
         "start_date": start_date.isoformat(),
         "end_date": end_date.isoformat(),
-        "revenue": str(revenue),
-        "total_expenses": str(total_expenses),
-        "driver_pay_total": str(driver_pay_total),
-        "net_profit": str(net_profit),
+        **{k: str(v) for k, v in figures.items()},
     }
 
 
 @shared_task
 def generate_yearly_statement(year: int | None = None) -> dict:
-    """Compute yearly financial aggregates for the given year."""
-    today = date.today()
-    year = int(year or today.year)
+    """Compute and store the financial figures of one year; with no argument: the year that just ended."""
+    year = int(year) if year else date.today().year - 1
 
     start_date = date(year, 1, 1)
     end_date = date(year, 12, 31)
+    figures = _period_figures(start_date, end_date)
 
-    invoices = Invoice.objects.filter(
-        status=InvoiceStatus.PAID,
-        paid_at__range=(start_date, end_date),
+    FinancialStatement.objects.update_or_create(
+        period_type=FinancialStatement.PeriodType.YEARLY, year=year, month=0,
+        defaults={"start_date": start_date, "end_date": end_date, **figures},
     )
-    total_revenue = invoices.aggregate(total=Sum("total_amount"))["total"] or Decimal("0")
-
-    expenses = Expense.objects.filter(date__range=(start_date, end_date))
-    total_expenses = expenses.aggregate(total=Sum("amount"))["total"] or Decimal("0")
-
-    net_profit = total_revenue - total_expenses
 
     return {
         "year": year,
         "start_date": start_date.isoformat(),
         "end_date": end_date.isoformat(),
-        "total_revenue": str(total_revenue),
-        "total_expenses": str(total_expenses),
-        "net_profit": str(net_profit),
+        "total_revenue": str(figures["revenue"]),
+        "total_expenses": str(figures["total_expenses"]),
+        "driver_pay_total": str(figures["driver_pay_total"]),
+        "net_profit": str(figures["net_profit"]),
     }
 
 

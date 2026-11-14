@@ -107,3 +107,35 @@ class Vehicles(QABase):
         self.login()
         self.client.post(f"/vehicles/{self.vehicle.pk}/delete/")
         self.assertTrue(IFTAMileage.objects.exists())
+
+
+class StatementPersistenceQA009(QABase):
+    def test_monthly_task_stores_a_statement_row_and_includes_driver_pay(self):
+        from shipments.models import FinancialStatement
+        Invoice.objects.create(customer=self.customer, invoice_date=date(2026, 1, 10), status=InvoiceStatus.PAID,
+                               paid_at=date(2026, 1, 12), total_amount=Decimal("900"))
+        Expense.objects.create(date=date(2026, 1, 5), category=ExpenseCategory.DRIVER, amount=Decimal("300"), driver=self.driver)
+        Expense.objects.create(date=date(2026, 1, 6), category=ExpenseCategory.FUEL, amount=Decimal("100"))
+        Expense.objects.create(date=date(2026, 2, 1), category=ExpenseCategory.DRIVER, amount=Decimal("999"))  # other month
+        r = tasks.generate_monthly_statement(2026, 1)
+        self.assertEqual((r["driver_pay_total"], r["total_expenses"], r["net_profit"]), ("300.00", "400.00", "500.00"))
+        row = FinancialStatement.objects.get(period_type="monthly", year=2026, month=1)
+        self.assertEqual((row.revenue, row.driver_pay_total, row.net_profit), (Decimal("900.00"), Decimal("300.00"), Decimal("500.00")))
+        tasks.generate_monthly_statement(2026, 1)  # re-run updates, never duplicates
+        self.assertEqual(FinancialStatement.objects.count(), 1)
+
+    def test_beat_run_in_january_reports_december_of_the_previous_year(self):
+        with mock.patch("shipments.tasks.date", frozen(date(2027, 1, 1))):
+            r = tasks.generate_monthly_statement()
+        self.assertEqual((r["year"], r["month"]), (2026, 12))
+
+    def test_explicit_period_is_respected_and_current_month_is_the_fallback_for_one_missing_arg(self):
+        with mock.patch("shipments.tasks.date", frozen(date(2026, 5, 20))):
+            self.assertEqual(tasks.generate_monthly_statement(2025, 3)["month"], 3)
+            self.assertEqual(tasks.generate_monthly_statement(month=4)["year"], 2026)
+
+    def test_yearly_task_stores_its_row(self):
+        from shipments.models import FinancialStatement
+        with mock.patch("shipments.tasks.date", frozen(date(2027, 1, 1))):
+            tasks.generate_yearly_statement()
+        self.assertTrue(FinancialStatement.objects.filter(period_type="yearly", year=2026, month=0).exists())

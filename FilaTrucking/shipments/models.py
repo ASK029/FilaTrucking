@@ -174,6 +174,40 @@ class Expense(models.Model):
 
 
 # ---------------------------------------------------------------------------
+# Financial statement snapshots (written by the scheduled statement tasks)
+# ---------------------------------------------------------------------------
+
+class FinancialStatement(models.Model):
+    """Snapshot of a period's figures, stored by generate_monthly/yearly_statement so the scheduled run
+    leaves something to review (PRD: 'auto-generate draft statements'). Re-running a period updates its row."""
+
+    class PeriodType(models.TextChoices):
+        MONTHLY = "monthly", "Monthly"
+        YEARLY = "yearly", "Yearly"
+
+    period_type = models.CharField(max_length=10, choices=PeriodType)
+    year = models.PositiveIntegerField()
+    month = models.PositiveSmallIntegerField(default=0, help_text="1-12 for monthly statements, 0 for yearly")
+    start_date = models.DateField()
+    end_date = models.DateField()
+    revenue = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    total_expenses = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    driver_pay_total = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    net_profit = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    generated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-year", "-month"]
+        constraints = [
+            models.UniqueConstraint(fields=["period_type", "year", "month"], name="uniq_statement_period"),
+        ]
+
+    def __str__(self) -> str:
+        label = f"{self.year}-{self.month:02d}" if self.period_type == self.PeriodType.MONTHLY else str(self.year)
+        return f"{self.get_period_type_display()} statement {label}"
+
+
+# ---------------------------------------------------------------------------
 # IFTA Rate
 # ---------------------------------------------------------------------------
 

@@ -142,10 +142,10 @@ def dashboard(request):
     return render(request, "dashboard.html", context)
 
 
-def _queue_task(request, task, ok_message):
+def _queue_task(request, task, ok_message, **task_kwargs):
     """Queue a Celery task without hanging or crashing the web worker when the broker is down (QA-008)."""
     try:
-        task.apply_async(retry=True, retry_policy={"max_retries": 1, "interval_start": 0, "interval_max": 0.5})
+        task.apply_async(kwargs=task_kwargs or None, retry=True, retry_policy={"max_retries": 1, "interval_start": 0, "interval_max": 0.5})
         messages.success(request, ok_message)
     except Exception:  # kombu.OperationalError, redis ConnectionError, ...
         logger.exception("Could not queue %s", getattr(task, "name", task))
@@ -157,7 +157,9 @@ def _queue_task(request, task, ok_message):
 @login_required
 def test_report(request):
     """Trigger the monthly report task manually."""
-    return _queue_task(request, generate_monthly_statement, "Monthly statement generation triggered.")
+    today = date.today()  # the scheduled run reports last month; the manual button reports the current one
+    return _queue_task(request, generate_monthly_statement, "Monthly statement generation triggered.",
+                       year=today.year, month=today.month)
 
 
 @login_required
