@@ -687,6 +687,7 @@ def whatsapp_update_status(request):
         data = json.loads(request.body)
         config = WhatsAppConfig.get_instance()
         
+        previous = (config.sidecar_status, config.auth_status, config.last_error)
         sidecar_status = data.get("sidecar_status", config.sidecar_status)
         auth_status = data.get("auth_status", config.auth_status)
         last_error = data.get("last_error") or ""
@@ -710,16 +711,17 @@ def whatsapp_update_status(request):
 
         config.save()
         
-        # Log the status update
-        if last_error:
+        # Log CHANGES only (QA-045): every ping used to add a row (about 1,200 an hour during a reconnect loop; the
+        # production table had 43,000 rows in 5 days). A repeated identical error is not news.
+        if last_error and last_error != previous[2]:
             WhatsAppLog.objects.create(
                 level=WhatsAppLog.LogLevel.ERROR,
-                message=f"Sidecar error: {last_error}"
+                message=f"Sidecar error: {last_error}"[:2000]
             )
-        else:
+        elif not last_error and (sidecar_status, auth_status) != previous[:2]:
             WhatsAppLog.objects.create(
                 level=WhatsAppLog.LogLevel.INFO,
-                message=f"Status updated: {auth_status}"
+                message=f"Status: {sidecar_status} / {auth_status}"
             )
         
         return JsonResponse({

@@ -189,3 +189,9 @@ test('QA-020 a restart while Django is down uses the enabled-groups copy on disk
   const { res } = run('cache_only');
   assert.strictEqual(res.processed_with_django_down_and_cache_on_disk, 1);
 });
+
+test('QA-045 the sidecar tells Django only about changes (no identical status posts)', () => {
+  const { res } = run('status_dedupe');
+  assert.strictEqual(res.status_posts_for_30_identical_closes, 1);
+  assert.strictEqual(res.status_posts_after_a_different_error, 2);
+});

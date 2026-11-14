@@ -208,3 +208,23 @@ def send_ifta_deadline_reminders() -> dict:
 
     return {"today": today.isoformat(), "upcoming_deadlines": upcoming}
 
+
+
+@shared_task
+def prune_whatsapp_data() -> dict:
+    """Retention (QA-045): sidecar log rows and old raw WhatsApp messages (they contain phone numbers and free text).
+
+    Defaults: logs 30 days, messages 365 days; override with WHATSAPP_LOG_RETENTION_DAYS / WHATSAPP_MESSAGE_RETENTION_DAYS.
+    """
+    from datetime import timedelta
+    from django.conf import settings
+    from .models import WhatsAppLog, WhatsAppMessage
+
+    now = timezone.now()
+    logs_deleted, _ = WhatsAppLog.objects.filter(
+        created_at__lt=now - timedelta(days=settings.WHATSAPP_LOG_RETENTION_DAYS)
+    ).delete()
+    messages_deleted, _ = WhatsAppMessage.objects.filter(
+        received_at__lt=now - timedelta(days=settings.WHATSAPP_MESSAGE_RETENTION_DAYS)
+    ).delete()
+    return {"logs_deleted": logs_deleted, "messages_deleted": messages_deleted}

@@ -86,7 +86,12 @@ process.on('uncaughtException', (err) => {
 // Django API Communication
 // ============================================================================
 
+let lastNotified = null;
 async function notifyDjangoStatus(status, auth, error = null) {
+    // Tell Django only when something changed (QA-045): during a reconnect loop the same state used to be posted
+    // over and over, and each post became a database row.
+    const signature = JSON.stringify([status, auth, qrCodeData, error]);
+    if (signature === lastNotified) return;
     try {
         const payload = {
             sidecar_status: status,
@@ -106,6 +111,7 @@ async function notifyDjangoStatus(status, auth, error = null) {
                 timeout: 5000
             }
         );
+        lastNotified = signature; // remembered only after Django accepted it, so a failed post is retried
     } catch (err) {
         addLog('warning', `Failed to notify Django of status: ${err.message}`);
     }

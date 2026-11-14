@@ -273,12 +273,21 @@ CELERY_BEAT_SCHEDULE = {
         "task": "shipments.tasks.send_ifta_deadline_reminders",
         "schedule": crontab(minute=0, hour=9),
     },
+    # Delete old WhatsApp log rows / raw messages every night at 03:30 (QA-045)
+    "prune-whatsapp-data": {
+        "task": "shipments.tasks.prune_whatsapp_data",
+        "schedule": crontab(minute=30, hour=3),
+    },
     # Nightly GoMotive sync at 03:00
     "gomotive-nightly-sync": {
         "task": "vehicles.tasks.sync_gomotive_data",
         "schedule": crontab(minute=0, hour=3),
     },
 }
+
+# Retention for the WhatsApp tables (prune_whatsapp_data task, QA-045)
+WHATSAPP_LOG_RETENTION_DAYS = int(os.environ.get("WHATSAPP_LOG_RETENTION_DAYS", "30"))
+WHATSAPP_MESSAGE_RETENTION_DAYS = int(os.environ.get("WHATSAPP_MESSAGE_RETENTION_DAYS", "365"))
 
 # Auto-creating draft invoices (and flipping shipments to "invoiced") is a behaviour change for the dispatcher,
 # so it is opt-in: set ENABLE_RECURRING_INVOICES=True in .env once you want it (QA-008 / QA-042).

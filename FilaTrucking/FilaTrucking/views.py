@@ -152,6 +152,7 @@ def dashboard(request):
         "recurring-invoices": "Recurring invoices",
         "ifta-deadline-reminders": "IFTA reminders",
         "gomotive-nightly-sync": "GoMotive nightly sync",
+        "prune-whatsapp-data": "WhatsApp data cleanup",
     }
     for key, value in beat_schedule.items():
         schedule_rows.append(

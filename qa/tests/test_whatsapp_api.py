@@ -59,11 +59,11 @@ class StatusLifecycle(QABase):
         self._post({"sidecar_status": "connected", "auth_status": "authenticated"})
         self.assertFalse(WhatsAppConfig.get_instance().last_error)
 
-    def test_status_pings_write_one_log_row_each(self):
-        """[WA-LOG-GROWTH] documents behaviour (passes): unbounded table, ~1,200 rows/hour during a 3 s reconnect loop."""
+    def test_repeated_identical_pings_write_one_log_row(self):
+        """[WA-LOG-GROWTH] used to document 'one row per ping' (unbounded growth); fixed in QA-045."""
         for _ in range(5):
             self._post({"sidecar_status": "disconnected", "auth_status": "not_authenticated", "last_error": "405"})
-        self.assertEqual(WhatsAppLog.objects.count(), 5)
+        self.assertEqual(WhatsAppLog.objects.count(), 1)
 
 
 class TriggerEndpoints(QABase):
@@ -267,3 +267,42 @@ class NewGroupsAreOptInQA020(QABase):
         with mock.patch("requests.get", return_value=resp):
             self.client.post(f"{BASE}/trigger-sync/")
         self.assertFalse(WhatsAppGroup.objects.get().is_active)
+
+
+class LogGrowthQA045(QABase):
+    def _post(self, payload):
+        return self.client.post(f"{BASE}/update-status/", data=json.dumps(payload), content_type="application/json", **BEARER)
+
+    def test_identical_pings_do_not_add_rows(self):
+        for _ in range(50):
+            self._post({"sidecar_status": "disconnected", "auth_status": "not_authenticated", "last_error": "405 Connection Failure"})
+        self.assertEqual(WhatsAppLog.objects.count(), 1)  # one error row, not fifty
+        for _ in range(20):
+            self._post({"sidecar_status": "connecting", "auth_status": "authenticating"})
+        self.assertEqual(WhatsAppLog.objects.count(), 2)  # + one 'status changed' row
+
+    def test_a_new_error_text_and_each_state_change_are_logged(self):
+        self._post({"sidecar_status": "disconnected", "auth_status": "not_authenticated", "last_error": "A"})
+        self._post({"sidecar_status": "disconnected", "auth_status": "not_authenticated", "last_error": "B"})
+        self._post({"sidecar_status": "connected", "auth_status": "authenticated"})
+        self.assertEqual(list(WhatsAppLog.objects.order_by("id").values_list("level", flat=True)), ["error", "error", "info"])
+
+    def test_prune_task_deletes_only_old_rows(self):
+        from datetime import timedelta
+        from django.utils import timezone
+        from shipments import tasks
+        from shipments.models import WhatsAppMessage
+        old = WhatsAppLog.objects.create(level="info", message="old")
+        fresh = WhatsAppLog.objects.create(level="info", message="fresh")
+        WhatsAppLog.objects.filter(pk=old.pk).update(created_at=timezone.now() - timedelta(days=31))
+        stale_msg = WhatsAppMessage.objects.create(raw_text="BK\nC\nS", sender_phone="x")
+        recent_msg = WhatsAppMessage.objects.create(raw_text="BK\nC\nS", sender_phone="y")
+        WhatsAppMessage.objects.filter(pk=stale_msg.pk).update(received_at=timezone.now() - timedelta(days=400))
+        result = tasks.prune_whatsapp_data()
+        self.assertEqual(result, {"logs_deleted": 1, "messages_deleted": 1})
+        self.assertEqual(list(WhatsAppLog.objects.values_list("pk", flat=True)), [fresh.pk])
+        self.assertEqual(list(WhatsAppMessage.objects.values_list("pk", flat=True)), [recent_msg.pk])
+
+    def test_prune_is_scheduled_nightly(self):
+        from django.conf import settings
+        self.assertEqual(settings.CELERY_BEAT_SCHEDULE["prune-whatsapp-data"]["task"], "shipments.tasks.prune_whatsapp_data")

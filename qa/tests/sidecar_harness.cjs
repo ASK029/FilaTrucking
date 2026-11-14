@@ -361,6 +361,20 @@ if (scenario === 'outbox_restore') {
     out('processed_with_django_down_and_cache_on_disk', posts.filter((p) => p.url.includes('/ingest/')).length);
   }
 
+  if (scenario === 'status_dedupe') {
+    const statusPosts = () => posts.filter((p) => p.url.includes('update-status')).length;
+    const base = statusPosts();
+    // the same failure over and over: only the first one is news (fixed message, so the signature is identical)
+    for (let i = 0; i < 30; i++) {
+      s0.ev.emit('connection.update', { connection: 'close', lastDisconnect: { error: { message: 'Connection Failure', output: { statusCode: 405 } } } });
+      await sleep(5);
+    }
+    out('status_posts_for_30_identical_closes', statusPosts() - base);
+    s0.ev.emit('connection.update', { connection: 'close', lastDisconnect: { error: { message: 'Another failure', output: { statusCode: 405 } } } });
+    await sleep(50);
+    out('status_posts_after_a_different_error', statusPosts() - base);
+  }
+
   if (scenario === 'dedupe') {
     s0.ev.emit('messages.upsert', groupMsg('BK1\nCONT1\nSEAL1\nASL', 'SAME-ID'));
     s0.ev.emit('messages.upsert', groupMsg('BK1\nCONT1\nSEAL1\nASL', 'SAME-ID'));
