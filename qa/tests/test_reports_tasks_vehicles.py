@@ -160,3 +160,45 @@ class TimeZoneQA044(QABase):
         with mock.patch("django.utils.timezone.now", return_value=datetime(2026, 2, 1, 1, 0, tzinfo=tz.utc)):
             r = tasks.generate_monthly_statement()
         self.assertEqual((r["year"], r["month"]), (2025, 12))  # still January 31st locally -> reports December
+
+
+class StatementCategoriesQA037(QABase):
+    def setUp(self):
+        super().setUp()
+        self.login()
+        # one typed-in expense (no "Imported:" note), one imported-style expense, one driver-pay row, other month
+        Expense.objects.create(date=date(2026, 1, 5), category=ExpenseCategory.FUEL, amount=Decimal("100"), notes="typed in by hand")
+        Expense.objects.create(date=date(2026, 1, 6), category=ExpenseCategory.FUEL, amount=Decimal("50"), notes="Imported: Pilot")
+        Expense.objects.create(date=date(2026, 1, 7), category=ExpenseCategory.MAINTENANCE, amount=Decimal("30"))
+        Expense.objects.create(date=date(2026, 1, 8), category=ExpenseCategory.DRIVER, amount=Decimal("200"), driver=self.driver)
+        Expense.objects.create(date=date(2026, 2, 8), category=ExpenseCategory.FUEL, amount=Decimal("999"))
+
+    def test_monthly_columns_group_by_category_not_by_note_text(self):
+        r = self.client.get("/reports/financial/monthly/?year=2026&month=1")
+        cols = {key: value for _, key, value in r.context["category_totals"]}
+        self.assertEqual((cols["fuel"], cols["on_site"], cols["truck"]), (Decimal("150"), Decimal("30"), Decimal("0")))
+        self.assertEqual(r.context["total_expenses"], Decimal("380"))
+
+    def test_yearly_grid_uses_categories_too(self):
+        r = self.client.get("/reports/financial/yearly/?year=2026")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.context["col_totals"]["fuel"], Decimal("1149"))
+
+    def test_the_historical_importer_stores_driver_pay_as_driver(self):
+        import inspect
+        from shipments.management.commands import import_expenses
+        src = inspect.getsource(import_expenses)
+        self.assertIn("category=ExpenseCategory.DRIVER", src)
+
+    def test_migration_reclassifies_old_import_rows_and_is_reversible(self):
+        from importlib import import_module
+        from django.apps import apps
+        m = import_module("shipments.migrations.0014_reclassify_imported_driver_pay")
+        pay = Expense.objects.create(date=date(2026, 1, 9), category=ExpenseCategory.TRUCK, amount=Decimal("75"), notes="Imported: Pay → Moe")
+        truck = Expense.objects.create(date=date(2026, 1, 9), category=ExpenseCategory.TRUCK, amount=Decimal("20"), notes="Imported: Truck")
+        m.to_driver(apps, None)
+        pay.refresh_from_db(); truck.refresh_from_db()
+        self.assertEqual((pay.category, truck.category), ("driver", "truck"))
+        m.to_truck(apps, None)
+        pay.refresh_from_db()
+        self.assertEqual(pay.category, "truck")

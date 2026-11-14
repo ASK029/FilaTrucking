@@ -200,26 +200,28 @@ def test_sync_schedule(request):
     return _queue_task(request, sync_gomotive_data, "GoMotive sync triggered.")
 
 
-# ── CSV-style category labels used in notes field during import ──
-# (note_label, snake_case_key, display_label)
+# ── CSV-style statement columns ──
+# (ExpenseCategory value, snake_case_key, display_label). Columns are grouped by the expense's real category field (QA-037):
+# they used to be found by searching the free-text notes for "Imported: <label>", so expenses typed in through the
+# app (or imported through the web form) never showed up in any column.
 CSV_CATEGORIES = [
-    ("IRP", "irp", "IRP"),
-    ("Parking", "parking", "Parking"),
-    ("On Site", "on_site", "On Site"),
-    ("Truck", "truck", "Truck"),
-    ("Check Charge", "check_charge", "Check Charge"),
-    ("Insurance", "insurance", "Insurance"),
-    ("Toll", "toll", "Toll"),
-    ("Fuel", "fuel", "Fuel"),
-    ("Other", "other_exp", "Other"),
-    ("Chassis", "chassis", "Chassis"),
+    (ExpenseCategory.IRP, "irp", "IRP"),
+    (ExpenseCategory.PARKING, "parking", "Parking"),
+    (ExpenseCategory.MAINTENANCE, "on_site", "On Site"),
+    (ExpenseCategory.TRUCK, "truck", "Truck"),
+    (ExpenseCategory.CHECK_CHARGE, "check_charge", "Check Charge"),
+    (ExpenseCategory.INSURANCE, "insurance", "Insurance"),
+    (ExpenseCategory.TOLL, "toll", "Toll"),
+    (ExpenseCategory.FUEL, "fuel", "Fuel"),
+    (ExpenseCategory.OTHER, "other_exp", "Other"),
+    (ExpenseCategory.CHASSIS, "chassis", "Chassis"),
 ]
 
 
-def _sum_by_note_label(expenses_qs, label: str) -> Decimal:
-    """Sum expenses whose notes field contains a specific imported label."""
+def _sum_by_category(expenses_qs, category) -> Decimal:
+    """Sum the expenses of one category."""
     return (
-        expenses_qs.filter(notes__icontains=f"Imported: {label}")
+        expenses_qs.filter(category=category)
         .aggregate(t=Sum("amount"))["t"]
         or Decimal("0")
     )
@@ -228,16 +230,16 @@ def _sum_by_note_label(expenses_qs, label: str) -> Decimal:
 def _build_category_totals(expenses_qs) -> list[tuple[str, str, Decimal]]:
     """Return [(display_label, snake_key, value), ...] for each CSV category."""
     return [
-        (display, key, _sum_by_note_label(expenses_qs, note_label))
-        for note_label, key, display in CSV_CATEGORIES
+        (display, key, _sum_by_category(expenses_qs, category))
+        for category, key, display in CSV_CATEGORIES
     ]
 
 
 def _category_dict(expenses_qs) -> dict[str, Decimal]:
     """Return {snake_key: value} for template row merging."""
     return {
-        key: _sum_by_note_label(expenses_qs, note_label)
-        for note_label, key, _ in CSV_CATEGORIES
+        key: _sum_by_category(expenses_qs, category)
+        for category, key, _ in CSV_CATEGORIES
     }
 
 
@@ -299,8 +301,8 @@ def monthly_statement(request):
 
         day_expenses = expenses.filter(date=d)
         row = {"date": d, "deposit": deposit_total, "deposit_from": deposit_from}
-        for note_label, key, _ in CSV_CATEGORIES:
-            row[key] = _sum_by_note_label(day_expenses, note_label)
+        for category, key, _ in CSV_CATEGORIES:
+            row[key] = _sum_by_category(day_expenses, category)
         row["pay"] = Decimal("0")
         row["pay_to"] = "-"
         transaction_rows.append(row)

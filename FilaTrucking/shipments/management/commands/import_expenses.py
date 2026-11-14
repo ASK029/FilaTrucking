@@ -175,7 +175,7 @@ class Command(BaseCommand):
 
                 Expense.objects.create(
                     date=parsed_date,
-                    category=ExpenseCategory.TRUCK,
+                    category=ExpenseCategory.DRIVER,  # driver pay (was TRUCK, so the statements' driver-pay section stayed empty)
                     amount=pay_amt,
                     driver=driver,
                     notes=f"Imported: Pay → {pay_to or 'Unknown'}",
