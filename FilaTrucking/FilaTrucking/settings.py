@@ -261,11 +261,6 @@ CELERY_BEAT_SCHEDULE = {
         "task": "shipments.tasks.generate_yearly_statement",
         "schedule": crontab(minute=0, hour=2, day_of_month="1", month_of_year="1"),
     },
-    # Check recurring invoice schedules every night at 00:30
-    "recurring-invoices": {
-        "task": "shipments.tasks.generate_recurring_invoices",
-        "schedule": crontab(minute=30, hour=0),
-    },
     # Check IFTA reminders daily at 09:00
     "ifta-deadline-reminders": {
         "task": "shipments.tasks.send_ifta_deadline_reminders",
@@ -277,3 +272,11 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": crontab(minute=0, hour=3),
     },
 }
+
+# Auto-creating draft invoices (and flipping shipments to "invoiced") is a behaviour change for the dispatcher,
+# so it is opt-in: set ENABLE_RECURRING_INVOICES=True in .env once you want it (QA-008 / QA-042).
+if os.environ.get("ENABLE_RECURRING_INVOICES", "False") == "True":
+    CELERY_BEAT_SCHEDULE["recurring-invoices"] = {
+        "task": "shipments.tasks.generate_recurring_invoices",
+        "schedule": crontab(minute=30, hour=0),  # every night at 00:30
+    }

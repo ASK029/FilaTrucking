@@ -1,3 +1,4 @@
+import logging
 from datetime import date
 from calendar import month_name, monthrange
 
@@ -16,6 +17,8 @@ from shipments.tasks import generate_monthly_statement
 from vehicles.tasks import sync_gomotive_data
 from django.shortcuts import redirect
 from django.contrib import messages
+
+logger = logging.getLogger(__name__)
 
 
 def format_crontab(schedule):
@@ -139,20 +142,28 @@ def dashboard(request):
     return render(request, "dashboard.html", context)
 
 
+def _queue_task(request, task, ok_message):
+    """Queue a Celery task without hanging or crashing the web worker when the broker is down (QA-008)."""
+    try:
+        task.apply_async(retry=True, retry_policy={"max_retries": 1, "interval_start": 0, "interval_max": 0.5})
+        messages.success(request, ok_message)
+    except Exception:  # kombu.OperationalError, redis ConnectionError, ...
+        logger.exception("Could not queue %s", getattr(task, "name", task))
+        messages.error(request, "The background worker is not reachable, so the job was not started. "
+                                "Check that the celery-worker and redis containers are running.")
+    return redirect('dashboard')
+
+
 @login_required
 def test_report(request):
     """Trigger the monthly report task manually."""
-    generate_monthly_statement.delay()
-    messages.success(request, "Monthly statement generation triggered.")
-    return redirect('dashboard')
+    return _queue_task(request, generate_monthly_statement, "Monthly statement generation triggered.")
 
 
 @login_required
 def test_sync_schedule(request):
     """Trigger the GoMotive sync task manually."""
-    sync_gomotive_data.delay()
-    messages.success(request, "GoMotive sync triggered.")
-    return redirect('dashboard')
+    return _queue_task(request, sync_gomotive_data, "GoMotive sync triggered.")
 
 
 # ── CSV-style category labels used in notes field during import ──

@@ -1,3 +1,31 @@
+# Shared definition of every container that runs the Django code (web, worker, beat).
+x-django-common: &django-common
+  image: filatrucking-django  # one image for web, worker and beat
+  build:
+    context: .
+    dockerfile: Dockerfile
+  restart: unless-stopped
+  environment:
+    - DATABASE_URL=mysql://filatrucking:${MYSQL_PASSWORD}@mysql:3306/filatrucking
+    - SECRET_KEY=${SECRET_KEY}
+    - DEBUG=${DEBUG:-False}
+    - WHATSAPP_INGEST_SECRET=${WHATSAPP_INGEST_SECRET:?set WHATSAPP_INGEST_SECRET in .env (see .env.example)}
+    - WHATSAPP_SIDECAR_URL=http://sidecar:3001
+    - CELERY_BROKER_URL=redis://redis:6379/0
+    - CELERY_RESULT_BACKEND=redis://redis:6379/0
+  volumes:
+    - ./FilaTrucking:/app/FilaTrucking
+    - ./FilaTrucking/media:/app/FilaTrucking/media
+    - staticfiles:/app/FilaTrucking/staticfiles
+    - ./.env:/app/.env:ro
+  depends_on:
+    mysql:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+  networks:
+    - fila-network
+
 services:
   # MySQL Database
   mysql:
@@ -22,32 +50,41 @@ services:
       timeout: 5s
       retries: 5
 
-  # Django Application
-  django:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: fila-django
+  # Redis: Celery broker for the scheduled jobs (QA-008). Internal only, never published.
+  redis:
+    image: redis:7-alpine
+    container_name: fila-redis
     restart: unless-stopped
-    environment:
-      - DATABASE_URL=mysql://filatrucking:${MYSQL_PASSWORD}@mysql:3306/filatrucking
-      - SECRET_KEY=${SECRET_KEY}
-      - DEBUG=${DEBUG:-False}
-      - WHATSAPP_INGEST_SECRET=${WHATSAPP_INGEST_SECRET:?set WHATSAPP_INGEST_SECRET in .env (see .env.example)}
-      - WHATSAPP_SIDECAR_URL=http://sidecar:3001
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "128mb", "--maxmemory-policy", "noeviction"]
     volumes:
-      - ./FilaTrucking:/app/FilaTrucking
-      - ./FilaTrucking/media:/app/FilaTrucking/media
-      - staticfiles:/app/FilaTrucking/staticfiles
-      - ./.env:/app/.env:ro
-    ports:
-      - "8888:8000"
-    depends_on:
-      mysql:
-        condition: service_healthy
+      - redis_data:/data
     networks:
       - fila-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # Django Application (web)
+  django:
+    <<: *django-common
+    container_name: fila-django
+    ports:
+      - "8888:8000"
     command: gunicorn FilaTrucking.wsgi:application --bind 0.0.0.0:8000 --workers 4
+
+  # Celery worker: runs the tasks (statements, recurring invoices, GoMotive sync, ...)
+  celery-worker:
+    <<: *django-common
+    container_name: fila-celery-worker
+    command: celery -A FilaTrucking worker -l info --concurrency 2
+
+  # Celery beat: the scheduler that fires the jobs listed in settings.CELERY_BEAT_SCHEDULE
+  celery-beat:
+    <<: *django-common
+    container_name: fila-celery-beat
+    command: celery -A FilaTrucking beat -l info --schedule /tmp/celerybeat-schedule
 
   # WhatsApp Sidecar (Node.js)
   sidecar:
@@ -111,6 +148,7 @@ networks:
 
 volumes:
   mysql_data:
+  redis_data:
   auth_data:
   staticfiles:
   certbot_www:
