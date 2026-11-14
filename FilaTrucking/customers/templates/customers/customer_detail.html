@@ -34,16 +34,16 @@
 
     <dl class="space-y-4">
       <div>
-        <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Phone Number</dt>
+        <dt class="text-sm font-medium text-slate-400 uppercase tracking-wider mb-1">Phone Number</dt>
         <dd class="text-base text-slate-200">{{ customer.phone_number }}</dd>
       </div>
       <div>
-        <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Email Address</dt>
+        <dt class="text-sm font-medium text-slate-400 uppercase tracking-wider mb-1">Email Address</dt>
         <dd class="text-base text-slate-200"><a href="mailto:{{ customer.email }}"
             class="text-brand-light hover:underline">{{ customer.email }}</a></dd>
       </div>
       <div>
-        <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Physical Address</dt>
+        <dt class="text-sm font-medium text-slate-400 uppercase tracking-wider mb-1">Physical Address</dt>
         <dd class="text-base text-slate-200">{{ customer.address }}<br>
           {% if customer.city_state %}{{ customer.city_state }}<br>{% endif %}
           {{ customer.country }}
@@ -65,12 +65,12 @@
 
     <dl class="space-y-4">
       <div>
-        <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Default Rate</dt>
+        <dt class="text-sm font-medium text-slate-400 uppercase tracking-wider mb-1">Default Rate</dt>
         <dd class="text-base text-slate-200">{% if customer.default_rate %}${{ customer.default_rate|floatformat:"2g" }}{% else %}<span
-            class="text-slate-500">Not set</span>{% endif %}</dd>
+            class="text-slate-400">Not set</span>{% endif %}</dd>
       </div>
       <div>
-        <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Notes</dt>
+        <dt class="text-sm font-medium text-slate-400 uppercase tracking-wider mb-1">Notes</dt>
         <dd
           class="text-base text-slate-200 p-4 bg-slate-800/50 rounded-xl border border-slate-700 mt-2 whitespace-pre-wrap">
           {{ customer.notes|default:"No notes added." }}</dd>

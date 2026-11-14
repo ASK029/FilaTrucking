@@ -13,6 +13,9 @@ class TailwindFormMixin:
             
             # Check if class attr already exists string or dictionary to prepend
             attrs = field.widget.attrs
+            # every control gets an accessible name even where a template renders it without its <label> (formset rows,
+            # inline filters): axe reported 47 unlabeled form controls (QA-033)
+            attrs.setdefault('aria-label', str(field.label or field_name.replace('_', ' ').capitalize()))
             if 'class' in attrs:
                 attrs['class'] += f" {base_class}"
             else:

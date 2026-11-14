@@ -5,7 +5,9 @@ const fs = require('fs');
 const path = require('path');
 const BASE = process.env.BASE || 'http://127.0.0.1:18080';
 const ROOT = path.resolve(__dirname, '..');
-const SHOTS = path.join(ROOT, 'screenshots');
+const SHOTS = process.env.SHOTS_DIR ? path.resolve(process.env.SHOTS_DIR) : path.join(ROOT, 'screenshots');
+const OUT = process.env.OUT_JSON ? path.resolve(process.env.OUT_JSON) : path.join(ROOT, 'evidence', 'ui_forms.json');
+require('fs').mkdirSync(SHOTS, { recursive: true });
 const R = {};
 const rec = (k, v) => { R[k] = v; console.log(k, '=>', JSON.stringify(v)); };
 
@@ -108,11 +110,15 @@ const rec = (k, v) => { R[k] = v; console.log(k, '=>', JSON.stringify(v)); };
   rec('mobile_nav', { shipmentsLinkVisibleBeforeOpen: navBefore, afterTappingHamburger: navAfter });
   // session: logout is POST-only in Django >=5
   const lo = await mp.goto(BASE + '/auth/logout/'); rec('logout_via_GET_status', lo.status());
+  // the real user action: tap the Logout button (QA-049)
+  await mp.goto(BASE + '/', { waitUntil: 'networkidle' });
+  await Promise.all([mp.waitForNavigation().catch(() => {}), mp.locator('header form[action$="/auth/logout/"] button').click()]);
+  rec('logout_button_click', { urlAfter: mp.url().replace(BASE, ''), signedOut: (await mp.goto(BASE + '/customers/')) && mp.url().includes('/auth/login/') });
   await m.close();
 
   // 9. 404 page quality
   const nf = await page.goto(BASE + '/does-not-exist/');
   rec('404_page', { status: nf.status(), customTemplate: !/Page not found \(404\)/i.test(await page.content()) });
   await browser.close();
-  fs.writeFileSync(path.join(ROOT, 'evidence', 'ui_forms.json'), JSON.stringify(R, null, 1));
+  fs.writeFileSync(OUT, JSON.stringify(R, null, 1));
 })().catch((e) => { console.error(e); process.exit(1); });

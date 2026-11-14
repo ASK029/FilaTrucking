@@ -7,3 +7,101 @@
 ::-webkit-scrollbar-track { background: #0F172A; }
 ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+/* ---------------------------------------------------------------------------------------------
+   Mobile usability (QA-032)
+   1. Tables marked .responsive-table become stacked cards below 768 px (the key columns used to be hidden behind a
+      horizontal scroll). Cell labels come from the data-label attributes.
+   2. Everything you tap is at least 44 x 44 px (AGENTS.md section 7.5).
+   --------------------------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+  .responsive-table,
+  .responsive-table tbody,
+  .responsive-table tr,
+  .responsive-table td {
+    display: block;
+    width: 100%;
+    white-space: normal;
+  }
+  .responsive-table thead {
+    /* visually hidden but still announced by screen readers */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .responsive-table tbody tr {
+    padding: 0.75rem 1rem;
+  }
+  .responsive-table td {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.35rem 0 !important;
+    text-align: right;
+  }
+  .responsive-table td[data-label]::before {
+    content: attr(data-label);
+    flex: none;
+    text-align: left;
+    color: #94a3b8;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .responsive-table td[data-label="Actions"] {
+    justify-content: flex-start;
+    gap: 0.5rem;
+  }
+  .responsive-table td[data-label="Actions"]::before {
+    display: none;
+  }
+  .responsive-table td[data-label="Actions"] a {
+    margin: 0 !important;
+  }
+
+  /* tap targets */
+  button,
+  [type="submit"],
+  [type="button"],
+  select,
+  textarea,
+  input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  summary {
+    min-height: 44px;
+  }
+  button,
+  [type="submit"],
+  [type="button"] {
+    min-width: 44px;
+  }
+  a.flex,
+  a.inline-flex,
+  .responsive-table td a,
+  nav a,
+  aside a,
+  header a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    min-width: 44px;
+    justify-content: center;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+  input[type="checkbox"],
+  input[type="radio"] {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+  label:has(> input[type="checkbox"]),
+  label:has(> input[type="radio"]) {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}

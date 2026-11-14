@@ -19,7 +19,7 @@
 <!-- Data Table -->
 <div class="bg-surface-card rounded-2xl shadow-lg border border-slate-700/50 overflow-hidden">
     <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm whitespace-nowrap">
+        <table class="responsive-table w-full text-left text-sm whitespace-nowrap">
             <thead class="bg-slate-800/50 border-b border-slate-700/50 text-slate-400">
                 <tr>
                     <th class="px-6 py-4 font-medium tracking-wide">Date</th>
@@ -32,38 +32,38 @@
             <tbody class="divide-y divide-slate-700/50 text-slate-200">
                 {% for expense in expenses %}
                 <tr class="hover:bg-slate-800/30 transition-colors odd:bg-slate-900/20">
-                    <td class="px-6 py-4">
+                    <td data-label="Date" class="px-6 py-4">
                         <div class="font-medium text-slate-100">{{ expense.date|date:"m/d/Y" }}</div>
                     </td>
-                    <td class="px-6 py-4">
+                    <td data-label="Category" class="px-6 py-4">
                         <span
                             class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-500/20 text-slate-300 border border-slate-500/40">
                             {{ expense.get_category_display }}
                         </span>
                     </td>
-                    <td class="px-6 py-4">
+                    <td data-label="Description / Notes" class="px-6 py-4">
                         <div class="text-slate-300 truncate max-w-xs">
                             {% if expense.notes %}
                             {{ expense.notes }}
                             {% else %}
-                            <span class="text-slate-500 italic">No notes</span>
+                            <span class="text-slate-400 italic">No notes</span>
                             {% endif %}
                         </div>
                         <div class="flex gap-2 mt-1">
                             {% if expense.vehicle %}
                             <span
-                                class="text-[10px] uppercase tracking-wider text-slate-500 bg-slate-800 px-1.5 py-0.5 rounded">{{ expense.vehicle.registration_number }}</span>
+                                class="text-[10px] uppercase tracking-wider text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded">{{ expense.vehicle.registration_number }}</span>
                             {% endif %}
                             {% if expense.driver %}
                             <span
-                                class="text-[10px] uppercase tracking-wider text-slate-500 bg-slate-800 px-1.5 py-0.5 rounded">{{ expense.driver.name }}</span>
+                                class="text-[10px] uppercase tracking-wider text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded">{{ expense.driver.name }}</span>
                             {% endif %}
                         </div>
                     </td>
-                    <td class="px-6 py-4">
+                    <td data-label="Amount" class="px-6 py-4">
                         <div class="font-bold text-slate-100">${{ expense.amount|floatformat:"2g" }}</div>
                     </td>
-                    <td class="px-6 py-4 text-right">
+                    <td data-label="Actions" class="px-6 py-4 text-right">
                         <a href="{% url 'expense_update' expense.pk %}"
                             class="text-accent hover:text-accent-dark font-medium text-sm transition-colors">Edit</a>
                         <span class="text-slate-700 mx-2">|</span>
@@ -73,7 +73,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="5" class="px-6 py-16 text-center text-slate-500">
+                    <td colspan="5" class="px-6 py-16 text-center text-slate-400">
                         <div class="flex flex-col items-center justify-center">
                             <svg class="w-12 h-12 mb-4 opacity-20" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24">

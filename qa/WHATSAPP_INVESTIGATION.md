@@ -133,3 +133,21 @@ Read the **SUMMARY OF FLAGS** at the bottom first. Then:
 | 8 | served cert vs on-disk cert, "no certbot deploy/post hook" | the nginx-not-reloaded time bomb |
 
 Send me the whole output file; it contains no secret values (env var names only, digits masked, session files by name only).
+
+---
+
+## 9. Production evidence (qa/prod_diagnostics.sh run on 2026-11-14, read-only) and how the fixes answer it
+
+| Observation on the server | What it means | Fixed by |
+|---|---|---|
+| `405 Connection Failure` x 35,768 in the retained log; the pinned version string is still in `index.js:122`; `status = disconnected / not_authenticated`, no `creds.json`, `groups = 0` | My experiments were right: WhatsApp rejects the pinned WhatsApp-Web version, so the sidecar cannot even show a QR. The empty group table follows from the session having been cleared (the old *Clear auth* also deleted every group). | QA-001 (current version fetched at every connect, Baileys 6.7.24), QA-019 (clear auth keeps groups) |
+| Last message received `2026-06-09 12:29`, the sidecar container started `2026-06-09 12:30`, `last connection` in the config row the same minute | Consistent with WhatsApp having worked until that restart and never again afterwards (inference, the log does not say when the first 405 appeared): the bot may have been **offline for about 5 months**, not just since this week. The restart (`RestartCount=3`, previous exit code `0`) was a clean stop, not a crash. | QA-001 |
+| `auth_data` directory modified `2026-11-12 20:42`, empty | The session folder was cleared that evening. I cannot tell whether it was a button press, a logout from the phone or someone calling the open `DELETE /api/auth`. Both of the last two possibilities were open to the internet. | QA-002, QA-003 |
+| `unhandled rejection / fatal: 0`, previous exit code `0` | My Phase 1 suspicion that the sidecar crash path caused the 3 restarts is **not supported** by production (TASKS.md QA-015 says so). The crash path is still real in the harness and is fixed. | QA-015 |
+| `440 connectionReplaced` x 316, `401 loggedOut` x 15, `515` x 4 | Sessions were replaced/unlinked repeatedly, consistent with the duplicate-socket bug (one restart left two sockets using the same credentials) and with re-pairing attempts. | QA-015 (one socket, policy per status code) |
+| `sidecar still uses the repo-default shared secret`, port 3001 published, `/sidecar/api/status` and the QR endpoint answer 200 from outside | Confirmed live: anyone could read the pairing QR and wipe or hijack the session. | QA-002, QA-003, QA-004 |
+| `whatsapp_log` 43,222 rows in 5 days, 24,150 on one day | The reconnect loop wrote a database row per attempt. | QA-045 |
+| sidecar log 3,923,374 lines in one unbounded file | | QA-025 (log rotation) |
+| 26 stored WhatsApp messages in total, the last one on 2026-06-09; 17 shipments, the latest created on 2026-11-13 (necessarily by hand) | Volume is tiny: re-entering by hand is feasible while the bot is down, and a dedicated number can be tested safely. | |
+
+**Re-pairing checklist:** `qa/DEPLOYMENT.md` section 7.

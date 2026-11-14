@@ -8,7 +8,7 @@
     <h1 class="text-2xl font-bold text-slate-100">Vehicles</h1>
     <p class="text-sm text-slate-400 mt-1">Manage your fleet, trucks, and assignments.</p>
   </div>
-  <div class="flex gap-3 w-full sm:w-auto">
+  <div class="flex flex-wrap gap-3 w-full sm:w-auto">
     <button
       class="sm:hidden flex-1 sm:flex-none border border-slate-600 bg-slate-800 text-slate-200 px-4 py-2 rounded-xl text-sm font-medium hover:bg-slate-700 transition">
       Filters
@@ -27,9 +27,9 @@
 <!-- Desktop Filters (Mobile hidden) -->
 <div class="hidden sm:block mb-6 bg-surface border border-slate-700/50 rounded-2xl p-4 shadow-xl shadow-black/20">
   <div class="flex gap-4">
-    <input type="text" placeholder="Search vehicles..."
+    <input aria-label="Search vehicles" type="text" placeholder="Search vehicles..."
       class="flex-1 bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent text-sm">
-    <select
+    <select aria-label="Filter by status"
       class="bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent text-sm">
       <option>All Statuses</option>
       <option>Active</option>
@@ -44,7 +44,7 @@
 <!-- Data Table -->
 <div class="bg-surface border border-slate-700/50 rounded-2xl shadow-xl shadow-black/20 overflow-hidden">
   <div class="overflow-x-auto">
-    <table class="w-full text-left text-sm whitespace-nowrap">
+    <table class="responsive-table w-full text-left text-sm whitespace-nowrap">
       <thead class="bg-slate-800/50 border-b border-slate-700/50 text-slate-400">
         <tr>
           <th class="px-6 py-4 font-medium tracking-wide">Vehicle Info</th>
@@ -57,20 +57,20 @@
       <tbody class="divide-y divide-slate-700/50 text-slate-200">
         {% for vehicle in vehicles %}
         <tr class="hover:bg-slate-800/30 transition-colors">
-          <td class="px-6 py-4">
+          <td data-label="Vehicle Info" class="px-6 py-4">
             <div class="font-medium text-slate-100">{{ vehicle.registration_number }}</div>
-            <div class="text-xs text-slate-500 mt-0.5">{{ vehicle.year|default:"" }} {{ vehicle.Manufacturer|default:"" }} {{ vehicle.model|default:"" }}
+            <div class="text-xs text-slate-400 mt-0.5">{{ vehicle.year|default:"" }} {{ vehicle.Manufacturer|default:"" }} {{ vehicle.model|default:"" }}
             </div>
           </td>
-          <td class="px-6 py-4 text-slate-400">{{ vehicle.chassis_number }}</td>
-          <td class="px-6 py-4 text-slate-300">
+          <td data-label="VIN" class="px-6 py-4 text-slate-400">{{ vehicle.chassis_number }}</td>
+          <td data-label="Driver" class="px-6 py-4 text-slate-300">
             {% if vehicle.driver %}
             <a href="{% url 'driver_detail' vehicle.driver.pk %}" class="hover:text-brand-light transition">{{ vehicle.driver.name }}</a>
             {% else %}
-            <span class="text-slate-500 italic">Unassigned</span>
+            <span class="text-slate-400 italic">Unassigned</span>
             {% endif %}
           </td>
-          <td class="px-6 py-4">
+          <td data-label="Status" class="px-6 py-4">
             {% if vehicle.status == 'AV' or vehicle.status == 'IU' %}
             <span
               class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-emerald-400/10 text-emerald-400 border border-emerald-400/20">{{ vehicle.get_status_display }}</span>
@@ -82,7 +82,7 @@
               class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-400/10 text-slate-400 border border-slate-400/20">{{ vehicle.get_status_display }}</span>
             {% endif %}
           </td>
-          <td class="px-6 py-4 text-right">
+          <td data-label="Actions" class="px-6 py-4 text-right">
             <a href="{% url 'vehicle_detail' vehicle.pk %}"
               class="text-brand-light hover:text-accent font-medium text-sm mr-3 transition-colors">View</a>
             <a href="{% url 'vehicle_update' vehicle.pk %}"
@@ -91,7 +91,7 @@
         </tr>
         {% empty %}
         <tr>
-          <td colspan="5" class="px-6 py-8 text-center text-slate-500">
+          <td colspan="5" class="px-6 py-8 text-center text-slate-400">
             <div class="flex flex-col items-center justify-center">
               <svg class="w-10 h-10 mb-2 opacity-50" fill="none" stroke="currentColor" stroke-width="2"
                 viewBox="0 0 24 24">

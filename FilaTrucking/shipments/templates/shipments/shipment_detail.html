@@ -30,7 +30,7 @@
     </div>
     <p class="text-sm text-slate-400 mt-1">Date: {{ shipment.date|date:"F j, Y" }}</p>
   </div>
-  <div class="flex gap-3">
+  <div class="flex flex-wrap gap-3">
     <a href="{% url 'shipment_update' shipment.pk %}"
       class="bg-slate-800 text-slate-200 hover:text-white px-4 py-2 border border-slate-600 rounded-xl text-sm font-medium transition">Edit
       Shipment</a>
@@ -52,25 +52,25 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
       <div>
-        <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Container</dt>
+        <dt class="text-sm font-medium text-slate-400 uppercase tracking-wider mb-1">Container</dt>
         <dd class="text-base text-slate-200 font-mono">{{ shipment.container }}</dd>
       </div>
       <div>
-        <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Booking</dt>
+        <dt class="text-sm font-medium text-slate-400 uppercase tracking-wider mb-1">Booking</dt>
         <dd class="text-base text-slate-200 font-mono">{{ shipment.booking }}</dd>
       </div>
       <div>
-        <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Seal</dt>
+        <dt class="text-sm font-medium text-slate-400 uppercase tracking-wider mb-1">Seal</dt>
         <dd class="text-base text-slate-200 font-mono">{{ shipment.seal }}</dd>
       </div>
       <div>
-        <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Location</dt>
+        <dt class="text-sm font-medium text-slate-400 uppercase tracking-wider mb-1">Location</dt>
         <dd class="text-base text-slate-200">{{ shipment.location|default:"-" }}</dd>
       </div>
     </div>
 
     <div class="mt-6 pt-6 border-t border-slate-700/50">
-      <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-2">Notes</dt>
+      <dt class="text-sm font-medium text-slate-400 uppercase tracking-wider mb-2">Notes</dt>
       <dd class="text-sm text-slate-300 p-4 bg-slate-800/50 rounded-xl border border-slate-700 whitespace-pre-wrap">{{ shipment.notes | default:"No notes added." }}</dd>
     </div>
   </div>
@@ -89,19 +89,19 @@
 
       <dl class="space-y-4">
         <div>
-          <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Customer</dt>
+          <dt class="text-sm font-medium text-slate-400 uppercase tracking-wider mb-1">Customer</dt>
           <dd class="text-base text-slate-200"><a href="{% url 'customer_detail' shipment.customer.pk %}"
               class="text-brand-light hover:underline">{{ shipment.customer.name }}</a></dd>
         </div>
         <div>
-          <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Driver</dt>
+          <dt class="text-sm font-medium text-slate-400 uppercase tracking-wider mb-1">Driver</dt>
           <dd class="text-base text-slate-200">{% if shipment.driver %}<a href="{% url 'driver_detail' shipment.driver.pk %}"
-              class="text-brand-light hover:underline">{{ shipment.driver.name }}</a>{% else %}<span class="text-slate-500">Unassigned</span>{% endif %}</dd>
+              class="text-brand-light hover:underline">{{ shipment.driver.name }}</a>{% else %}<span class="text-slate-400">Unassigned</span>{% endif %}</dd>
         </div>
         <div>
-          <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Vehicle</dt>
+          <dt class="text-sm font-medium text-slate-400 uppercase tracking-wider mb-1">Vehicle</dt>
           <dd class="text-base text-slate-200">{% if shipment.vehicle %}<a href="{% url 'vehicle_detail' shipment.vehicle.pk %}"
-              class="text-brand-light hover:underline">{{ shipment.vehicle }}</a>{% else %}<span class="text-slate-500">Unassigned</span>{% endif %}</dd>
+              class="text-brand-light hover:underline">{{ shipment.vehicle }}</a>{% else %}<span class="text-slate-400">Unassigned</span>{% endif %}</dd>
         </div>
       </dl>
     </div>
@@ -118,7 +118,7 @@
 
       <dl>
         <div>
-          <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Rate / Amount</dt>
+          <dt class="text-sm font-medium text-slate-400 uppercase tracking-wider mb-1">Rate / Amount</dt>
           <dd class="text-2xl font-bold text-slate-100">{% if shipment.amount is not None %}${{ shipment.amount|floatformat:"2g" }}{% else %}<span class="text-amber-400">Not set</span>{% endif %}</dd>
         </div>
       </dl>

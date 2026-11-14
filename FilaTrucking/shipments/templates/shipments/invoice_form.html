@@ -6,7 +6,7 @@
 <div class="max-w-5xl mx-auto py-8">
   <div class="mb-8 text-center sm:text-left">
     <a href="{% url 'invoice_list' %}"
-      class="text-sm text-slate-500 hover:text-slate-300 flex items-center justify-center sm:justify-start gap-1 transition-colors group">
+      class="text-sm text-slate-400 hover:text-slate-300 flex items-center justify-center sm:justify-start gap-1 transition-colors group">
       <svg class="w-4 h-4 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor"
         viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
@@ -81,7 +81,7 @@
         <div class="overflow-x-auto">
           <table class="w-full min-w-[700px]" id="line-items-table">
             <thead>
-              <tr class="text-left text-xs uppercase tracking-widest text-slate-500 border-b border-slate-700">
+              <tr class="text-left text-xs uppercase tracking-widest text-slate-400 border-b border-slate-700">
                 <th class="pb-3 pr-4 w-8"></th>
                 <th class="pb-3 pr-4 w-24">Date</th>
                 <th class="pb-3 pr-4 w-40">Description</th>
@@ -97,7 +97,7 @@
               {% include "shipments/_invoice_line_row.html" with form=form %}
               {% empty %}
               <tr id="empty-row" class="border-b border-slate-700/50">
-                <td colspan="8" class="py-8 text-center text-slate-500">
+                <td colspan="8" class="py-8 text-center text-slate-400">
                   No shipments in the selected date range. Select a customer and date range, then click "Load Shipments" to filter shipments.
                 </td>
               </tr>
@@ -198,7 +198,7 @@
       row.remove();
     }
     if (!tbody.querySelector('tr:not([style*="display: none"])')) {
-      tbody.innerHTML = '<tr id="empty-row" class="border-b border-slate-700/50"><td colspan="8" class="py-8 text-center text-slate-500">No line items. Click "Add Manual Item" to add one.</td></tr>';
+      tbody.innerHTML = '<tr id="empty-row" class="border-b border-slate-700/50"><td colspan="8" class="py-8 text-center text-slate-400">No line items. Click "Add Manual Item" to add one.</td></tr>';
     }
   }
 

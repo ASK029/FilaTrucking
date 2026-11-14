@@ -445,3 +445,65 @@ class MoneyAndAlertsFormattingQA047(QABase):
 def timezone_today():
     from django.utils import timezone
     return timezone.localdate()
+
+
+class MobileAndAccessibilityQA032QA033(QABase):
+    LIST_PAGES = ("/shipments/", "/invoices/", "/expenses/", "/vehicles/", "/drivers/", "/customers/", "/vehicles/maintenance/")
+
+    def setUp(self):
+        super().setUp()
+        self.login()
+        from shipments.models import Expense, Invoice, Shipment, ShipmentStatus
+        from vehicles.models import Maintenance
+        Shipment.objects.create(customer=self.customer, date=date(2026, 1, 5), booking="B", container="C", seal="S",
+                                amount=Decimal("1"), status=ShipmentStatus.CONFIRMED)
+        Invoice.objects.create(customer=self.customer, invoice_date=date(2026, 1, 5))
+        Expense.objects.create(date=date(2026, 1, 5), amount=Decimal("5"))
+        Maintenance.objects.create(vehicle=self.vehicle, cost=1, service_provider="x", description="d")
+
+    # QA-032
+    def test_list_tables_stack_into_labelled_cards_on_phones(self):
+        for url in self.LIST_PAGES:
+            with self.subTest(url=url):
+                html = self.client.get(url).content.decode()
+                self.assertIn('class="responsive-table', html)
+                self.assertRegex(html, r'<td[^>]* data-label="Actions"')
+                self.assertGreaterEqual(html.count("data-label="), 4)
+
+    def test_stylesheet_has_the_mobile_rules(self):
+        css = (ROOT / "FilaTrucking" / "static" / "css" / "app.css").read_text(encoding="utf-8")
+        self.assertIn("(max-width:767px)", css)
+        self.assertIn("min-height:44px", css)
+        self.assertIn("attr(data-label)", css)
+
+    # QA-033
+    def test_every_checked_page_has_its_own_title(self):
+        pages = ["/drivers/%d/delete/" % self.driver.pk, "/vehicles/ifta/logs/", "/vehicles/ifta/log/miles/", "/vehicles/ifta/log/gallons/",
+                 "/vehicles/ifta/report/", "/vehicles/maintenance/", "/vehicles/maintenance/create/", "/settings/system/",
+                 "/reports/financial/monthly/", "/reports/financial/yearly/"]
+        titles = {}
+        for url in pages:
+            m = re.search(r"<title>(.*?)</title>", self.client.get(url).content.decode(), re.S)
+            titles[url] = m.group(1).strip()
+        self.assertNotIn("FilaTrucking TMS", titles.values(), titles)
+        self.assertEqual(len(set(titles.values())), len(pages), titles)
+
+    def test_controls_have_accessible_names(self):
+        html = self.client.get("/shipments/").content.decode()
+        self.assertIn('aria-label="Search shipments"', html)
+        self.assertIn('aria-label="Filter by status"', html)
+        form = self.client.get("/expenses/create/").content.decode()
+        self.assertRegex(form, r'<input[^>]*name="amount"[^>]*aria-label="Amount \(\$\)"|<input[^>]*aria-label="Amount \(\$\)"[^>]*name="amount"')
+
+    def test_secondary_text_colours_meet_contrast_on_the_dark_theme(self):
+        cfg = (ROOT / "frontend" / "tailwind.config.js").read_text(encoding="utf-8")
+        self.assertIn("muted: '#94A3B8'", cfg)
+        offenders = []
+        for path in (ROOT / "FilaTrucking").rglob("*.html"):
+            if "staticfiles" in path.parts or path.name.endswith("_pdf.html"):
+                continue
+            lines = path.read_text(encoding="utf-8").splitlines()
+            for i, line in enumerate(lines, 1):
+                if "text-slate-500" in line and not (path.name == "invoice_detail.html" and i >= 124):  # the white invoice sheet is light
+                    offenders.append(f"{path.name}:{i}")
+        self.assertEqual(offenders, [], "text-slate-500 is 3.7:1 on the dark background (needs 4.5:1)")

@@ -46,29 +46,29 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div>
-        <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Truck Number #</dt>
+        <dt class="text-sm font-medium text-slate-400 uppercase tracking-wider mb-1">Truck Number #</dt>
         <dd class="text-base text-slate-200 font-mono">{{ vehicle.registration_number }}</dd>
       </div>
       <div>
-        <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Chassis / VIN #</dt>
+        <dt class="text-sm font-medium text-slate-400 uppercase tracking-wider mb-1">Chassis / VIN #</dt>
         <dd class="text-base text-slate-200 font-mono">{{ vehicle.chassis_number|default:"-" }}</dd>
       </div>
       <div>
-        <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Ownership</dt>
+        <dt class="text-sm font-medium text-slate-400 uppercase tracking-wider mb-1">Ownership</dt>
         <dd class="text-base text-slate-200">{{ vehicle.get_ownership_type_display }}</dd>
       </div>
       <div>
-        <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Assigned Driver</dt>
+        <dt class="text-sm font-medium text-slate-400 uppercase tracking-wider mb-1">Assigned Driver</dt>
         <dd class="text-base text-slate-200">
           {% if vehicle.driver %}
           <a href="{% url 'driver_detail' vehicle.driver.pk %}" class="text-brand-light hover:underline">{{ vehicle.driver.name }}</a>
           {% else %}
-          <span class="text-slate-500 italic">Unassigned</span>
+          <span class="text-slate-400 italic">Unassigned</span>
           {% endif %}
         </dd>
       </div>
       <div>
-        <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Avg MPG</dt>
+        <dt class="text-sm font-medium text-slate-400 uppercase tracking-wider mb-1">Avg MPG</dt>
         <dd class="text-base text-slate-200">{{ vehicle.average_mpg|default:"-" }}</dd>
       </div>
     </div>
@@ -105,7 +105,7 @@
     {% else %}
     <div
       class="mb-4 rounded-xl overflow-hidden border border-slate-700 bg-slate-800 h-48 flex items-center justify-center">
-      <div class="flex flex-col items-center justify-center text-slate-500 opacity-50">
+      <div class="flex flex-col items-center justify-center text-slate-400 opacity-50">
         <svg class="w-12 h-12 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path
             d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.08 3.11H5.77L6.85 7zM19 17H5v-5h14v5z">

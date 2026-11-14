@@ -23,7 +23,7 @@
 <!-- Desktop Filters (Mobile hidden) -->
 <div class="hidden sm:block mb-6 bg-surface border border-slate-700/50 rounded-2xl p-4 shadow-xl shadow-black/20">
   <form method="get" action="" class="flex gap-4">
-    <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Search customers..."
+    <input aria-label="Search customers" type="text" name="q" value="{{ request.GET.q }}" placeholder="Search customers..."
       class="flex-1 bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent text-sm">
     <button type="submit"
       class="bg-slate-800 text-slate-200 px-4 py-2 border border-slate-600 rounded-xl text-sm font-medium hover:bg-slate-700 transition w-auto">Search</button>
@@ -33,7 +33,7 @@
 <!-- Data Table -->
 <div class="bg-surface border border-slate-700/50 rounded-2xl shadow-xl shadow-black/20 overflow-hidden">
   <div class="overflow-x-auto">
-    <table class="w-full text-left text-sm whitespace-nowrap">
+    <table class="responsive-table w-full text-left text-sm whitespace-nowrap">
       <thead class="bg-slate-800/50 border-b border-slate-700/50 text-slate-400">
         <tr>
           <th class="px-6 py-4 font-medium tracking-wide">Name / Abbr</th>
@@ -45,20 +45,20 @@
       <tbody class="divide-y divide-slate-700/50 text-slate-200">
         {% for customer in customers %}
         <tr class="hover:bg-slate-800/30 transition-colors">
-          <td class="px-6 py-4">
+          <td data-label="Name / Abbr" class="px-6 py-4">
             <div class="font-medium text-slate-100">{{ customer.name }}</div>
-            <div class="text-xs text-slate-500 mt-0.5">{{ customer.abbreviation }}</div>
+            <div class="text-xs text-slate-400 mt-0.5">{{ customer.abbreviation }}</div>
           </td>
-          <td class="px-6 py-4 text-slate-400">
+          <td data-label="Contact Details" class="px-6 py-4 text-slate-400">
             <div class="flex items-center gap-1"><span class="text-xs font-semibold mr-1">Phone:</span>
               {{ customer.phone_number }}</div>
             <div class="flex items-center gap-1 mt-0.5"><span class="text-xs font-semibold mr-1">Email:</span>
               {{ customer.email }}</div>
           </td>
-          <td class="px-6 py-4 text-slate-400">
+          <td data-label="Default Rate" class="px-6 py-4 text-slate-400">
             {% if customer.default_rate %}${{ customer.default_rate|floatformat:"2g" }}{% else %}-{% endif %}
           </td>
-          <td class="px-6 py-4 text-right">
+          <td data-label="Actions" class="px-6 py-4 text-right">
             <a href="{% url 'customer_detail' customer.pk %}"
               class="text-brand-light hover:text-accent font-medium text-sm mr-3 transition-colors">View</a>
             <a href="{% url 'customer_update' customer.pk %}"
@@ -67,7 +67,7 @@
         </tr>
         {% empty %}
         <tr>
-          <td colspan="5" class="px-6 py-8 text-center text-slate-500">
+          <td colspan="5" class="px-6 py-8 text-center text-slate-400">
             <div class="flex flex-col items-center justify-center">
               <svg class="w-10 h-10 mb-2 opacity-50" fill="none" stroke="currentColor" stroke-width="2"
                 viewBox="0 0 24 24">

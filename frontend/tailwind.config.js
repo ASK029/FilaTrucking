@@ -14,7 +14,7 @@ module.exports = {
         brand: { DEFAULT: '#1B3A6B', light: '#2A5298' },
         accent: { DEFAULT: '#F59E0B', dark: '#D97706' },
         surface: { DEFAULT: '#0F172A', card: '#1E293B' },
-        muted: '#64748B',
+        muted: '#94A3B8', // was #64748B: 3.7:1 on the page background, below the WCAG AA minimum of 4.5:1 (QA-033)
       },
       fontFamily: {
         sans: ['DM Sans', 'sans-serif'],

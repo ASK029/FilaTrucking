@@ -1,14 +1,15 @@
 {% extends "base.html" %}
 
+{% block title %}Yearly statement — FilaTrucking TMS{% endblock %}
 {% block content %}
-<div class="flex items-center justify-between mb-6">
+<div class="flex flex-wrap items-center justify-between gap-3 mb-6">
   <div>
     <h1 class="text-2xl font-bold tracking-tight">Yearly Statement</h1>
     <p class="text-sm text-muted mt-0.5">
       Financial overview for {{ year }}.
     </p>
   </div>
-  <div class="flex items-center gap-2">
+  <div class="flex flex-wrap items-center gap-2">
     <a href="{% url 'monthly_statement' %}?year={{ year }}"
        class="text-xs text-muted hover:text-slate-200">
       View Monthly Breakdown
@@ -44,19 +45,19 @@
   <div class="bg-surface-card rounded-2xl p-5 border border-slate-700/50">
     <p class="text-muted text-xs uppercase tracking-widest">Total Revenue</p>
     <p class="text-3xl font-bold text-slate-100 mt-1 font-mono">${{ total_revenue|floatformat:"2g" }}</p>
-    <p class="text-slate-500 text-xs mt-1">All deposits in {{ year }}</p>
+    <p class="text-slate-400 text-xs mt-1">All deposits in {{ year }}</p>
   </div>
   <div class="bg-surface-card rounded-2xl p-5 border border-slate-700/50">
     <p class="text-muted text-xs uppercase tracking-widest">Total Spending</p>
     <p class="text-3xl font-bold text-red-300 mt-1 font-mono">${{ total_expenses|floatformat:"2g" }}</p>
-    <p class="text-slate-500 text-xs mt-1">All expenses in {{ year }}</p>
+    <p class="text-slate-400 text-xs mt-1">All expenses in {{ year }}</p>
   </div>
   <div class="bg-surface-card rounded-2xl p-5 border border-slate-700/50">
     <p class="text-muted text-xs uppercase tracking-widest">Profit</p>
     <p class="text-3xl font-bold {% if net_profit >= 0 %}text-emerald-300{% else %}text-red-300{% endif %} mt-1 font-mono">
       ${{ net_profit|floatformat:"2g" }}
     </p>
-    <p class="text-slate-500 text-xs mt-1">Revenue minus expenses</p>
+    <p class="text-slate-400 text-xs mt-1">Revenue minus expenses</p>
   </div>
 </div>
 

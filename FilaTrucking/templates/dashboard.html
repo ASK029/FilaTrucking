@@ -16,28 +16,28 @@
         <p class="text-3xl font-bold text-slate-100 mt-1 font-mono">
             ${{ revenue_this_month|default:0|floatformat:"2g" }}
         </p>
-        <p class="text-slate-500 text-sm mt-1">This month</p>
+        <p class="text-slate-400 text-sm mt-1">This month</p>
     </div>
     <div class="bg-surface-card rounded-2xl p-5 border border-slate-700/50 shadow-lg">
         <p class="text-muted text-xs uppercase tracking-widest font-medium">Active Shipments</p>
         <p class="text-3xl font-bold text-slate-100 mt-1 font-mono">
             {{ active_shipments_count|default:0 }}
         </p>
-        <p class="text-slate-500 text-sm mt-1">Confirmed, not yet invoiced</p>
+        <p class="text-slate-400 text-sm mt-1">Confirmed, not yet invoiced</p>
     </div>
     <div class="bg-surface-card rounded-2xl p-5 border border-slate-700/50 shadow-lg">
         <p class="text-muted text-xs uppercase tracking-widest font-medium">Pending Review</p>
         <p class="text-3xl font-bold text-yellow-400 mt-1 font-mono">
             {{ pending_review_count|default:0 }}
         </p>
-        <p class="text-slate-500 text-sm mt-1">Shipments awaiting confirmation</p>
+        <p class="text-slate-400 text-sm mt-1">Shipments awaiting confirmation</p>
     </div>
     <div class="bg-surface-card rounded-2xl p-5 border border-slate-700/50 shadow-lg">
         <p class="text-muted text-xs uppercase tracking-widest font-medium">Open Invoices</p>
         <p class="text-3xl font-bold text-slate-100 mt-1 font-mono">
             {{ open_invoices_count|default:0 }}
         </p>
-        <p class="text-slate-500 text-sm mt-1">Drafts &amp; sent, awaiting payment</p>
+        <p class="text-slate-400 text-sm mt-1">Drafts &amp; sent, awaiting payment</p>
     </div>
 </div>
 
@@ -112,7 +112,7 @@
         <div class="p-0">
             <div class="overflow-x-auto">
                 <table class="min-w-full text-sm">
-                    <thead class="text-xs uppercase text-slate-500 font-semibold bg-slate-900/40">
+                    <thead class="text-xs uppercase text-slate-400 font-semibold bg-slate-900/40">
                         <tr>
                             <th class="py-3 px-5 text-left">Report</th>
                             {% comment %} <th class="py-3 px-5 text-left">Task</th> {% endcomment %}
@@ -133,12 +133,12 @@
                                 <td colspan="3" class="py-12 text-center text-muted">
                                     <div class="flex flex-col items-center gap-3">
                                         <div class="w-12 h-12 rounded-full bg-slate-800/50 flex items-center justify-center mb-1">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v11a2 2 0 002 2z" />
                                             </svg>
                                         </div>
                                         <p class="font-semibold text-slate-300">No schedules configured</p>
-                                        <p class="text-xs text-slate-500 max-w-xs mx-auto">
+                                        <p class="text-xs text-slate-400 max-w-xs mx-auto">
                                             Periodic tasks are not active. Check the Celery configuration in settings.
                                         </p>
                                     </div>
@@ -171,7 +171,7 @@
                             <div>
                                 <p class="font-bold text-slate-100">{{ alert.vehicle.name }} <span class="text-muted font-normal text-xs ml-1">#{{ alert.vehicle.registration_number }}</span></p>
                                 <div class="flex items-center gap-2 mt-1">
-                                    <span class="text-[10px] uppercase font-bold text-slate-500 bg-slate-900/60 px-1.5 py-0.5 rounded">Mileage</span>
+                                    <span class="text-[10px] uppercase font-bold text-slate-400 bg-slate-900/60 px-1.5 py-0.5 rounded">Mileage</span>
                                     <p class="text-xs {% if alert.overdue %}text-red-400 font-semibold{% else %}text-slate-400{% endif %}">{{ alert.miles_abs|floatformat:"0g" }} miles {% if alert.overdue %}overdue{% else %}remaining{% endif %}</p>
                                 </div>
                             </div>
@@ -180,7 +180,7 @@
                             <span class="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase border bg-yellow-500/15 text-yellow-500 border-yellow-500/30">
                                 Attention Required
                             </span>
-                            <p class="text-[10px] text-slate-500">Service at {{ alert.next_service_mileage }} mi</p>
+                            <p class="text-[10px] text-slate-400">Service at {{ alert.next_service_mileage }} mi</p>
                         </div>
                     </div>
                     {% endfor %}
@@ -193,7 +193,7 @@
                         </svg>
                     </div>
                     <p class="font-bold text-slate-400">All systems operational</p>
-                    <p class="text-xs text-slate-500 mt-1 max-w-xs mx-auto">No vehicles are currently approaching their service maintenance thresholds.</p>
+                    <p class="text-xs text-slate-400 mt-1 max-w-xs mx-auto">No vehicles are currently approaching their service maintenance thresholds.</p>
                 </div>
             {% endif %}
         </div>

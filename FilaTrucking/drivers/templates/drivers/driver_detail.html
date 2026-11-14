@@ -40,15 +40,15 @@
 
     <dl class="space-y-4">
       <div>
-        <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Phone Number</dt>
+        <dt class="text-sm font-medium text-slate-400 uppercase tracking-wider mb-1">Phone Number</dt>
         <dd class="text-base text-slate-200">{{ driver.phone_number|default:"Not provided" }}</dd>
       </div>
       <div>
-        <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">CDL / License Number</dt>
+        <dt class="text-sm font-medium text-slate-400 uppercase tracking-wider mb-1">CDL / License Number</dt>
         <dd class="text-base text-slate-200">{{ driver.license_number|default:"Not provided" }}</dd>
       </div>
       <div>
-        <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">License Expiry</dt>
+        <dt class="text-sm font-medium text-slate-400 uppercase tracking-wider mb-1">License Expiry</dt>
         <dd class="text-base text-slate-200">{{ driver.license_expiry|date:"F j, Y"|default:"Not provided" }}</dd>
       </div>
     </dl>
@@ -82,7 +82,7 @@
       {% endfor %}
     </ul>
     {% else %}
-    <div class="text-center py-6 text-slate-500">
+    <div class="text-center py-6 text-slate-400">
       <p class="text-sm">No documents attached.</p>
     </div>
     {% endif %}

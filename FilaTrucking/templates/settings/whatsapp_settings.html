@@ -67,7 +67,7 @@
                 {% if config.last_connection_time %}
                     <p class="text-sm text-slate-300">{{ config.last_connection_time|date:"M d, H:i" }}</p>
                 {% else %}
-                    <p class="text-sm text-slate-500">Never connected</p>
+                    <p class="text-sm text-slate-400">Never connected</p>
                 {% endif %}
             </div>
         </div>
@@ -181,7 +181,7 @@
                                         <p class="text-xs text-muted">{{ group.participant_count }} members • Last synced {{ group.last_synced_at|timesince }} ago</p>
                                     </div>
                                     <label class="flex items-center gap-2 cursor-pointer ml-3 flex-shrink-0">
-                                        <input type="checkbox" 
+                                        <input aria-label="Listen to this group" type="checkbox" 
                                             class="w-4 h-4 rounded border-2 border-slate-500 text-amber-500 focus:ring-amber-500 focus:ring-offset-0 bg-transparent cursor-pointer toggle-group-checkbox"
                                             data-group-id="{{ group.id }}"
                                             {% if group.is_active %}checked{% endif %}
