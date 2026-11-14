@@ -93,7 +93,10 @@
         {% if user.is_authenticated %}
         <div class="flex items-center gap-3">
             <span class="hidden md:block text-sm text-muted">{{ user.username }}</span>
-            <a href="{% url 'logout' %}"
+            {# Django 5+ only logs out on POST (a plain link answers 405) (QA-049) #}
+            <form method="post" action="{% url 'logout' %}" class="contents">
+                {% csrf_token %}
+            <button type="submit"
                 class="flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-100 hover:bg-slate-800 px-3 py-2 rounded-xl transition-colors min-h-[44px]"
                 title="Logout">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -101,7 +104,8 @@
                         d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
                 <span class="hidden sm:block">Logout</span>
-            </a>
+            </button>
+            </form>
         </div>
         {% endif %}
     </header>
@@ -146,12 +150,15 @@
                 <p class="text-sm font-medium text-slate-200 truncate">{{ user.username }}</p>
                 <p class="text-xs text-muted">Administrator</p>
             </div>
-            <a href="{% url 'logout' %}" class="text-muted hover:text-slate-100 transition-colors" title="Logout">
+            <form method="post" action="{% url 'logout' %}" class="contents">
+                {% csrf_token %}
+            <button type="submit" class="text-muted hover:text-slate-100 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center" title="Logout" aria-label="Logout">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
-            </a>
+            </button>
+            </form>
         </div>
         {% endif %}
     </div>

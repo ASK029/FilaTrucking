@@ -77,6 +77,7 @@ class ProductionHasASchedulerStack(SimpleTestCase):
 
 
 import os
+import re
 import tempfile
 
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -322,3 +323,26 @@ class QueryStringValidationQA036(QABase):
         self.assertEqual(self.client.get("/shipments/api/whatsapp/logs/?limit=abc").status_code, 400)
         self.assertEqual(self.client.get("/shipments/api/whatsapp/logs/?offset=x").status_code, 400)
         self.assertEqual(len(self.client.get("/shipments/api/whatsapp/logs/?limit=-5").json()["logs"]), 1)
+
+
+class LogoutQA049(QABase):
+    def test_logout_controls_are_post_forms_with_csrf_not_links(self):
+        """[QA-049] Django 5+ answers GET /auth/logout/ with 405, so the header link and the mobile-drawer link
+        could not sign anyone out."""
+        self.login()
+        html = self.client.get("/").content.decode()
+        self.assertNotRegex(html, r'<a[^>]+href="/auth/logout/"')
+        forms = re.findall(r'<form method="post" action="/auth/logout/"[^>]*>\s*<input type="hidden" name="csrfmiddlewaretoken"', html)
+        self.assertEqual(len(forms), 2)  # top bar + mobile drawer
+
+    def test_posting_signs_out_and_redirects_to_login(self):
+        self.login()
+        r = self.client.post("/auth/logout/")
+        self.assertEqual((r.status_code, r["Location"]), (302, "/auth/login/"))
+        self.assertEqual(self.client.get("/shipments/").status_code, 302)  # really signed out
+
+    def test_logout_needs_csrf(self):
+        from django.test import Client
+        c = Client(enforce_csrf_checks=True)
+        c.force_login(self.user)
+        self.assertEqual(c.post("/auth/logout/").status_code, 403)  # another site cannot sign the admin out
