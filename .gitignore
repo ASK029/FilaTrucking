@@ -9,6 +9,8 @@ env
 !.gitignore
 !.dockerignore
 !.gitattributes
+!.github/
+!.github/**
 !sidecar/.dockerignore
 !.env.example
 !.travis.yml

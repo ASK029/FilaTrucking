@@ -330,3 +330,37 @@ class DevComposeQA041(SimpleTestCase):
             for svc_name, svc in services.items():
                 for dep in (svc.get("depends_on") or {}):
                     self.assertIn(dep, services, f"{name}: {svc_name} depends on unknown service {dep}")
+
+
+class ContinuousIntegrationQA043(SimpleTestCase):
+    def workflow(self):
+        return yaml.safe_load((ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8"))
+
+    def test_ci_runs_tests_audits_and_deployment_file_checks(self):
+        """[QA-043] there was no CI at all and 8 of 14 tests were red without anyone noticing."""
+        jobs = self.workflow()["jobs"]
+        text = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+        self.assertEqual(set(jobs), {"django", "django-mysql", "sidecar", "deployment-files"})
+        for needle in ("manage.py test shipments vehicles customers drivers qa.tests", "makemigrations --check", "pip-audit",
+                       "npm audit", "node --test qa/tests/sidecar.test.cjs", "docker compose -f docker-compose.prod.yml config", "nginx -t"):
+            self.assertIn(needle, text)
+
+    def test_ci_never_uses_real_secrets(self):
+        text = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+        self.assertNotIn("secrets.", text)
+
+    def test_dependabot_watches_every_ecosystem(self):
+        data = yaml.safe_load((ROOT / ".github" / "dependabot.yml").read_text(encoding="utf-8"))
+        self.assertEqual({u["package-ecosystem"] for u in data["updates"]}, {"pip", "npm", "docker", "github-actions"})
+
+    def test_workflow_files_are_not_swallowed_by_gitignore(self):
+        r = subprocess.run(["git", "check-ignore", "-q", ".github/workflows/ci.yml"], cwd=ROOT)
+        self.assertEqual(r.returncode, 1, ".github/ is git-ignored by the '.*' rule")
+
+    def test_the_app_tests_that_were_red_are_green_now(self):
+        import unittest
+        from django.test.runner import DiscoverRunner
+        # smoke: the modules import and define tests (they run in the suite itself)
+        for module in ("shipments.tests", "vehicles.tests", "vehicles.test_gomotive"):
+            suite = unittest.defaultTestLoader.loadTestsFromName(module)
+            self.assertGreater(suite.countTestCases(), 0, module)

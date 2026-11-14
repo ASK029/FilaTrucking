@@ -1,8 +1,11 @@
 from datetime import date
+from decimal import Decimal
 
 from django.test import TestCase
 
-from .models import Expense, ExpenseCategory, Invoice, InvoiceLineItem, Shipment, ShipmentStatus
+from customers.models import Customer
+
+from .models import Expense, ExpenseCategory, Invoice, InvoiceLineItem, InvoiceStatus
 from .tasks import (
     generate_monthly_statement,
     generate_recurring_invoices,
@@ -12,10 +15,19 @@ from .tasks import (
 
 
 class FinancialTasksTests(TestCase):
+    """Basic contract of the Celery tasks. (The old fixtures used customer_id=None and unpaid invoices, so the tests
+    never matched the PRD rules: statements count PAID invoices by paid_at.) More cases: qa/tests."""
+
     def setUp(self) -> None:
+        customer = Customer.objects.create(
+            name="Test Customer", abbreviation="TC", phone_number="+13125550100",
+            address="1 Main St", email="ap@example.com",
+        )
         self.invoice = Invoice.objects.create(
-            customer_id=None,  # type: ignore[arg-type]
+            customer=customer,
             invoice_date=date(2026, 1, 15),
+            status=InvoiceStatus.PAID,
+            paid_at=date(2026, 1, 20),
         )
         InvoiceLineItem.objects.create(
             invoice=self.invoice,
@@ -29,24 +41,23 @@ class FinancialTasksTests(TestCase):
         )
         self.invoice.calculate_total()
 
-        Expense.objects.create(
-            date=date(2026, 1, 5),
-            category=ExpenseCategory.TRUCK,
-            amount=40,
-        )
+        Expense.objects.create(date=date(2026, 1, 5), category=ExpenseCategory.TRUCK, amount=40)
+        Expense.objects.create(date=date(2026, 1, 6), category=ExpenseCategory.DRIVER, amount=25)
 
     def test_generate_monthly_statement(self) -> None:
         result = generate_monthly_statement(year=2026, month=1)
         self.assertEqual(result["year"], 2026)
         self.assertEqual(result["month"], 1)
-        self.assertEqual(result["revenue"], "100")
-        self.assertEqual(result["driver_pay_total"], "40")
+        self.assertEqual(Decimal(result["revenue"]), Decimal("100"))
+        self.assertEqual(Decimal(result["total_expenses"]), Decimal("65"))
+        self.assertEqual(Decimal(result["driver_pay_total"]), Decimal("25"))
+        self.assertEqual(Decimal(result["net_profit"]), Decimal("35"))
 
     def test_generate_yearly_statement(self) -> None:
         result = generate_yearly_statement(year=2026)
         self.assertEqual(result["year"], 2026)
-        self.assertEqual(result["total_revenue"], "100")
-        self.assertEqual(result["total_expenses"], "40")
+        self.assertEqual(Decimal(result["total_revenue"]), Decimal("100"))
+        self.assertEqual(Decimal(result["total_expenses"]), Decimal("65"))
 
     def test_generate_recurring_invoices_no_confirmed_shipments(self) -> None:
         created = generate_recurring_invoices()

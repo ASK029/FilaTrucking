@@ -14,16 +14,12 @@ class GoMotiveClientTests(TestCase):
 class MaintenanceAlertLogicTests(TestCase):
     def test_next_service_mileage_field_exists(self) -> None:
         vehicle = Vehicle.objects.create(
-            driver_id=None,  # type: ignore[arg-type]
             registration_number="TEST123",
-            name="Test Truck",
             Manufacturer="Make",
             model="Model",
             year=2024,
             chassis_number="CHASSIS",
-            engine_number="ENGINE",
             ownership_type="CO",
-            image="vehicle_images/test.jpg",
             current_odometer=9500,
         )
         m = Maintenance.objects.create(

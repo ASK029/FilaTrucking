@@ -1,0 +1,108 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  django:
+    name: Django tests, migrations, dependency audit
+    runs-on: ubuntu-latest
+    env:
+      # throw-away values: CI never sees a real secret or database
+      DATABASE_URL: "sqlite:///:memory:"
+      SECRET_KEY: ci-only-secret-key-0123456789abcdef0123456789abcdef0123456789abcdef
+      WHATSAPP_INGEST_SECRET: ci-only-ingest-secret-0123456789
+      CELERY_BROKER_URL: "memory://"
+      DEBUG: "True"
+      ALLOWED_HOSTS: testserver,localhost,127.0.0.1
+      DOTENV_PATH: /nonexistent/.env
+      PYTHONPATH: ${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: System libraries for mysqlclient / WeasyPrint
+        run: sudo apt-get update && sudo apt-get install -y default-libmysqlclient-dev pkg-config build-essential libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf-2.0-0 shared-mime-info
+      - run: pip install -r requirements.txt pip-audit
+      - name: Migrations are in sync with the models
+        working-directory: FilaTrucking
+        run: python manage.py makemigrations --check --dry-run
+      - name: Tests (app tests + qa/tests)
+        working-directory: FilaTrucking
+        run: python manage.py test shipments vehicles customers drivers qa.tests --noinput
+      - name: Known vulnerabilities in the pinned dependencies
+        run: pip-audit -r requirements.txt --no-deps --disable-pip
+
+  django-mysql:
+    name: Same tests on MySQL 8.0
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ci-root-pass
+          MYSQL_DATABASE: filatrucking
+        ports: ["3306:3306"]
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -pci-root-pass" --health-interval=5s --health-timeout=5s --health-retries=20
+    env:
+      DATABASE_URL: mysql://root:ci-root-pass@127.0.0.1:3306/filatrucking
+      SECRET_KEY: ci-only-secret-key-0123456789abcdef0123456789abcdef0123456789abcdef
+      WHATSAPP_INGEST_SECRET: ci-only-ingest-secret-0123456789
+      CELERY_BROKER_URL: "memory://"
+      DEBUG: "True"
+      ALLOWED_HOSTS: testserver,localhost,127.0.0.1
+      DOTENV_PATH: /nonexistent/.env
+      PYTHONPATH: ${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: sudo apt-get update && sudo apt-get install -y default-libmysqlclient-dev pkg-config build-essential libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf-2.0-0 shared-mime-info
+      - run: pip install -r requirements.txt
+      - working-directory: FilaTrucking
+        run: python manage.py test shipments vehicles customers drivers qa.tests --noinput
+
+  sidecar:
+    name: Sidecar tests and npm audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install exactly what package-lock.json says
+        working-directory: sidecar
+        run: npm ci
+      - name: npm audit (production dependencies)
+        working-directory: sidecar
+        run: npm audit --omit=dev --audit-level=high
+      - name: Sidecar behaviour tests (Baileys and Django are stubbed, nothing connects to WhatsApp)
+        run: node --test qa/tests/sidecar.test.cjs
+
+  deployment-files:
+    name: Compose and nginx files are valid
+    runs-on: ubuntu-latest
+    env:
+      MYSQL_ROOT_PASSWORD: x
+      MYSQL_PASSWORD: y
+      SECRET_KEY: z
+      WHATSAPP_INGEST_SECRET: ci-only-ingest-secret-0123456789
+      APP_UID: "1000"
+      APP_GID: "1000"
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose -f docker-compose.yml config -q
+      - run: docker compose -f docker-compose.prod.yml config -q
+      - name: nginx -t
+        run: docker run --rm -v "$PWD/nginx.conf:/etc/nginx/nginx.conf:ro" --add-host django:127.0.0.1 --add-host sidecar:127.0.0.1 nginx:alpine nginx -t
+      - name: shell scripts parse
+        run: sh -n deploy/backup_mysql.sh && sh -n deploy/restore_mysql.sh && sh -n sidecar/docker-entrypoint.sh
