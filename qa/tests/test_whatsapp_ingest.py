@@ -129,3 +129,66 @@ class NoiseClassifierQA016(QABase):
         self.assertEqual(j["status"], "flagged")
         self.assertIn("BOOKING CONTAINER SEAL", j["reply_message"])  # the driver is told what is missing
         self.assertEqual(WhatsAppMessage.objects.filter(is_flagged=True).count(), 1)
+
+
+class DriverAndRateQA017(QABase):
+    def test_jid_normalisation(self):
+        from shipments.api import jid_to_e164 as f
+        self.assertEqual(f("13125550101@s.whatsapp.net"), "+13125550101")
+        self.assertEqual(f("13125550101:12@s.whatsapp.net"), "+13125550101")  # multi-device suffix
+        self.assertEqual(f("+1 (312) 555-0101"), "+13125550101")
+        self.assertIsNone(f("98765432101234@lid"))  # privacy id: NOT a phone number
+        self.assertIsNone(f("120363@g.us"))
+        self.assertIsNone(f(""))
+        self.assertIsNone(f(None))
+        self.assertIsNone(f("123@s.whatsapp.net"))  # too short to be a phone
+
+    def test_phone_must_match_exactly_not_as_a_substring(self):
+        from drivers.models import Driver
+        Driver.objects.create(name="Other Guy", phone_number="+13125550199", license_number="LIC-9")
+        # '+1312555019' is a prefix of Other Guy's number: the old icontains lookup would have matched him
+        self.ingest(POSITIONAL, sender="1312555019@s.whatsapp.net")
+        self.assertIsNone(Shipment.objects.get().driver)
+
+    def test_lid_sender_is_left_unassigned(self):
+        self.ingest(POSITIONAL, sender="98765432101234@lid")
+        self.assertIsNone(Shipment.objects.get().driver)
+
+    def test_driver_named_in_message_wins_and_ambiguous_partial_names_are_not_guessed(self):
+        from drivers.models import Driver
+        Driver.objects.create(name="Moe Second", phone_number="+13125550102", license_number="LIC-2")
+        self.ingest(KV.replace("DRIVER: Moe", "DRIVER: moe driver"), sender="999@lid")
+        self.assertEqual(Shipment.objects.get().driver, self.driver)  # exact (case-insensitive) match
+        Shipment.objects.all().delete()
+        self.ingest(KV.replace("DRIVER: Moe", "DRIVER: Moe").replace("RICG02390500", "RICG0000009"), sender="999@lid")
+        self.assertIsNone(Shipment.objects.get().driver)  # "Moe" matches two drivers: do not pick one
+
+    def test_explicit_rate_beats_default_and_garbage_rate_falls_back(self):
+        self.ingest(KV.replace("RATE: 400", "RATE: 550"))
+        self.assertEqual(Shipment.objects.get().amount, Decimal("550.00"))
+        Shipment.objects.all().delete()
+        self.ingest(KV.replace("RATE: 400", "RATE: 1.2.3").replace("RICG02390500", "RICG0000010"))
+        self.assertEqual(Shipment.objects.get().amount, Decimal("400.00"))  # default rate
+
+    def test_no_rate_anywhere_leaves_amount_empty_and_flags_it(self):
+        from customers.models import Customer
+        Customer.objects.filter(pk=self.customer.pk).update(default_rate=None)
+        j = self.ingest(POSITIONAL).json()
+        s = Shipment.objects.get()
+        self.assertEqual(j["status"], "success")
+        self.assertIsNone(s.amount)
+        self.assertTrue(s.is_flagged)
+        self.assertIn("set the amount", s.notes)
+        self.assertIn("not set", j["reply_message"])
+        self.assertNotIn("None", j["reply_message"])
+
+    def test_shipment_pages_render_without_a_rate(self):
+        self.login()
+        from customers.models import Customer
+        Customer.objects.filter(pk=self.customer.pk).update(default_rate=None)
+        self.ingest(POSITIONAL)
+        s = Shipment.objects.get()
+        for url in ("/shipments/", f"/shipments/{s.pk}/"):
+            r = self.client.get(url)
+            self.assertEqual(r.status_code, 200)
+            self.assertNotContains(r, "$None")

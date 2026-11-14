@@ -3,6 +3,7 @@ import json
 import re
 import requests
 from datetime import datetime
+from decimal import Decimal, InvalidOperation
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -51,6 +52,46 @@ CUSTOMER: AMSTAR
 RATE: 1500
 DRIVER: John Smith
 TRUCK: ABC-1234"""
+
+def jid_to_e164(jid):
+    """'13125550101@s.whatsapp.net' (or '...:12@s.whatsapp.net', '+1 312 555 0101') -> '+13125550101'.
+
+    Returns None for ids that are not phone numbers (e.g. '123456@lid' privacy ids) or look implausible,
+    so they never match a driver by accident (QA-017).
+    """
+    if not jid:
+        return None
+    user, _, domain = str(jid).partition("@")
+    if domain and domain not in ("s.whatsapp.net", "c.us"):
+        return None
+    digits = re.sub(r"\D", "", user.split(":")[0])
+    return "+" + digits if 7 <= len(digits) <= 15 else None
+
+
+def parse_rate(text):
+    """'$1,500.50' -> Decimal('1500.50'); anything unusable (empty, '1.2.3', absurdly large, 0) -> None."""
+    cleaned = re.sub(r"[^\d.]", "", text or "")
+    try:
+        value = Decimal(cleaned) if cleaned else None
+    except InvalidOperation:
+        return None
+    return value if value and value < Decimal("10000000") else None
+
+
+def find_driver(name, sender):
+    """Driver named in the message (exact, else a unique partial match), else the driver whose phone is the sender's."""
+    if name:
+        exact = Driver.objects.filter(name__iexact=name).first()
+        if exact:
+            return exact
+        partial = list(Driver.objects.filter(name__icontains=name)[:2])
+        if len(partial) == 1:  # "Moe" must not silently pick one of two Moes
+            return partial[0]
+    phone = jid_to_e164(sender)
+    if phone:
+        return Driver.objects.filter(phone_number=phone).first()
+    return None
+
 
 SHIPMENT_KEYS = {"date", "booking", "container", "seal", "customer", "rate", "driver", "truck", "location"}
 
@@ -317,14 +358,7 @@ CUSTOMER: AMSTAR"""
                 "reply_message": format_help
             })
         
-        # Try to match driver from sender phone if not provided
-        driver = None
-        if parsed_data.get('driver'):
-            driver_name = parsed_data['driver']
-            driver = Driver.objects.filter(name__icontains=driver_name).first()
-        if not driver and sender_phone:
-            # Try to match driver by phone number
-            driver = Driver.objects.filter(phone_number__icontains=sender_phone).first()
+        driver = find_driver(parsed_data.get('driver'), sender_phone)
         
         # Try to match vehicle from driver if not provided
         vehicle = None
@@ -351,7 +385,10 @@ CUSTOMER: AMSTAR"""
         )
         is_duplicate = duplicates.exists()
 
-        rate_val = re.sub(r'[^\d.]', '', parsed_data.get('rate', ''))
+        # No rate in the message: fall back to the customer's default rate (PRD); if there is none either, leave the
+        # amount empty and flag the shipment instead of inventing $0 (QA-017).
+        amount = parse_rate(parsed_data.get('rate')) or customer.default_rate
+        missing_rate = amount is None
         
         shipment = Shipment.objects.create(
             date=parsed_date_obj,
@@ -362,21 +399,24 @@ CUSTOMER: AMSTAR"""
             customer=customer,
             driver=driver,
             vehicle=vehicle,
-            amount=rate_val if rate_val else 0,
+            amount=amount,
             status=ShipmentStatus.PENDING_REVIEW,
-            is_flagged=is_duplicate,
-            notes=f"Auto-ingested from WhatsApp." + (" (Flagged: Duplicate container this billing period.)" if is_duplicate else "")
+            is_flagged=is_duplicate or missing_rate,
+            notes="Auto-ingested from WhatsApp."
+                  + (" (Flagged: Duplicate container this billing period.)" if is_duplicate else "")
+                  + (" (Flagged: no rate in the message and the customer has no default rate: set the amount.)" if missing_rate else "")
         )
 
         msg_log.is_processed = True
         msg_log.shipment = shipment
         msg_log.save()
         
+        amount_text = f"${shipment.amount}" if shipment.amount is not None else "not set (admin will add the rate)"
         success_message = f"""✅ Shipment recorded!
 Booking: {shipment.booking}
 Container: {shipment.container}
 Date: {shipment.date.strftime('%m/%d/%Y')}
-Amount: ${shipment.amount}
+Amount: {amount_text}
 Status: Pending Review"""
         
         return JsonResponse({
