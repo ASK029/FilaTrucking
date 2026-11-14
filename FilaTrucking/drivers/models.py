@@ -1,6 +1,8 @@
 from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
 
+from FilaTrucking.uploads import RandomUploadPath, document_validators
+
 
 class DriverStatus(models.TextChoices):
     ACTIVE = "active", "Active"
@@ -35,7 +37,7 @@ class DriverDocument(models.Model):
         verbose_name="Driver",
     )
     name = models.CharField(max_length=100, verbose_name="Document Name")
-    document = models.FileField(upload_to="driver_documents/")
+    document = models.FileField(upload_to=RandomUploadPath("driver_documents"), validators=document_validators)
 
     def __str__(self) -> str:
         return f"{self.driver.name} – {self.name}"

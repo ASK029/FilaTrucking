@@ -22,6 +22,35 @@ from django.utils import timezone
 logger = logging.getLogger(__name__)
 
 
+@login_required
+def protected_media(request, path):
+    """Serve an uploaded file (driver licences, receipts, vehicle photos) to logged-in users only.
+
+    nginx used to serve /media/ straight from disk with no authentication, so anyone who knew or guessed a
+    file name could download a driver's licence (QA-023). The path is resolved with safe_join (no ../ escapes).
+    """
+    from django.http import FileResponse, Http404
+    from django.utils._os import safe_join
+    from django.core.exceptions import SuspiciousFileOperation
+    import mimetypes
+    import os
+
+    try:
+        full_path = safe_join(settings.MEDIA_ROOT, path)
+    except (SuspiciousFileOperation, ValueError):
+        raise Http404("Not found")
+    if not os.path.isfile(full_path):
+        raise Http404("Not found")
+
+    content_type, _ = mimetypes.guess_type(full_path)
+    inline_ok = content_type in ("application/pdf", "image/png", "image/jpeg", "image/webp")
+    response = FileResponse(open(full_path, "rb"), content_type=content_type or "application/octet-stream",
+                            as_attachment=not inline_ok)
+    response["Cache-Control"] = "private, max-age=3600"
+    response["X-Content-Type-Options"] = "nosniff"
+    return response
+
+
 def format_crontab(schedule):
     """Format a crontab schedule into a human-readable string."""
     if not isinstance(schedule, crontab):

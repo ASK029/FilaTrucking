@@ -54,11 +54,12 @@ urlpatterns = [
         project_views.yearly_statement_pdf,
         name="yearly_statement_pdf",
     ),
+    # Uploaded files: login required, in every environment (nginx no longer serves /media/ by itself) (QA-023)
+    path("media/<path:path>", project_views.protected_media, name="protected_media"),
 ]
 
 
-# Serve media files during development
+# Serve collected static files during development
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 

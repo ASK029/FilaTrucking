@@ -115,7 +115,6 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - staticfiles:/staticfiles
-      - ./FilaTrucking/media:/media:ro
       - certbot_www:/var/www/certbot
       - certbot_conf:/etc/letsencrypt
     ports:

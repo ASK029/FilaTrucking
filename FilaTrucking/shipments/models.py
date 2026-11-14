@@ -2,6 +2,7 @@ from django.db import models
 from django.db.models import Sum
 from decimal import Decimal
 
+from FilaTrucking.uploads import RandomUploadPath, document_validators
 from customers.models import Customer
 from drivers.models import Driver
 from vehicles.models import Vehicle
@@ -163,7 +164,8 @@ class Expense(models.Model):
     )
     notes = models.TextField(blank=True, verbose_name="Notes")
     receipt = models.FileField(
-        upload_to="expense_receipts/", null=True, blank=True, verbose_name="Receipt"
+        upload_to=RandomUploadPath("expense_receipts"), validators=document_validators,
+        null=True, blank=True, verbose_name="Receipt"
     )
     created_at = models.DateTimeField(auto_now_add=True)
 

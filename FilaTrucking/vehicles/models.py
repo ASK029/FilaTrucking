@@ -1,6 +1,8 @@
 from django.db import models
 from django.utils import timezone
 
+from FilaTrucking.uploads import RandomUploadPath, image_validators
+
 from drivers.models import Driver
 # from shipments.models import IFTARate
 
@@ -47,7 +49,7 @@ class Vehicle(models.Model):
     # Ownership
     ownership_type = models.CharField(max_length=2, choices=Ownership, default=Ownership.CompanyOwned)
     # Image
-    image = models.ImageField(upload_to='vehicle_images/', verbose_name="Vehicle Image", null=True, blank=True)
+    image = models.ImageField(upload_to=RandomUploadPath('vehicle_images'), validators=image_validators, verbose_name="Vehicle Image", null=True, blank=True)
 
     def __str__(self) -> str:
         return self.registration_number

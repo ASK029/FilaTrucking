@@ -74,3 +74,89 @@ class ProductionHasASchedulerStack(SimpleTestCase):
         from django.conf import settings
         self.assertNotIn("recurring-invoices", settings.CELERY_BEAT_SCHEDULE)
         self.assertIn("gomotive-nightly-sync", settings.CELERY_BEAT_SCHEDULE)
+
+
+import os
+import tempfile
+
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import override_settings
+
+
+class UploadsQA023(QABase):
+    def setUp(self):
+        super().setUp()
+        self._tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmp.cleanup)
+        self._override = override_settings(MEDIA_ROOT=self._tmp.name)
+        self._override.enable()
+        self.addCleanup(self._override.disable)
+
+    def make_doc(self, name="license_john_smith.pdf", content=b"%PDF-1.4 fake"):
+        from drivers.models import DriverDocument
+        doc = DriverDocument(driver=self.driver, name="Licence", document=SimpleUploadedFile(name, content))
+        doc.full_clean()
+        doc.save()
+        return doc
+
+    def test_stored_name_is_random_and_keeps_only_the_extension(self):
+        doc = self.make_doc()
+        self.assertRegex(doc.document.name, r"^driver_documents/[0-9a-f]{32}\.pdf$")
+        self.assertNotIn("john", doc.document.name)
+        self.assertNotEqual(self.make_doc().document.name, doc.document.name)
+
+    def test_anonymous_cannot_download_uploads_but_logged_in_users_can(self):
+        doc = self.make_doc()
+        url = f"/media/{doc.document.name}"
+        r = self.client.get(url)
+        self.assertEqual(r.status_code, 302)
+        self.assertIn("/auth/login/", r["Location"])
+        self.login()
+        r = self.client.get(url)
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(b"".join(r.streaming_content), b"%PDF-1.4 fake")
+        self.assertEqual(r["Content-Type"], "application/pdf")
+        self.assertEqual(r["X-Content-Type-Options"], "nosniff")
+        r.close()
+
+    def test_path_traversal_and_missing_files_are_404(self):
+        self.login()
+        secret = os.path.join(os.path.dirname(self._tmp.name), "outside.txt")
+        with open(secret, "w") as fh:
+            fh.write("x")
+        self.addCleanup(os.remove, secret)
+        for bad in ("../outside.txt", "..%2foutside.txt", "driver_documents/nope.pdf", "driver_documents/"):
+            with self.subTest(path=bad):
+                self.assertEqual(self.client.get(f"/media/{bad}").status_code, 404)
+
+    def test_unknown_types_are_downloaded_never_rendered_inline(self):
+        from drivers.models import DriverDocument
+        self.login()
+        doc = DriverDocument.objects.create(driver=self.driver, name="x", document=SimpleUploadedFile("a.docx", b"PK"))
+        r = self.client.get(f"/media/{doc.document.name}")
+        self.assertIn("attachment", r["Content-Disposition"])
+        r.close()  # release the file handle (Windows cannot delete an open temp file)
+
+    def test_dangerous_extensions_and_oversize_files_are_rejected(self):
+        from django.core.exceptions import ValidationError
+        from drivers.models import DriverDocument
+        for name in ("evil.html", "evil.svg", "evil.exe", "evil.php", "noextension"):
+            with self.subTest(name=name):
+                doc = DriverDocument(driver=self.driver, name="x", document=SimpleUploadedFile(name, b"<script>"))
+                with self.assertRaises(ValidationError):
+                    doc.full_clean()
+        big = SimpleUploadedFile("big.pdf", b"0" * (10 * 1024 * 1024 + 1))
+        with self.assertRaises(ValidationError):
+            DriverDocument(driver=self.driver, name="x", document=big).full_clean()
+
+    def test_expense_receipt_and_vehicle_image_use_random_names_too(self):
+        from shipments.models import Expense
+        e = Expense.objects.create(date=date(2026, 1, 1), amount=Decimal("5"), receipt=SimpleUploadedFile("Receipt Pilot.PDF", b"%PDF"))
+        self.assertRegex(e.receipt.name, r"^expense_receipts/[0-9a-f]{32}\.pdf$")
+
+    def test_nginx_no_longer_serves_media_from_disk(self):
+        conf = (ROOT / "nginx.conf").read_text(encoding="utf-8")
+        self.assertNotIn("location /media/", conf)
+        self.assertNotIn("alias /media/", conf)
+        services = compose("docker-compose.prod.yml")["services"]
+        self.assertFalse([v for v in services["nginx"]["volumes"] if "/media" in v])
