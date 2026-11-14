@@ -7,7 +7,13 @@ env
 
 # Accept these files in the repository
 !.gitignore
+!.dockerignore
+!sidecar/.dockerignore
+!.env.example
 !.travis.yml
 
 # Dolt database files (added by bd init)
 .dolt/
+
+# Dependencies are installed from lockfiles, never committed (QA-022)
+node_modules/
