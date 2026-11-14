@@ -95,13 +95,13 @@
         </div>
         <div>
           <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Driver</dt>
-          <dd class="text-base text-slate-200"><a href="{% url 'driver_detail' shipment.driver.pk %}"
-              class="text-brand-light hover:underline">{{ shipment.driver.name }}</a></dd>
+          <dd class="text-base text-slate-200">{% if shipment.driver %}<a href="{% url 'driver_detail' shipment.driver.pk %}"
+              class="text-brand-light hover:underline">{{ shipment.driver.name }}</a>{% else %}<span class="text-slate-500">Unassigned</span>{% endif %}</dd>
         </div>
         <div>
           <dt class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Vehicle</dt>
-          <dd class="text-base text-slate-200"><a href="{% url 'vehicle_detail' shipment.vehicle.pk %}"
-              class="text-brand-light hover:underline">{{ shipment.vehicle.name }}</a></dd>
+          <dd class="text-base text-slate-200">{% if shipment.vehicle %}<a href="{% url 'vehicle_detail' shipment.vehicle.pk %}"
+              class="text-brand-light hover:underline">{{ shipment.vehicle }}</a>{% else %}<span class="text-slate-500">Unassigned</span>{% endif %}</dd>
         </div>
       </dl>
     </div>
