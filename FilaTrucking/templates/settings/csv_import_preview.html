@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Review Import - FilaTrucking{% endblock %}
+
+{% block content %}
+<div class="flex-1 overflow-y-auto">
+    <div class="p-4 md:p-8 max-w-7xl mx-auto">
+
+        <div class="mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-slate-100 mb-2">Review Import</h1>
+            <p class="text-muted break-words">File: <span class="text-slate-200">{{ filename }}</span>. Nothing has been saved yet.</p>
+        </div>
+
+        {# Totals #}
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            <div class="bg-surface-card rounded-2xl p-5 border border-slate-700/50">
+                <p class="text-sm text-muted mb-1">Deposits (paid invoices)</p>
+                <p class="text-2xl font-bold text-slate-100">${{ totals.deposits_total|floatformat:"2g" }}</p>
+                <p class="text-xs text-slate-400 mt-1">{{ totals.deposits_count }} new</p>
+            </div>
+            <div class="bg-surface-card rounded-2xl p-5 border border-slate-700/50">
+                <p class="text-sm text-muted mb-1">Expenses</p>
+                <p class="text-2xl font-bold text-slate-100">${{ totals.expenses_total|floatformat:"2g" }}</p>
+                <p class="text-xs text-slate-400 mt-1">{{ totals.expenses_count }} new</p>
+            </div>
+            <div class="bg-surface-card rounded-2xl p-5 border border-slate-700/50">
+                <p class="text-sm text-muted mb-1">Driver pay</p>
+                <p class="text-2xl font-bold text-slate-100">${{ totals.pay_total|floatformat:"2g" }}</p>
+                <p class="text-xs text-slate-400 mt-1">{{ totals.pay_count }} new</p>
+            </div>
+        </div>
+
+        {% if plan.duplicates %}
+        <div class="flex items-start gap-3 px-4 py-3 rounded-xl border text-sm font-medium bg-blue-500/15 border-blue-500/40 text-blue-300 mb-6" role="status">
+            {{ plan.duplicates }} entr{{ plan.duplicates|pluralize:"y is,ies are" }} already in the system (imported earlier) and will be skipped.
+        </div>
+        {% endif %}
+
+        {# Per month #}
+        <div class="bg-surface-card rounded-2xl shadow-lg border border-slate-700/50 overflow-hidden mb-6">
+            <div class="overflow-x-auto">
+                <table class="responsive-table w-full text-left text-sm whitespace-nowrap">
+                    <caption class="sr-only">What will be imported, by month</caption>
+                    <thead class="bg-slate-800/50 border-b border-slate-700/50 text-slate-400">
+                        <tr>
+                            <th scope="col" class="px-6 py-4 font-medium tracking-wide">Month</th>
+                            <th scope="col" class="px-6 py-4 font-medium tracking-wide">Sheet</th>
+                            <th scope="col" class="px-6 py-4 font-medium tracking-wide">Deposits</th>
+                            <th scope="col" class="px-6 py-4 font-medium tracking-wide">Expenses</th>
+                            <th scope="col" class="px-6 py-4 font-medium tracking-wide">Driver pay</th>
+                            <th scope="col" class="px-6 py-4 font-medium tracking-wide">Skipped</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700/50 text-slate-200">
+                        {% for m in months %}
+                        <tr class="hover:bg-slate-800/30 transition-colors odd:bg-slate-900/20">
+                            <td data-label="Month" class="px-6 py-4 font-medium text-slate-100">{{ m.label }}</td>
+                            <td data-label="Sheet" class="px-6 py-4">{{ m.sheets|join:", " }}</td>
+                            <td data-label="Deposits" class="px-6 py-4">{{ m.deposits_count }} &middot; ${{ m.deposits_total|floatformat:"2g" }}</td>
+                            <td data-label="Expenses" class="px-6 py-4">{{ m.expenses_count }} &middot; ${{ m.expenses_total|floatformat:"2g" }}</td>
+                            <td data-label="Driver pay" class="px-6 py-4">{{ m.pay_count }} &middot; ${{ m.pay_total|floatformat:"2g" }}</td>
+                            <td data-label="Skipped" class="px-6 py-4">{% if m.duplicates %}{{ m.duplicates }} already imported{% else %}<span class="text-slate-400">none</span>{% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {# New customers / drivers #}
+        {% if plan.new_customers or plan.new_drivers %}
+        <div class="bg-surface-card rounded-2xl p-6 border border-slate-700/50 mb-6">
+            <h2 class="text-lg font-semibold text-slate-100 mb-2">Will be created</h2>
+            <p class="text-sm text-slate-400 mb-4">These names are not in the system yet. They are created with placeholder phone and email so you can complete them later.</p>
+            {% if plan.new_customers %}
+            <h3 class="text-sm font-semibold text-slate-200 mb-2">Customers ({{ plan.new_customers|length }})</h3>
+            <div class="flex flex-wrap gap-2 mb-4">
+                {% for name in plan.new_customers.values %}
+                <span class="px-3 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-300">{{ name }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% if plan.new_drivers %}
+            <h3 class="text-sm font-semibold text-slate-200 mb-2">Drivers ({{ plan.new_drivers|length }})</h3>
+            <div class="flex flex-wrap gap-2">
+                {% for name in plan.new_drivers.values %}
+                <span class="px-3 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-300">{{ name }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {# Sheets that were skipped #}
+        {% for sh in sheets %}{% if sh.status == "skipped" %}
+        <div class="flex items-start gap-3 px-4 py-3 rounded-xl border text-sm font-medium bg-blue-500/15 border-blue-500/40 text-blue-300 mb-3" role="status">
+            Sheet &ldquo;{{ sh.name }}&rdquo; was skipped: {{ sh.reason }}.
+        </div>
+        {% endif %}{% endfor %}
+
+        {# Warnings #}
+        {% if warnings %}
+        <div class="bg-surface-card rounded-2xl p-6 border border-yellow-500/40 mb-6">
+            <h2 class="text-lg font-semibold text-yellow-300 mb-3">Please check ({{ warnings|length }})</h2>
+            <ul class="space-y-1 text-sm text-slate-300 list-disc pl-5">
+                {% for w in warnings|slice:":50" %}<li class="break-words">{{ w }}</li>{% endfor %}
+            </ul>
+            {% if warnings|length > 50 %}<p class="text-xs text-slate-400 mt-2">and {{ warnings|length|add:"-50" }} more.</p>{% endif %}
+        </div>
+        {% endif %}
+
+        {# Actions #}
+        <div class="flex flex-wrap items-center gap-3">
+            {% if plan.total_new %}
+            <form method="post" action="{% url 'csv_import_confirm' %}">
+                {% csrf_token %}
+                <input type="hidden" name="token" value="{{ token }}">
+                <button type="submit"
+                    class="bg-accent hover:bg-accent-dark text-surface font-semibold px-6 py-3 rounded-xl transition-colors">
+                    Confirm import ({{ plan.total_new }} new entr{{ plan.total_new|pluralize:"y,ies" }})
+                </button>
+            </form>
+            {% else %}
+            <p class="text-sm text-slate-300">There is nothing new to import from this file.</p>
+            {% endif %}
+            <a href="{% url 'csv_import' %}"
+                class="px-6 py-3 rounded-xl border border-slate-600 text-slate-200 hover:bg-slate-800 transition-colors">
+                {% if plan.total_new %}Cancel{% else %}Back{% endif %}
+            </a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

@@ -7,4 +7,5 @@ urlpatterns = [
     path("test/email/", views.TestEmailConnectionView.as_view(), name="test_email_connection"),
     path("import/", views.CSVImportView.as_view(), name="csv_import"),
     path("import/process/", views.CSVImportProcessView.as_view(), name="csv_import_process"),
+    path("import/confirm/", views.CSVImportConfirmView.as_view(), name="csv_import_confirm"),
 ]

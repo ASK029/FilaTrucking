@@ -119,6 +119,11 @@ docker compose -f docker-compose.prod.yml exec django python manage.py migrate
 docker compose -f docker-compose.prod.yml exec django python manage.py check --deploy    # expect: no issues
 ```
 
+> **Statement import (QA-050):** the Django image now needs `openpyxl` (new line in `requirements.txt`), so the `build` above is required, not optional.
+> After the deploy, *Settings > Import Data* takes the monthly statement `.csv` files or the whole `.xlsx`; it shows a preview and writes nothing until you confirm.
+> Imported customers/drivers get placeholder phone and email (and customers a note "Created by the statement import"): complete or merge them afterwards.
+> Importing 2025 again later is safe: rows already imported are skipped.
+
 ## 6. Verify (everything should be "yes")
 
 ```bash

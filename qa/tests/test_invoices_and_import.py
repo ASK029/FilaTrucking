@@ -153,22 +153,30 @@ class InvoiceEmail(InvoiceBase):
 
 
 class CsvImport(QABase):
+    """The long Category/Amount layout (still accepted). Since QA-050 the import is two steps: preview, then confirm.
+    The statement layouts are covered in test_statement_import.py."""
+
+    def import_csv(self, name, data):
+        r = self.client.post("/settings/import/process/", {"csv_file": SimpleUploadedFile(name, data)}, follow=True)
+        if "token" in (r.context or {}):
+            r = self.client.post("/settings/import/confirm/", {"token": r.context["token"]}, follow=True)
+        return r
+
     def test_valid_csv_imports_rows(self):
         """[CSV-EMPTY] `rows = list(reader)` exhausts the DictReader, so the loop below it never runs."""
         self.login()
         csv_bytes = b"DATE,Category,Description,Amount\n01-05-2026,FUEL,Pilot,$250.00\n01-06-2026,TOLL,IPASS,12.50\n"
-        r = self.client.post("/settings/import/process/", {"csv_file": SimpleUploadedFile("jan.csv", csv_bytes)}, follow=True)
+        r = self.import_csv("jan.csv", csv_bytes)
         msgs = [str(m) for m in r.context["messages"]]
         self.assertEqual(Expense.objects.count(), 2, f"messages shown to user: {msgs}")
 
     def test_import_stores_category_amount_date_and_note(self):
         self.login()
-        csv_bytes = (b"DATE,Category,Description,Amount\n"
-                     b'01-05-2026,FUEL,Pilot,"$1,250.50"\n'
+        csv_bytes = (b"DATE,Category,Description,Amount\n01-05-2026,FUEL,Pilot,\"$1,250.50\"\n"
                      b"01/06/2026,toll,IPASS,12.50\n"
                      b",FUEL,no date,5\n"
                      b"01-07-2026,FUEL,zero,0\n")
-        self.client.post("/settings/import/process/", {"csv_file": SimpleUploadedFile("jan.csv", csv_bytes)})
+        self.import_csv("jan.csv", csv_bytes)
         got = sorted(Expense.objects.values_list("date", "category", "amount", "notes"))
         self.assertEqual(got, [(date(2026, 1, 5), "fuel", Decimal("1250.50"), "Imported: Pilot"),
                                (date(2026, 1, 6), "toll", Decimal("12.50"), "Imported: IPASS")])
@@ -176,23 +184,23 @@ class CsvImport(QABase):
     def test_import_is_all_or_nothing(self):
         self.login()
         csv_bytes = b"DATE,Category,Description,Amount\n01-05-2026,FUEL,a,10\n01-06-2026,FUEL,b,20\n"
-        real_create = Expense.objects.create
-        calls = []
-
-        def flaky(**kw):
-            calls.append(kw)
-            if len(calls) == 2:
-                raise RuntimeError("disk full")
-            return real_create(**kw)
-
-        with mock.patch.object(Expense.objects, "create", side_effect=flaky):
-            self.client.post("/settings/import/process/", {"csv_file": SimpleUploadedFile("jan.csv", csv_bytes)})
+        with mock.patch("shipments.statement_import.Expense.objects.bulk_create", side_effect=RuntimeError("disk full")):
+            self.import_csv("jan.csv", csv_bytes)
         self.assertEqual(Expense.objects.count(), 0)
 
     def test_non_csv_is_rejected(self):
         self.login()
         self.client.post("/settings/import/process/", {"csv_file": SimpleUploadedFile("x.exe", b"MZ")}, follow=True)
         self.assertEqual(Expense.objects.count(), 0)
+
+    def test_a_wide_statement_file_no_longer_reports_success_with_zero_rows(self):
+        """[QA-050] the user's JAN/FEB statement CSVs answered 'Successfully imported 0 expenses'."""
+        self.login()
+        csv_bytes = (b"DATE,DEPOSIT,DEPOSIT FROM,IRP,PARKING,ON SITE,TRUCK,CHECK CHARGE,INSURANS,TOLL,FUEL,OTHER,CHASSIS,PAY,PAY TO\r\n"
+                     b'01-06-2025,$0.00,-,$0.00,$0.00,$400.00,$0.00,$0.00,$0.00,$75.00,$350.00,$0.00,$0.00,"$3,000.00",DRIVER ONE\r\n')
+        r = self.import_csv("jan.csv", csv_bytes)
+        self.assertEqual(Expense.objects.count(), 4)
+        self.assertNotIn("imported 0", " ".join(str(m) for m in r.context["messages"]))
 
 
 class InvoiceLinesXss(InvoiceBase):

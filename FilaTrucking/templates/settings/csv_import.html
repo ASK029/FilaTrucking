@@ -6,66 +6,73 @@
 {% block content %}
 <div class="flex-1 overflow-y-auto">
     <div class="p-4 md:p-8 max-w-7xl mx-auto">
-        
+
         {# Page Header #}
         <div class="mb-8">
             <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-slate-100 mb-2">Import Data</h1>
-            <p class="text-muted">Import expenses and deposits from CSV files exported from QuickBooks or similar</p>
+            <p class="text-muted">Import monthly statements (deposits, expenses and driver pay) from a CSV file or an Excel workbook</p>
         </div>
 
         {# Instructions Card #}
         <div class="bg-surface-card rounded-2xl p-6 border border-slate-700/50 mb-6">
-            <h2 class="text-lg font-semibold text-slate-100 mb-4">CSV Format Requirements</h2>
+            <h2 class="text-lg font-semibold text-slate-100 mb-4">Statement format</h2>
             <ul class="space-y-2 text-sm text-slate-300">
                 <li class="flex items-start gap-2">
                     <svg class="w-5 h-5 text-accent flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span>File must be in CSV format (.csv extension)</span>
+                    <span>A <code class="text-accent">.csv</code> file (one month) or an <code class="text-accent">.xlsx</code> workbook: every month sheet in it is imported, other sheets are skipped</span>
                 </li>
                 <li class="flex items-start gap-2">
                     <svg class="w-5 h-5 text-accent flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span>Required columns: <code class="text-accent">DATE</code>, <code class="text-accent">Amount</code>, <code class="text-accent">Category</code></span>
+                    <span>One row per transaction with a <code class="text-accent">DATE</code> column and a column per amount (header names are matched automatically)</span>
                 </li>
                 <li class="flex items-start gap-2">
                     <svg class="w-5 h-5 text-accent flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span>Date format: <code class="text-accent">MM-DD-YYYY</code> or <code class="text-accent">MM/DD/YYYY</code></span>
+                    <span><code class="text-accent">DEPOSIT</code> + <code class="text-accent">DEPOSIT FROM</code> become paid invoices for that customer; <code class="text-accent">PAY</code> + <code class="text-accent">PAY TO</code> become driver pay</span>
                 </li>
                 <li class="flex items-start gap-2">
                     <svg class="w-5 h-5 text-accent flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span>Optional column: <code class="text-accent">Description</code> (will be stored in notes)</span>
+                    <span>Dates like <code class="text-accent">01-02-2025</code>, <code class="text-accent">2/3/2025</code> or real Excel dates; amounts like <code class="text-accent">$1,250.50</code>; <code class="text-accent">-</code> and empty cells mean zero</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <svg class="w-5 h-5 text-accent flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>You see a preview first and nothing is saved until you confirm. Uploading the same file again does not create duplicates.</span>
                 </li>
             </ul>
-            
-            <h3 class="text-sm font-semibold text-slate-200 mt-6 mb-3">Supported Categories</h3>
+
+            <h3 class="text-sm font-semibold text-slate-200 mt-6 mb-3">Expense columns</h3>
             <div class="flex flex-wrap gap-2">
                 <span class="px-3 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-300">IRP</span>
                 <span class="px-3 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-300">PARKING</span>
                 <span class="px-3 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-300">ON SITE</span>
                 <span class="px-3 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-300">TRUCK</span>
                 <span class="px-3 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-300">CHECK CHARGE</span>
-                <span class="px-3 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-300">INSURANCE</span>
+                <span class="px-3 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-300">INSURANS / INSURANCE</span>
                 <span class="px-3 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-300">TOLL</span>
                 <span class="px-3 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-300">FUEL</span>
-                <span class="px-3 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-300">OTHER</span>
+                <span class="px-3 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-300">OTHER / PARTS</span>
                 <span class="px-3 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-300">CHASSIS</span>
             </div>
+            <p class="text-xs text-slate-400 mt-4">A file with the columns <code class="text-accent">DATE</code>, <code class="text-accent">Category</code>, <code class="text-accent">Amount</code> and optionally <code class="text-accent">Description</code> is also accepted.</p>
         </div>
 
         {# Import Form #}
         <div class="bg-surface-card rounded-2xl p-6 border border-slate-700/50">
             <form method="post" enctype="multipart/form-data" action="{% url 'csv_import_process' %}" class="space-y-6">
                 {% csrf_token %}
-                
+
                 <div>
-                    <label class="block text-sm text-muted mb-2">Select CSV File</label>
-                    <input aria-label="CSV file" type="file" name="csv_file" accept=".csv" required
+                    <label for="csv_file" class="block text-sm text-muted mb-2">Select a CSV or Excel file</label>
+                    <input id="csv_file" aria-label="Statement file (CSV or Excel)" type="file" name="csv_file" accept=".csv,.xlsx" required
                         class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-slate-100
                                file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0
                                file:text-sm file:font-semibold file:bg-accent file:text-surface
@@ -74,7 +81,7 @@
 
                 <button type="submit"
                     class="bg-accent hover:bg-accent-dark text-surface font-semibold px-6 py-3 rounded-xl transition-colors">
-                    Import Data
+                    Preview Import
                 </button>
             </form>
         </div>

@@ -1,189 +1,62 @@
-import csv
-from datetime import datetime
-from decimal import Decimal, InvalidOperation
+"""Import monthly statements from the command line: the same reader/planner the Import Data page uses (QA-050)."""
+from django.core.management.base import BaseCommand, CommandError
 
-from django.core.management.base import BaseCommand
-
-from customers.models import Customer
-from drivers.models import Driver
-from shipments.models import (
-    Expense,
-    ExpenseCategory,
-    Invoice,
-    InvoiceStatus,
-)
-
-
-# CSV column → (ExpenseCategory, friendly label)
-EXPENSE_COLUMNS = {
-    "IRP": (ExpenseCategory.IRP, "IRP"),
-    "PARKING": (ExpenseCategory.PARKING, "PARKING"),
-    "ON SITE": (ExpenseCategory.MAINTENANCE, "On Site"),
-    "TRUCK": (ExpenseCategory.TRUCK, "TRUCK"),
-    "CHECK CHARGE": (ExpenseCategory.CHECK_CHARGE, "CHECK CHARGE"),
-    "INSURANS": (ExpenseCategory.INSURANCE, "Insurance"),
-    "TOLL": (ExpenseCategory.TOLL, "Toll"),
-    "FUEL": (ExpenseCategory.FUEL, "Fuel"),
-    "OTHER": (ExpenseCategory.OTHER, "OTHER"),
-    "CHASSIS": (ExpenseCategory.CHASSIS, "CHASSIS"),
-}
-
-
-def _parse_money(raw: str) -> Decimal:
-    """Strip $, commas, whitespace and return Decimal. Returns 0 on failure."""
-    if not raw:
-        return Decimal("0")
-    cleaned = raw.replace("$", "").replace(",", "").strip()
-    if not cleaned or cleaned == "-":
-        return Decimal("0")
-    try:
-        return Decimal(cleaned)
-    except InvalidOperation:
-        return Decimal("0")
+from shipments import statement_import as si
 
 
 class Command(BaseCommand):
-    help = "Import monthly statement CSV (expenses + deposits) — e.g. 2025 STATMENTS - JAN.csv"
+    help = "Import a statement CSV or Excel workbook (deposits, expenses, driver pay), e.g. '2025 STATMENTS - JAN.csv'"
 
     def add_arguments(self, parser):
-        parser.add_argument("csv_file", type=str, help="Path to the CSV file")
+        parser.add_argument("file", type=str, help="Path to a .csv or .xlsx file (an .xlsx imports every month sheet)")
         parser.add_argument(
             "--clear",
             action="store_true",
-            help="Delete existing expenses/invoices for the imported month before importing",
+            help="First delete what an earlier import created in the months covered by the file "
+                 "(expenses noted 'Imported…' and paid invoices without line items; hand-entered data is kept)",
         )
+        parser.add_argument("--dry-run", action="store_true", help="Show what would be imported and change nothing")
 
     def handle(self, *args, **options):
-        csv_file_path = options["csv_file"]
-
-        rows = []
+        path = options["file"]
         try:
-            with open(csv_file_path, "r", encoding="utf-8-sig") as f:
-                reader = csv.DictReader(f)
-                for row in reader:
-                    rows.append(row)
+            with open(path, "rb") as fh:
+                data = fh.read()
         except FileNotFoundError:
-            self.stderr.write(self.style.ERROR(f'File "{csv_file_path}" not found'))
-            return
+            raise CommandError(f'File "{path}" not found')
+        try:
+            parsed = si.parse_sheets(si.read_sheets(data, path))
+        except si.StatementImportError as exc:
+            raise CommandError(str(exc))
+        if not parsed.rows:
+            raise CommandError("No importable rows found.")
 
-        if not rows:
-            self.stderr.write("CSV is empty.")
-            return
+        for sheet in parsed.sheets:
+            if sheet.status == "skipped":
+                self.stdout.write(f"  skipped sheet '{sheet.name}': {sheet.reason}")
 
-        # ── Parse data rows (skip summary rows with empty DATE) ──
-        data_rows = []
-        for row in rows:
-            date_str = (row.get("DATE") or "").strip()
-            if not date_str:
-                continue
-            try:
-                parsed_date = datetime.strptime(date_str, "%m-%d-%Y").date()
-            except ValueError:
-                try:
-                    parsed_date = datetime.strptime(date_str, "%m/%d/%Y").date()
-                except ValueError:
-                    self.stderr.write(f"  ⚠ Could not parse date: {date_str}")
-                    continue
-            data_rows.append((parsed_date, row))
+        if options["clear"] and not options["dry_run"]:
+            expenses, invoices = si.clear_imported(parsed.rows)
+            self.stdout.write(f"  Cleared {expenses} imported expense rows, {invoices} imported invoices")
 
-        if not data_rows:
-            self.stderr.write("No valid data rows found.")
-            return
-
-        # Detect month/year from first row
-        first_date = data_rows[0][0]
-        import_month = first_date.month
-        import_year = first_date.year
-        self.stdout.write(
-            self.style.NOTICE(
-                f"Importing {len(data_rows)} rows for {first_date.strftime('%B %Y')}"
+        plan = si.build_plan(parsed.rows)
+        for month in plan.months.values():
+            self.stdout.write(
+                f"  {month.label:<16} deposits {month.deposits_count:>3} (${month.deposits_total:,.2f})  "
+                f"expenses {month.expenses_count:>3} (${month.expenses_total:,.2f})  "
+                f"driver pay {month.pay_count:>3} (${month.pay_total:,.2f})  skipped {month.duplicates}"
             )
-        )
+        for name in plan.new_customers.values():
+            self.stdout.write(f"  + new customer: {name}")
+        for name in plan.new_drivers.values():
+            self.stdout.write(f"  + new driver: {name}")
+        for warning in parsed.warnings + plan.warnings:
+            self.stderr.write(f"  warning: {warning}")
 
-        # ── Optional: clear existing data for this month ──
-        if options["clear"]:
-            from calendar import monthrange
-
-            _, last_day = monthrange(import_year, import_month)
-            start = first_date.replace(day=1)
-            end = first_date.replace(day=last_day)
-            exp_del, _ = Expense.objects.filter(date__range=(start, end)).delete()
-            inv_del, _ = Invoice.objects.filter(
-                invoice_date__range=(start, end)
-            ).delete()
-            self.stdout.write(f"  Cleared {exp_del} expenses, {inv_del} invoices")
-
-        expense_count = 0
-        invoice_count = 0
-
-        for parsed_date, row in data_rows:
-            # ── Deposits → Invoice ──
-            deposit_amt = _parse_money(row.get("DEPOSIT", ""))
-            deposit_from = (row.get("DEPOSIT FROM") or "").strip()
-            if deposit_amt > 0:
-                customer = None
-                if deposit_from and deposit_from != "-":
-                    customer = Customer.objects.filter(
-                        name__iexact=deposit_from
-                    ).first()
-                    if not customer:
-                        customer = Customer.objects.create(
-                            name=deposit_from.title(),
-                            abbreviation=deposit_from[:20].upper(),
-                            phone_number="+10000000000",
-                            street="N/A",
-                            email=f"{deposit_from.lower().replace(' ', '')}@import.local",
-                        )
-                        self.stdout.write(f"  + Created customer: {customer.name}")
-
-                Invoice.objects.create(
-                    customer=customer if customer else Customer.objects.first(),
-                    invoice_date=parsed_date,
-                    status=InvoiceStatus.PAID,
-                    paid_at=parsed_date,
-                    total_amount=deposit_amt,
-                )
-                invoice_count += 1
-
-            # ── Expense columns ──
-            for col_name, (category, label) in EXPENSE_COLUMNS.items():
-                amt = _parse_money(row.get(col_name, ""))
-                if amt > 0:
-                    Expense.objects.create(
-                        date=parsed_date,
-                        category=category,
-                        amount=amt,
-                        notes=f"Imported: {label}",
-                    )
-                    expense_count += 1
-
-            # ── Driver Pay ──
-            pay_amt = _parse_money(row.get("PAY", ""))
-            pay_to = (row.get("PAY TO") or "").strip()
-            if pay_amt > 0:
-                driver = None
-                if pay_to and pay_to != "-":
-                    driver = Driver.objects.filter(name__iexact=pay_to).first()
-                    if not driver:
-                        import uuid
-                        driver = Driver.objects.create(
-                            name=pay_to.title(),
-                            phone_number="+10000000000",
-                            license_number=f"IMP-{uuid.uuid4().hex[:8].upper()}",
-                        )
-                        self.stdout.write(f"  + Created driver: {driver.name}")
-
-                Expense.objects.create(
-                    date=parsed_date,
-                    category=ExpenseCategory.DRIVER,  # driver pay (was TRUCK, so the statements' driver-pay section stayed empty)
-                    amount=pay_amt,
-                    driver=driver,
-                    notes=f"Imported: Pay → {pay_to or 'Unknown'}",
-                )
-                expense_count += 1
-
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Done — {expense_count} expenses, {invoice_count} invoices created."
-            )
-        )
+        if options["dry_run"]:
+            self.stdout.write(self.style.NOTICE(f"Dry run: {len(plan.expenses)} expenses and {len(plan.invoices)} invoices would be created."))
+            return
+        result = si.apply_plan(plan)
+        self.stdout.write(self.style.SUCCESS(
+            f"Done: {result.expenses} expenses, {result.invoices} invoices created; {result.duplicates} already imported entries skipped."
+        ))

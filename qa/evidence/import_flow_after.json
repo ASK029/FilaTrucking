@@ -1,0 +1,71 @@
+{
+  "files": [
+    "demo JAN.csv",
+    "demo FEB.csv",
+    "demo 2025.xlsx"
+  ],
+  "steps": [
+    {
+      "step": "form",
+      "accept": ".csv,.xlsx",
+      "button": "Preview Import"
+    },
+    {
+      "step": "preview demo JAN.csv",
+      "monthRows": 1,
+      "hasConfirm": true,
+      "warnings": 0,
+      "saved_before_confirm": null
+    },
+    {
+      "step": "confirm demo JAN.csv",
+      "url": "/settings/import/",
+      "message": "Imported 2 deposits (paid invoices) and 12 expenses (driver pay included) for January 2025. Created 2 customers and 2 drivers with placeholder contact details: please complete them.",
+      "success": true
+    },
+    {
+      "step": "preview demo FEB.csv",
+      "monthRows": 1,
+      "hasConfirm": true,
+      "warnings": 0,
+      "saved_before_confirm": null
+    },
+    {
+      "step": "confirm demo FEB.csv",
+      "url": "/settings/import/",
+      "message": "Imported 0 deposits (paid invoices) and 7 expenses (driver pay included) for February 2025.",
+      "success": true
+    },
+    {
+      "step": "preview demo 2025.xlsx",
+      "monthRows": 2,
+      "hasConfirm": true,
+      "warnings": 0,
+      "saved_before_confirm": null
+    },
+    {
+      "step": "confirm demo 2025.xlsx",
+      "url": "/settings/import/",
+      "message": "Imported 2 deposits (paid invoices) and 10 expenses (driver pay included) for January 2025 to May 2025. 5 already-imported entries were skipped. Created 1 customer and 2 drivers with placeholder contact details: please complete them.",
+      "success": true
+    },
+    {
+      "step": "re-upload first file",
+      "hasConfirm": false,
+      "saysNothingNew": true,
+      "alreadyImportedNote": true
+    },
+    {
+      "step": "bad file",
+      "url": "/settings/import/",
+      "message": "Only .csv and .xlsx files are supported."
+    },
+    {
+      "step": "phone 375",
+      "formOverflow": false,
+      "previewOverflow": false,
+      "pageErrors": []
+    }
+  ],
+  "consoleErrors": []
+}

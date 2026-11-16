@@ -1,4 +1,6 @@
 import json
+import logging
+import uuid
 from datetime import date
 
 from django.conf import settings
@@ -11,6 +13,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
+from django.utils.crypto import constant_time_compare
 from django.utils import timezone
 from django.views.generic import (
     CreateView,
@@ -23,6 +26,8 @@ from django.views.generic import (
 from django.views import View
 
 from FilaTrucking.params import date_param
+
+logger = logging.getLogger(__name__)
 
 try:
     from weasyprint import HTML
@@ -612,93 +617,82 @@ class CSVImportView(LoginRequiredMixin, TemplateView):
     template_name = "settings/csv_import.html"
 
 
-class CSVImportProcessView(LoginRequiredMixin, View):
-    def post(self, request, *args, **kwargs):
-        csv_file = request.FILES.get("csv_file")
-        if not csv_file:
-            messages.error(request, "Please select a CSV file.")
-            return redirect("csv_import")
+IMPORT_SESSION_KEY = "statement_import"
 
-        if not csv_file.name.endswith(".csv"):
-            messages.error(request, "Only CSV files are supported.")
+
+class CSVImportProcessView(LoginRequiredMixin, View):
+    """Step 1 of the statement import (QA-050): read the file and show what *would* happen. Nothing is saved."""
+
+    def post(self, request, *args, **kwargs):
+        from . import statement_import as si
+
+        upload = request.FILES.get("csv_file")
+        if not upload:
+            messages.error(request, "Please select a CSV or Excel (.xlsx) file.")
+            return redirect("csv_import")
+        if upload.size > si.MAX_UPLOAD_BYTES:
+            messages.error(request, f"The file is too large. The limit is {si.MAX_UPLOAD_BYTES // 1024 // 1024} MB.")
             return redirect("csv_import")
 
         try:
-            import csv
-            from datetime import datetime
-            from decimal import Decimal, InvalidOperation
-            from django.db import transaction
-            from shipments.models import Expense, ExpenseCategory, Invoice
-            from customers.models import Customer
-
-            decoded = csv_file.read().decode("utf-8-sig")
-            reader = csv.DictReader(decoded.splitlines())
-            rows = list(reader)  # a DictReader can only be consumed once: loop over this list (QA-010)
-
-            data_rows = []
-            for row in rows:
-                date_str = (row.get("DATE") or "").strip()
-                if not date_str:
-                    continue
-                try:
-                    parsed_date = datetime.strptime(date_str, "%m-%d-%Y").date()
-                except ValueError:
-                    try:
-                        parsed_date = datetime.strptime(date_str, "%m/%d/%Y").date()
-                    except ValueError:
-                        continue
-                data_rows.append((parsed_date, row))
-
-            if not data_rows:
-                messages.error(request, "No valid data rows found in CSV.")
+            parsed = si.parse_sheets(si.read_sheets(upload.read(), upload.name))
+            if not parsed.rows:
+                reasons = "; ".join(f"{sh.name}: {sh.reason}" for sh in parsed.sheets if sh.status == "skipped")
+                messages.error(request, "No importable rows found. " + (reasons or "The file has a DATE column but no dated rows with amounts."))
                 return redirect("csv_import")
-
-            first_date = data_rows[0][0]
-            import_count = 0
-
-            EXPENSE_COLUMNS = {
-                "IRP": ExpenseCategory.IRP,
-                "PARKING": ExpenseCategory.PARKING,
-                "ON SITE": ExpenseCategory.MAINTENANCE,
-                "TRUCK": ExpenseCategory.TRUCK,
-                "CHECK CHARGE": ExpenseCategory.CHECK_CHARGE,
-                "INSURANS": ExpenseCategory.INSURANCE,
-                "TOLL": ExpenseCategory.TOLL,
-                "FUEL": ExpenseCategory.FUEL,
-                "OTHER": ExpenseCategory.OTHER,
-                "CHASSIS": ExpenseCategory.CHASSIS,
-            }
-
-            with transaction.atomic():  # all rows or none: a failure half-way must not leave a partial import
-                for parsed_date, row in data_rows:
-                    amount_str = (row.get("Amount") or "").replace("$", "").replace(",", "").strip()
-                    try:
-                        amount = Decimal(amount_str) if amount_str and amount_str != "-" else Decimal("0")
-                    except InvalidOperation:
-                        amount = Decimal("0")
-
-                    if amount == Decimal("0"):
-                        continue
-
-                    category_label = (row.get("Category") or "").strip().upper()
-                    category = EXPENSE_COLUMNS.get(category_label, ExpenseCategory.OTHER)
-
-                    description = row.get("Description") or ""
-
-                    Expense.objects.create(
-                        date=parsed_date,
-                        category=category,
-                        amount=amount,
-                        notes=f"Imported: {description}" if description else "",
-                    )
-                    import_count += 1
-
-            messages.success(
-                request,
-                f"Successfully imported {import_count} expenses from CSV for {first_date.strftime('%B %Y')}.",
-            )
+            plan = si.build_plan(parsed.rows)
+        except si.StatementImportError as exc:
+            messages.error(request, str(exc))
+            return redirect("csv_import")
+        except Exception:
+            logger.exception("Statement import: could not process %r", upload.name)
+            messages.error(request, "The file could not be processed. Check that it is a statement export and try again.")
             return redirect("csv_import")
 
-        except Exception as e:
-            messages.error(request, f"Error processing CSV: {str(e)}")
+        token = uuid.uuid4().hex
+        request.session[IMPORT_SESSION_KEY] = {"token": token, "filename": upload.name, "rows": parsed.rows}
+        return render(request, "settings/csv_import_preview.html", {
+            "plan": plan, "token": token, "filename": upload.name,
+            "sheets": parsed.sheets, "warnings": parsed.warnings + plan.warnings,
+            "months": list(plan.months.values()), "totals": plan.totals,
+        })
+
+
+class CSVImportConfirmView(LoginRequiredMixin, View):
+    """Step 2: the user confirmed the preview. The plan is rebuilt from the stored rows against the database as it is
+    *now* (so duplicates are judged at commit time) and applied in one transaction."""
+
+    def post(self, request, *args, **kwargs):
+        from . import statement_import as si
+
+        pending = request.session.get(IMPORT_SESSION_KEY)
+        if not pending or not constant_time_compare(str(pending.get("token", "")), request.POST.get("token", "")):
+            messages.error(request, "That import has expired or was already completed. Please upload the file again.")
             return redirect("csv_import")
+
+        plan = si.build_plan(pending["rows"])
+        if plan.total_new == 0:
+            request.session.pop(IMPORT_SESSION_KEY, None)
+            messages.warning(request, f"Nothing new to import: all {plan.duplicates} entries from {pending['filename']} are already in the system.")
+            return redirect("csv_import")
+        try:
+            result = si.apply_plan(plan)
+        except Exception:
+            logger.exception("Statement import: failed to save %r", pending.get("filename"))
+            messages.error(request, "The import failed and nothing was saved. Please try again; if it keeps failing, check the server log.")
+            return redirect("csv_import")
+
+        request.session.pop(IMPORT_SESSION_KEY, None)
+        parts = []
+        if result.invoices:
+            parts.append(f"{result.invoices} deposit{'' if result.invoices == 1 else 's'} (paid invoices)")
+        if result.expenses:
+            parts.append(f"{result.expenses} expense{'' if result.expenses == 1 else 's'} (driver pay included)")
+        text = f"Imported {' and '.join(parts)} for {plan.period_label}."
+        if result.duplicates:
+            text += f" {result.duplicates} already-imported entries were skipped."
+        if result.customers or result.drivers:
+            made = [f"{n} {word}{'' if n == 1 else 's'}" for n, word in ((result.customers, "customer"), (result.drivers, "driver")) if n]
+            text += f" Created {' and '.join(made)} with placeholder contact details: please complete them."
+        messages.success(request, text)
+        return redirect("csv_import")

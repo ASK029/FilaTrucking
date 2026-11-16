@@ -185,10 +185,10 @@ class StatementCategoriesQA037(QABase):
         self.assertEqual(r.context["col_totals"]["fuel"], Decimal("1149"))
 
     def test_the_historical_importer_stores_driver_pay_as_driver(self):
-        import inspect
-        from shipments.management.commands import import_expenses
-        src = inspect.getsource(import_expenses)
-        self.assertIn("category=ExpenseCategory.DRIVER", src)
+        """(the command and the Import Data page share shipments.statement_import since QA-050)"""
+        from shipments import statement_import as si
+        plan = si.build_plan([{"sheet": "JAN", "line": 2, "date": "2026-01-09", "costs": [], "pay": "75.00", "pay_to": "Moe Driver"}])
+        self.assertEqual([(e.category, e.driver_key) for e in plan.expenses], [(ExpenseCategory.DRIVER, "moe driver")])
 
     def test_migration_reclassifies_old_import_rows_and_is_reversible(self):
         from importlib import import_module
