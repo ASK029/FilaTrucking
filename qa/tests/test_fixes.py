@@ -242,7 +242,8 @@ class SystemSettingsSecretsQA031(QABase):
         return s.get_motive_api_key(), s.get_email_password(), s.email_host_user
 
     def post(self, **over):
-        data = {"motive_api_key": "", "email_password": "", "email_host_user": "dispatch@example.org", "email_from_email": ""}
+        data = {"motive_api_key": "", "email_password": "", "email_host_user": "dispatch@example.org", "email_from_email": "",
+                "company_name": "Fila Trucking"}  # the company name is required since QA-052
         data.update(over)
         return self.client.post("/settings/system/", data)
 

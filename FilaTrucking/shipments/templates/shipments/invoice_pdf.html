@@ -194,11 +194,11 @@
 <body>
     <div class="header">
         <div class="header-left">
-            <div class="logo">Fila Trucking</div>
+            <div class="logo">{{ company.company_name }}</div>
             <div class="company-info">
-                123 Fleet Street, Suite 100<br>
-                Chicago, IL 60601<br>
-                Phone: (555) 012-3456
+                {% for line in company.company_address_lines %}{{ line }}<br>
+                {% endfor %}{% if company.company_phone %}Phone: {{ company.company_phone }}<br>
+                {% endif %}{% if company.company_email %}{{ company.company_email }}{% endif %}
             </div>
         </div>
         <div class="header-right">

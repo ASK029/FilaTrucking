@@ -97,6 +97,11 @@ class InvoiceDetailView(LoginRequiredMixin, DetailView):
     template_name = "shipments/invoice_detail.html"
     context_object_name = "invoice"
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["company"] = SystemSettings.get_instance()
+        return context
+
 
 def invoice_create(request):
     """Create invoice for a customer with line items in a single step."""
@@ -339,7 +344,7 @@ def invoice_pdf(request, pk):
         return redirect_to_login(request.get_full_path())
 
     invoice = get_object_or_404(Invoice, pk=pk)
-    html_string = render_to_string("shipments/invoice_pdf.html", {"invoice": invoice})
+    html_string = render_to_string("shipments/invoice_pdf.html", {"invoice": invoice, "company": SystemSettings.get_instance()})
     
     if HTML is None:
         return HttpResponse("WeasyPrint not installed. Cannot generate PDF.", status=500)
@@ -368,7 +373,7 @@ def invoice_email(request, pk):
         return redirect("invoice_detail", pk=invoice.pk)
 
     # Generate PDF
-    html_string = render_to_string("shipments/invoice_pdf.html", {"invoice": invoice})
+    html_string = render_to_string("shipments/invoice_pdf.html", {"invoice": invoice, "company": SystemSettings.get_instance()})
     if HTML is None:
         messages.error(request, "WeasyPrint not installed. Cannot generate PDF.")
         return redirect("invoice_detail", pk=invoice.pk)
@@ -377,11 +382,11 @@ def invoice_email(request, pk):
     pdf = html.write_pdf()
 
     # Create email
-    subject = f"Invoice #{invoice.pk} from Fila Trucking"
-    body = f"Hello {customer.name},\n\nPlease find attached the invoice #{invoice.pk} for your recent shipments.\n\nThank you for your business!\n\nBest regards,\nFila Trucking"
-    
     # Try to use dynamic settings if configured
     settings_obj = SystemSettings.get_instance()
+    company_name = settings_obj.company_name  # editable in System Settings (QA-052)
+    subject = f"Invoice #{invoice.pk} from {company_name}"
+    body = f"Hello {customer.name},\n\nPlease find attached the invoice #{invoice.pk} for your recent shipments.\n\nThank you for your business!\n\nBest regards,\n{company_name}"
     from_email = settings_obj.email_from_email or settings.DEFAULT_FROM_EMAIL
     
     email_kwargs = {

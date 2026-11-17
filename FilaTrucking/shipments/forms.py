@@ -143,12 +143,13 @@ class SystemSettingsForm(TailwindFormMixin, forms.ModelForm):
 
     class Meta:
         model = SystemSettings
-        fields = ['email_host_user', 'email_from_email']
+        fields = ['company_name', 'company_address', 'company_phone', 'company_email', 'email_host_user', 'email_from_email']
+        widgets = {'company_address': forms.Textarea(attrs={'rows': 3})}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Reorder fields to look better
-        field_order = ['motive_api_key', 'clear_motive_api_key', 'email_host_user', 'email_password',
+        field_order = ['company_name', 'company_address', 'company_phone', 'company_email', 'motive_api_key', 'clear_motive_api_key', 'email_host_user', 'email_password',
                        'clear_email_password', 'email_from_email']
         self.order_fields(field_order)
 

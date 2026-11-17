@@ -1,3 +1,4 @@
+from django.core.validators import MaxLengthValidator
 from django.db import models
 from django.db.models import Sum
 from decimal import Decimal
@@ -390,6 +391,16 @@ class SystemSettings(models.Model):
     Singleton model to store global system configurations.
     Sensitive fields are stored encrypted.
     """
+    # Company information printed on invoices and used in the invoice email (QA-052). The defaults are the text that
+    # used to be hard-coded in the templates, so nothing changes until the owner edits them.
+    company_name = models.CharField(max_length=100, default="Fila Trucking", verbose_name="Company Name")
+    company_address = models.TextField(
+        blank=True, default="123 Fleet Street, Suite 100\nChicago, IL 60601", validators=[MaxLengthValidator(300)],
+        verbose_name="Company Address", help_text="One line per row; printed as written under the company name.",
+    )
+    company_phone = models.CharField(max_length=50, blank=True, default="(555) 012-3456", verbose_name="Company Phone")
+    company_email = models.EmailField(blank=True, verbose_name="Company Email")
+
     # Motive (GoMotive) Settings
     motive_api_key_encrypted = models.TextField(blank=True, verbose_name="Motive API Key (Encrypted)")
     motive_base_url = models.URLField(
@@ -415,6 +426,11 @@ class SystemSettings(models.Model):
     def get_instance(cls):
         instance, _ = cls.objects.get_or_create(pk=1)
         return instance
+
+    @property
+    def company_address_lines(self):
+        """The address as non-empty lines (what the invoice prints, one per row)."""
+        return [line.strip() for line in (self.company_address or "").splitlines() if line.strip()]
 
     def set_motive_api_key(self, value):
         from .utils import encrypt_value

@@ -6,7 +6,7 @@
     <div class="flex items-center justify-between mb-8">
         <div>
             <h1 class="text-3xl font-bold text-slate-100 italic tracking-tight">System Settings</h1>
-            <p class="text-muted mt-1">Manage external API integrations and email delivery.</p>
+            <p class="text-muted mt-1">Manage the company details printed on invoices, external API integrations and email delivery.</p>
         </div>
         <div class="flex gap-3">
             <button @click="testMotive()" 
@@ -29,6 +29,39 @@
     <form method="post" class="space-y-6">
         {% csrf_token %}
         
+        <!-- Company Information (printed on invoices) -->
+        <div class="bg-surface-card rounded-2xl p-6 border border-slate-700/50 shadow-xl overflow-hidden relative">
+            <h2 class="text-xl font-semibold mb-2 flex items-center gap-2">
+                <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                Company Information
+            </h2>
+            <p class="text-sm text-muted mb-6">Printed in the header of every invoice (PDF and on screen) and used in the invoice email.</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-muted mb-2" for="{{ form.company_name.id_for_label }}">{{ form.company_name.label }}</label>
+                    {{ form.company_name }}
+                    {% if form.company_name.errors %}<p class="mt-2 text-sm text-red-400">{{ form.company_name.errors.0 }}</p>{% endif %}
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-muted mb-2" for="{{ form.company_address.id_for_label }}">{{ form.company_address.label }}</label>
+                    {{ form.company_address }}
+                    {% if form.company_address.help_text %}<p class="mt-2 text-xs text-slate-400">{{ form.company_address.help_text }}</p>{% endif %}
+                    {% if form.company_address.errors %}<p class="mt-2 text-sm text-red-400">{{ form.company_address.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-muted mb-2" for="{{ form.company_phone.id_for_label }}">{{ form.company_phone.label }}</label>
+                    {{ form.company_phone }}
+                    {% if form.company_phone.errors %}<p class="mt-2 text-sm text-red-400">{{ form.company_phone.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-muted mb-2" for="{{ form.company_email.id_for_label }}">{{ form.company_email.label }}</label>
+                    {{ form.company_email }}
+                    {% if form.company_email.errors %}<p class="mt-2 text-sm text-red-400">{{ form.company_email.errors.0 }}</p>{% endif %}
+                </div>
+            </div>
+        </div>
+
         <!-- Motive API Settings -->
         <div class="bg-surface-card rounded-2xl p-6 border border-slate-700/50 shadow-xl overflow-hidden relative">
             <div class="absolute top-0 right-0 p-4 opacity-5">

@@ -165,3 +165,10 @@
 - [X] A message that names no customer creates the shipment under a placeholder "Unassigned" customer, flagged for review; a named but unknown customer still stops with "Customer not found".
 - [X] Update the help text and the success reply (note, seal, chassis, customer).
 
+## Milestone 10: Company Information (QA-052)
+
+### Settings & Invoices
+- [X] Add company name, address (multi-line), phone and email to the System Settings singleton (defaults = the text that was hard-coded).
+- [X] Add a "Company Information" card to the System Settings page (name required, address limited to 300 characters, email validated).
+- [X] Print the company information in the header of the invoice PDF and the on-screen invoice preview (empty optional fields print nothing, text is escaped).
+- [X] Use the company name in the subject and signature of the invoice email.

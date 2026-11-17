@@ -1,0 +1,22 @@
+{
+  "steps": [
+    {
+      "step": "saved",
+      "flash": "System settings updated successfully."
+    },
+    {
+      "step": "invoice preview",
+      "company": true,
+      "address": true,
+      "phone": true,
+      "email": true,
+      "oldAddressGone": true
+    },
+    {
+      "step": "phone 375 horizontal overflow",
+      "settings": false,
+      "invoice": false
+    }
+  ],
+  "consoleErrors": []
+}
