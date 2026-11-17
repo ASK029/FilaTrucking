@@ -178,7 +178,8 @@ class DriverAndRateQA017(QABase):
         self.assertEqual(j["status"], "success")
         self.assertIsNone(s.amount)
         self.assertTrue(s.is_flagged)
-        self.assertIn("set the amount", s.notes)
+        self.assertIn("set the amount", s.flag_reason)  # QA-051: system text is not in notes (they become the invoice description)
+        self.assertEqual(s.notes, "")
         self.assertIn("not set", j["reply_message"])
         self.assertNotIn("None", j["reply_message"])
 

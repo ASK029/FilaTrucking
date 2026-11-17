@@ -1,0 +1,64 @@
+{
+  "steps": [
+    {
+      "step": "vehicle created with 2 documents",
+      "documentLinks": 2,
+      "url": "/vehicles/13/"
+    },
+    {
+      "step": "vehicle edit (remove 1, add 1)",
+      "rowsShownOnEdit": 3,
+      "documentNames": [
+        "Insurance",
+        "Inspection"
+      ]
+    },
+    {
+      "step": "document delete",
+      "backOnDetail": true,
+      "remaining": 1
+    },
+    {
+      "step": "shipment with chassis",
+      "url": "/shipments/54/",
+      "showsChassis": true,
+      "locationIsCustomerAbbreviation": true
+    },
+    {
+      "step": "invoice line prefill",
+      "line": {
+        "description": "",
+        "location": "ASL",
+        "booking": "QA51-BK"
+      },
+      "descriptionEmpty": true,
+      "locationIsAbbreviation": true
+    },
+    {
+      "step": "whatsapp",
+      "example": "success",
+      "exampleReply": "✅ Shipment recorded!\nNote: Klaipeda\nBooking: 95938662\nContainer: HAMU3898999\nSeal: 179458\nChassis: NAPZ225644\nCustomer: Unassigned\nDate: 11/17/2026\nAmount: not set (admin will add the rate)\n⚠️ No customer in the message: dispatch will set it.\nStatus: Pending Review",
+      "chat": "ignored",
+      "chatHasReply": false,
+      "missingSeal": "flagged",
+      "missingReply": "⚠️ Missing: seal"
+    },
+    {
+      "step": "whatsapp shipment page",
+      "listShowsChassis": true,
+      "note": true,
+      "unassigned": true,
+      "flagReasonShown": true,
+      "noAutoIngested": true
+    },
+    {
+      "step": "phone 375 horizontal overflow",
+      "vehicle_form": false,
+      "vehicle_detail": false,
+      "vehicle_edit": false,
+      "shipment_form": false,
+      "shipment_list": false
+    }
+  ],
+  "consoleErrors": []
+}

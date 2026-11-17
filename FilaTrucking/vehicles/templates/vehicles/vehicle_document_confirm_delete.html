@@ -1,0 +1,11 @@
+{% extends "base.html" %} {% block content %}
+<h1>Delete Document</h1>
+
+<p>Are you sure you want to delete the document "{{ object.name }}" for vehicle "{{ object.vehicle.registration_number }}"?</p>
+
+<form method="post">
+  {% csrf_token %}
+  <button type="submit">Yes, delete</button>
+  <a href="{% url 'vehicle_detail' object.vehicle.pk %}">Cancel</a>
+</form>
+{% endblock %}

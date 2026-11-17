@@ -11,12 +11,13 @@ class ShipmentForm(TailwindFormMixin, forms.ModelForm):
     class Meta:
         model = Shipment
         fields = [
-            'date', 'booking', 'container', 'seal', 'location', 
-            'customer', 'driver', 'vehicle', 'amount', 'status', 'is_flagged', 'notes'
+            'date', 'booking', 'container', 'seal', 'chassis', 'location',
+            'customer', 'driver', 'vehicle', 'amount', 'status', 'is_flagged', 'flag_reason', 'notes'
         ]
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date'}),
             'notes': forms.Textarea(attrs={'rows': 3}),
+            'flag_reason': forms.Textarea(attrs={'rows': 2}),
             'is_flagged': forms.CheckboxInput(attrs={'class': 'w-4 h-4 text-accent border-slate-600 rounded bg-slate-800 focus:ring-accent focus:ring-1 border-gray-300 dark:border-slate-600 focus:ring-accent focus:ring-1'})
         }
 
@@ -27,6 +28,10 @@ class ShipmentForm(TailwindFormMixin, forms.ModelForm):
 
         if amount is None and customer and customer.default_rate is not None:
             cleaned_data['amount'] = customer.default_rate
+
+        # a blank location means "the customer's abbreviation" (QA-051)
+        if not (cleaned_data.get('location') or '').strip() and customer:
+            cleaned_data['location'] = customer.abbreviation[:100]
 
         return cleaned_data
 
@@ -107,20 +112,14 @@ class InvoiceLineItemForm(TailwindFormMixin, forms.ModelForm):
                 f"Shipment {shipment.container} is already on invoice #{taken.invoice_id}. Remove it there first."
             )
 
-        if not cleaned_data.get("date_incurred"):
-            cleaned_data["date_incurred"] = shipment.date
-        if not cleaned_data.get("description"):
-            cleaned_data["description"] = f"Shipment {shipment.container}"
-        if not cleaned_data.get("booking_no"):
-            cleaned_data["booking_no"] = shipment.booking
-        if not cleaned_data.get("container_no"):
-            cleaned_data["container_no"] = shipment.container
-        if not cleaned_data.get("seal_no"):
-            cleaned_data["seal_no"] = shipment.seal
-        if not cleaned_data.get("location"):
-            cleaned_data["location"] = shipment.location
+        # blank fields are filled from the shipment (description = its notes, empty when there are none;
+        # location = the customer's abbreviation when the shipment has none) (QA-051)
+        defaults = shipment.invoice_line_defaults()
+        for name in ("date_incurred", "description", "booking_no", "container_no", "seal_no", "location"):
+            if not cleaned_data.get(name):
+                cleaned_data[name] = defaults[name]
         if cleaned_data.get("amount") in (None, ""):
-            cleaned_data["amount"] = shipment.amount
+            cleaned_data["amount"] = defaults["amount"]
 
         return cleaned_data
 

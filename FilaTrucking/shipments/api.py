@@ -19,6 +19,7 @@ from .models import (
     WhatsAppConfig, WhatsAppGroup, WhatsAppLog
 )
 from customers.models import Customer
+from .message_parser import KEY_FIELDS, parse_message
 from drivers.models import Driver
 from vehicles.models import Vehicle
 
@@ -39,24 +40,21 @@ def has_valid_bearer(request):
 def _sidecar_headers():
     return {"Authorization": f"Bearer {WHATSAPP_SECRET}"}
 
-FORMAT_HELP = """📋 Please use the correct shipment format:
+FORMAT_HELP = """📋 Please send the shipment like this, one value per line:
 
-BOOKING CONTAINER SEAL [CUSTOMER] [DATE]
-CUSTOMER: name or abbreviation
-RATE: amount
-DRIVER: driver name
-TRUCK: truck plate
+Klaipeda  (optional note, words only)
+95938662  (booking)
+HAMU3898114  (container)
+179458  (seal)
+NAPZ225644  (optional chassis)
 
-Example:
-TEST001
-CNTR12345
-SEAL99999
-AMSTAR
-05/01/2026
-CUSTOMER: AMSTAR
-RATE: 1500
-DRIVER: John Smith
-TRUCK: ABC-1234"""
+Required: BOOKING CONTAINER SEAL
+Optional on extra lines: CUSTOMER: name or abbreviation, RATE: amount, DRIVER: driver name, TRUCK: truck number, DATE: MM/DD/YYYY"""
+
+
+def missing_fields_reply(missing):
+    return f"⚠️ Missing: {', '.join(missing)}\n\n{FORMAT_HELP}"
+
 
 def jid_to_e164(jid):
     """'13125550101@s.whatsapp.net' (or '...:12@s.whatsapp.net', '+1 312 555 0101') -> '+13125550101'.
@@ -128,26 +126,34 @@ def _message_local_date(timestamp):
     return timezone.localtime(parsed).date()
 
 
-SHIPMENT_KEYS = {"date", "booking", "container", "seal", "customer", "rate", "driver", "truck", "location"}
+SHIPMENT_KEYS = set(KEY_FIELDS)  # recognised "KEY:" names (kept for importers of the old constant)
+
+UNASSIGNED_CUSTOMER = "Unassigned"
 
 
 def looks_like_shipment_message(text):
-    """Is this plausibly an attempt to report a shipment, as opposed to chat in the dispatch group? (QA-016)
+    """Is this plausibly an attempt to report a shipment, as opposed to chat in the dispatch group? (QA-016, QA-051)
 
-    True when at least two recognised 'key: value' lines are present (BOOKING:, SEAL:, ...), or at least two
-    one-word lines of which one contains a digit (booking/container/seal numbers). 'ok thanks boss' is neither.
+    The rules live in message_parser.parse_message: a complete shipment, or a clear but incomplete attempt, is True;
+    'ok thanks boss', questions, links and lone numbers are False.
     """
-    keys, tokens = set(), []
-    for line in (ln.strip() for ln in text.splitlines()):
-        if not line:
-            continue
-        if ":" in line:
-            key = line.split(":", 1)[0].strip().lower()
-            if key in SHIPMENT_KEYS:
-                keys.add(key)
-        elif any(ch.isalnum() for ch in line) and len(line.split()) == 1:
-            tokens.append(line)
-    return len(keys) >= 2 or (len(tokens) >= 2 and any(ch.isdigit() for t in tokens for ch in t))
+    return parse_message(text).kind != "ignore"
+
+
+def get_unassigned_customer():
+    """Placeholder customer for a message that names none: the shipment is created, flagged, and dispatch sets the
+    real customer when confirming it."""
+    customer = Customer.objects.filter(abbreviation__iexact=UNASSIGNED_CUSTOMER).first()
+    if customer is None:
+        customer = Customer.objects.create(
+            name=UNASSIGNED_CUSTOMER,
+            abbreviation=UNASSIGNED_CUSTOMER.upper(),
+            phone_number="+10000000000",
+            address="N/A",
+            email="unassigned@import.local",
+            notes="Placeholder for WhatsApp shipments that named no customer. Move them to the real customer.",
+        )
+    return customer
 
 
 @csrf_exempt
@@ -176,7 +182,8 @@ def ingest_whatsapp_message(request):
         return JsonResponse({"error": "Text too long"}, status=400)
     sender_phone = sender_phone[:50]
 
-    if not looks_like_shipment_message(raw_text):
+    parsed = parse_message(raw_text)
+    if parsed.kind == "ignore":
         # Chit-chat in the group: no error row (it would keep personal chat forever), and no reply (the sidecar
         # only answers when Django sends a reply_message) (QA-016).
         return JsonResponse({"status": "ignored", "message": "Not a shipment message"})
@@ -197,155 +204,18 @@ def ingest_whatsapp_message(request):
 
     fallback_date = _message_local_date(message_timestamp)
 
-    # Parser rules - try key:value format first (backward compatibility)
-    lines = raw_text.strip().split('\n')
-    parsed_data = {}
-    for line in lines:
-        if ':' in line:
-            key, val = line.split(':', 1)
-            parsed_data[key.strip().lower()] = val.strip()
+    parsed_data = dict(parsed.fields)
 
-    # Check if it's key:value format with all required fields
-    key_value_format = all(k in parsed_data and parsed_data[k] for k in ['booking', 'container', 'seal'])
-
-    if key_value_format:
-        # Use key:value format
-        required_keys = ['date', 'booking', 'container', 'seal', 'customer', 'rate', 'driver', 'truck']
-        missing_keys = [k for k in required_keys if k not in parsed_data or not parsed_data[k]]
-
-        if missing_keys:
-            msg_log.is_flagged = True
-            msg_log.error_message = f"Missing required fields: {', '.join(missing_keys)}"
-            msg_log.save()
-            
-            format_help = """⚠️ Missing fields. Please use this format:
-
-BOOKING CONTAINER SEAL [CUSTOMER] [DATE]
-CUSTOMER: name or abbreviation
-RATE: amount
-DRIVER: driver name
-TRUCK: truck plate
-
-Example:
-TEST001
-CNTR12345
-SEAL99999
-AMSTAR
-05/01/2026
-CUSTOMER: AMSTAR
-RATE: 1500
-DRIVER: John Smith
-TRUCK: ABC-1234"""
-            
-            return JsonResponse({
-                "status": "flagged", 
-                "message": "Missing fields, flagged for manual review.",
-                "message_id": msg_log.id,
-                "reply_message": format_help
-            })
-    else:
-        # New flexible format: values in specific order
-        # Expected order: booking, container, seal, [customer], [date]
-        # Each value can be on its own line or space-separated
-        
-        # Clean and extract non-empty lines
-        clean_lines = [line.strip() for line in lines if line.strip()]
-        
-        # Try to extract values from non-key:value lines
-        extracted_values = []
-        for line in clean_lines:
-            # Skip lines that look like key:value pairs
-            if ':' in line:
-                continue
-            # Extract non-empty values (skip very short strings that might be artifacts)
-            val = line.strip()
-            if any(ch.isalnum() for ch in val):  # a 1-character seal like "7" is a value; "." or an emoji is not (QA-048)
-                extracted_values.append(val)
-        
-        # Expected positions (first 3 are required)
-        if len(extracted_values) < 3:
-            msg_log.is_flagged = True
-            msg_log.error_message = f"Missing required fields. Found {len(extracted_values)} values, need at least 3 (booking, container, seal)."
-            msg_log.save()
-            return JsonResponse({
-                "status": "flagged",
-                "message": "Missing fields, flagged for manual review.",
-                "message_id": msg_log.id,
-                "reply_message": FORMAT_HELP,
-            })
-        
-        # Extract required fields
-        parsed_data['booking'] = extracted_values[0]  # First value = booking
-        parsed_data['container'] = extracted_values[1]  # Second value = container
-        parsed_data['seal'] = extracted_values[2]  # Third value = seal
-        
-        # Optional: customer (4th value if it looks like a customer name/abbreviation)
-        if len(extracted_values) >= 4:
-            potential_customer = extracted_values[3]
-            # Check if it could be a customer (not a date format)
-            date_formats = ['%m/%d/%y', '%m/%d/%Y', '%Y-%m-%d']
-            is_date = False
-            for fmt in date_formats:
-                try:
-                    datetime.strptime(potential_customer, fmt)
-                    is_date = True
-                    break
-                except ValueError:
-                    continue
-            if not is_date:
-                parsed_data['customer'] = potential_customer
-                # If there's a 5th value, check if it's a date
-                if len(extracted_values) >= 5:
-                    potential_date = extracted_values[4]
-                    for fmt in date_formats:
-                        try:
-                            parsed_data['date'] = datetime.strptime(potential_date, fmt).strftime('%m/%d/%Y')
-                            break
-                        except ValueError:
-                            continue
-            else:
-                # 4th value is a date
-                for fmt in date_formats:
-                    try:
-                        parsed_data['date'] = datetime.strptime(potential_customer, fmt).strftime('%m/%d/%Y')
-                        break
-                    except ValueError:
-                        continue
-        
-        # Only booking, container, seal are required
-        # Customer, rate, driver, truck are optional
-        # Try to match customer/driver from sender phone if not provided
-        else:
-            # No recognizable shipment data - return format help
-            msg_log.is_flagged = True
-            msg_log.error_message = "Unrecognized message format"
-            msg_log.save()
-            
-            format_help = """📋 Please use the correct shipment format:
-
-BOOKING CONTAINER SEAL [CUSTOMER] [DATE]
-CUSTOMER: name or abbreviation
-RATE: amount
-DRIVER: driver name
-TRUCK: truck plate
-
-Example:
-TEST001
-CNTR12345
-SEAL99999
-AMSTAR
-05/01/2026
-CUSTOMER: AMSTAR
-RATE: 1500
-DRIVER: John Smith
-TRUCK: ABC-1234"""
-            
-            return JsonResponse({
-                "status": "flagged", 
-                "message": "Unrecognized message format",
-                "message_id": msg_log.id,
-                "reply_message": format_help
-            })
+    if parsed.kind == "incomplete":
+        msg_log.is_flagged = True
+        msg_log.error_message = f"Missing required fields: {', '.join(parsed.missing)}"
+        msg_log.save()
+        return JsonResponse({
+            "status": "flagged",
+            "message": "Missing fields, flagged for manual review.",
+            "message_id": msg_log.id,
+            "reply_message": missing_fields_reply(parsed.missing),
+        })
 
     # Data transformation
     try:
@@ -366,43 +236,33 @@ TRUCK: ABC-1234"""
             # Use fallback date (message timestamp or current date)
             parsed_date_obj = fallback_date
 
-        # FK Lookups - customer is required, driver/vehicle optional
+        # FK Lookups - driver/vehicle optional. A customer that is NAMED but unknown stops the shipment (a typo must
+        # not silently land somewhere else); no customer at all creates it under "Unassigned", flagged (QA-051).
+        flag_reasons = []
         customer = None
-        if parsed_data.get('customer'):
-            customer_name = parsed_data['customer']
+        customer_name = parsed_data.get('customer')
+        if customer_name:
             customer = Customer.objects.filter(abbreviation__iexact=customer_name).first()
             if not customer:
                 customer = Customer.objects.filter(name__icontains=customer_name).first()
-        
-        # If no customer found, flag for manual review
-        if not customer:
-            msg_log.is_flagged = True
-            msg_log.error_message = f"Customer not found: {parsed_data.get('customer', 'Not provided')}"
-            msg_log.save()
-            
-            format_help = """⚠️ Customer not found.
+            if not customer:
+                msg_log.is_flagged = True
+                msg_log.error_message = f"Customer not found: {customer_name}"
+                msg_log.save()
+                return JsonResponse({
+                    "status": "flagged",
+                    "message": "Customer not found",
+                    "message_id": msg_log.id,
+                    "reply_message": (
+                        f"⚠️ Customer not found: {customer_name}\n\n"
+                        "Check the customer name or abbreviation and send the message again, "
+                        "or leave the customer out and dispatch will set it.\n\n" + FORMAT_HELP
+                    ),
+                })
+        else:
+            customer = get_unassigned_customer()
+            flag_reasons.append("No customer in the message: set the customer.")
 
-Please provide customer name or abbreviation in your message:
-
-BOOKING CONTAINER SEAL CUSTOMER [DATE]
-
-Example:
-TEST001
-CNTR12345
-SEAL99999
-AMSTAR
-05/01/2026
-
-Or use key:value format:
-CUSTOMER: AMSTAR"""
-            
-            return JsonResponse({
-                "status": "flagged", 
-                "message": "Customer not found",
-                "message_id": msg_log.id,
-                "reply_message": format_help
-            })
-        
         driver = find_driver(parsed_data.get('driver'), sender_phone)
         
         # Try to match vehicle from driver if not provided
@@ -424,7 +284,7 @@ CUSTOMER: AMSTAR"""
         month_end = month_start.replace(year=year_next, month=next_month)
         
         # Longer values would be a database error on MySQL (strict mode): refuse them with a clear message
-        for field_name, limit in (("booking", 50), ("container", 50), ("seal", 50), ("location", 100)):
+        for field_name, limit in (("booking", 50), ("container", 50), ("seal", 50), ("chassis", 50), ("location", 100)):
             if len(parsed_data.get(field_name, "")) > limit:
                 raise ValueError(f"{field_name.capitalize()} is too long (maximum {limit} characters)")
 
@@ -440,40 +300,54 @@ CUSTOMER: AMSTAR"""
         amount = parse_rate(parsed_data.get('rate')) or customer.default_rate
         missing_rate = amount is None
         
+        if is_duplicate:
+            flag_reasons.append("Duplicate container this billing period.")
+        if missing_rate:
+            flag_reasons.append("No rate in the message and the customer has no default rate: set the amount.")
+
+        # notes = what a person wrote (the description line): it becomes the invoice description. The automatic
+        # remarks live in flag_reason. Location stays empty unless given: it then defaults to the customer's
+        # abbreviation (Shipment.effective_location), also after the customer is changed.
         shipment = Shipment.objects.create(
             date=parsed_date_obj,
             booking=parsed_data['booking'],
             container=container_no,
             seal=parsed_data['seal'],
-            location=parsed_data.get('location', ''), # Not strictly requested in example format but exists in model
+            chassis=parsed_data.get('chassis', ''),
+            location=parsed_data.get('location', ''),
             customer=customer,
             driver=driver,
             vehicle=vehicle,
             amount=amount,
             status=ShipmentStatus.PENDING_REVIEW,
-            is_flagged=is_duplicate or missing_rate,
-            notes="Auto-ingested from WhatsApp."
-                  + (" (Flagged: Duplicate container this billing period.)" if is_duplicate else "")
-                  + (" (Flagged: no rate in the message and the customer has no default rate: set the amount.)" if missing_rate else "")
+            is_flagged=bool(flag_reasons),
+            flag_reason=" ".join(flag_reasons),
+            notes=parsed_data.get('note', ''),
         )
 
         msg_log.is_processed = True
         msg_log.shipment = shipment
         msg_log.save()
-        
+
         amount_text = f"${shipment.amount}" if shipment.amount is not None else "not set (admin will add the rate)"
-        success_message = f"""✅ Shipment recorded!
-Booking: {shipment.booking}
-Container: {shipment.container}
-Date: {shipment.date.strftime('%m/%d/%Y')}
-Amount: {amount_text}
-Status: Pending Review"""
-        
+        success_message = "✅ Shipment recorded!\n" + "\n".join(filter(None, [
+            f"Note: {shipment.notes}" if shipment.notes else "",
+            f"Booking: {shipment.booking}",
+            f"Container: {shipment.container}",
+            f"Seal: {shipment.seal}",
+            f"Chassis: {shipment.chassis}" if shipment.chassis else "",
+            f"Customer: {shipment.customer.name}",
+            f"Date: {shipment.date.strftime('%m/%d/%Y')}",
+            f"Amount: {amount_text}",
+            "⚠️ No customer in the message: dispatch will set it." if customer_name is None else "",
+            "Status: Pending Review",
+        ]))
+
         return JsonResponse({
             "status": "success",
             "message": "Shipment created successfully",
             "shipment_id": shipment.id,
-            "flagged": is_duplicate,
+            "flagged": shipment.is_flagged,
             "reply_message": success_message
         })
 

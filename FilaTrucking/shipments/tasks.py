@@ -159,17 +159,7 @@ def generate_recurring_invoices() -> int:
                 )
 
                 for s in shipments:
-                    InvoiceLineItem.objects.create(
-                        invoice=invoice,
-                        shipment=s,
-                        date_incurred=s.date,
-                        description=f"Shipment {s.container}",
-                        booking_no=s.booking,
-                        container_no=s.container,
-                        seal_no=s.seal,
-                        location=s.location,
-                        amount=s.amount,
-                    )
+                    InvoiceLineItem.objects.create(invoice=invoice, **s.invoice_line_defaults())
                     s.status = ShipmentStatus.INVOICED
                     s.save(update_fields=["status"])
 

@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from FilaTrucking.mixins import ProtectedDeleteMixin
+from django.db import transaction
 from django.db.models import Sum
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
@@ -12,9 +13,9 @@ from django.views.generic import (
     UpdateView,
 )
 
-from .models import IFTAMileage, Vehicle, Maintenance
+from .models import IFTAMileage, Vehicle, VehicleDocument, Maintenance
 from shipments.models import IFTARate
-from .forms import VehicleForm, IFTAMilesLogForm, IFTAGallonsLogForm, MaintenanceForm
+from .forms import VehicleDocumentFormSet, VehicleForm, IFTAMilesLogForm, IFTAGallonsLogForm, MaintenanceForm
 
 
 class VehicleListView(LoginRequiredMixin, ListView):
@@ -39,7 +40,32 @@ class VehicleDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-class VehicleCreateView(LoginRequiredMixin, CreateView):
+class VehicleDocumentsMixin:
+    """Edit a truck together with its named documents in one request (same pattern as the driver form) (QA-051)."""
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if "document_formset" not in context:
+            if self.request.method == "POST":
+                context["document_formset"] = VehicleDocumentFormSet(
+                    self.request.POST, self.request.FILES, instance=self.object
+                )
+            else:
+                context["document_formset"] = VehicleDocumentFormSet(instance=self.object)
+        return context
+
+    def form_valid(self, form):
+        document_formset = VehicleDocumentFormSet(self.request.POST, self.request.FILES, instance=form.instance)
+        if not document_formset.is_valid():
+            return self.render_to_response(self.get_context_data(form=form, document_formset=document_formset))
+        with transaction.atomic():
+            self.object = form.save()
+            document_formset.instance = self.object
+            document_formset.save()
+        return redirect(self.get_success_url())
+
+
+class VehicleCreateView(VehicleDocumentsMixin, LoginRequiredMixin, CreateView):
     model = Vehicle
     template_name = "vehicles/vehicle_form.html"
     form_class = VehicleForm
@@ -61,11 +87,19 @@ class VehicleCreateView(LoginRequiredMixin, CreateView):
         return initial
 
 
-class VehicleUpdateView(LoginRequiredMixin, UpdateView):
+class VehicleUpdateView(VehicleDocumentsMixin, LoginRequiredMixin, UpdateView):
     model = Vehicle
     template_name = "vehicles/vehicle_form.html"
     form_class = VehicleForm
     success_url = reverse_lazy("vehicle_list")
+
+
+class VehicleDocumentDeleteView(LoginRequiredMixin, DeleteView):
+    model = VehicleDocument
+    template_name = "vehicles/vehicle_document_confirm_delete.html"
+
+    def get_success_url(self):
+        return reverse_lazy("vehicle_detail", kwargs={"pk": self.object.vehicle_id})
 
 
 class VehicleDeleteView(ProtectedDeleteMixin, LoginRequiredMixin, DeleteView):

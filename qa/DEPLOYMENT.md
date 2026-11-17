@@ -119,6 +119,8 @@ docker compose -f docker-compose.prod.yml exec django python manage.py migrate
 docker compose -f docker-compose.prod.yml exec django python manage.py check --deploy    # expect: no issues
 ```
 
+QA-051 adds two more migrations (`shipments/0016`: chassis, flag_reason, optional invoice description/location, and a data step that moves the old "Auto-ingested from WhatsApp." notes into `flag_reason`; `vehicles/0015`: vehicle documents). They were tested on SQLite only; take a database backup before running them (section 2).
+
 ## 6. Verify (everything should be "yes")
 
 ```bash

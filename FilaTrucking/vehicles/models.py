@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils import timezone
 
-from FilaTrucking.uploads import RandomUploadPath, image_validators
+from FilaTrucking.uploads import RandomUploadPath, document_validators, image_validators
 
 from drivers.models import Driver
 # from shipments.models import IFTARate
@@ -54,6 +54,22 @@ class Vehicle(models.Model):
 
     def __str__(self) -> str:
         return self.registration_number
+
+
+class VehicleDocument(models.Model):
+    """A named file attached to a truck (registration, insurance, inspection...), like DriverDocument (QA-051)."""
+
+    vehicle = models.ForeignKey(
+        Vehicle,
+        on_delete=models.CASCADE,
+        related_name="documents",
+        verbose_name="Vehicle",
+    )
+    name = models.CharField(max_length=100, verbose_name="Document Name")
+    document = models.FileField(upload_to=RandomUploadPath("vehicle_documents"), validators=document_validators)
+
+    def __str__(self) -> str:
+        return f"{self.vehicle.registration_number} – {self.name}"
 
 
 class IFTAMileage(models.Model):
