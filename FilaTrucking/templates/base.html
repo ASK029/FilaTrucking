@@ -9,6 +9,8 @@
     <title>{% block title %}FilaTrucking TMS{% endblock %}</title>
     {% comment %}Stylesheet built from frontend/ (Tailwind CLI). It replaces the Play CDN script, which compiled CSS in every visitor's browser, needed the Tailwind CDN host to be reachable and logged 'should not be used in production' on every page (QA-035).{% endcomment %}
     <link rel="stylesheet" href="{% static 'css/app.css' %}" />
+    {% comment %}Applies the saved light/dark choice before the first paint and handles the toggle button (QA-053).{% endcomment %}
+    <script src="{% static 'js/theme.js' %}"></script>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -54,7 +56,18 @@
         </a>
         {# Spacer #}
         <div class="flex-1"></div>
-        {# Right side: user info + logout #}
+        {# Right side: theme toggle, user info + logout #}
+        {# Light / dark theme (QA-053) #}
+        <button type="button" data-theme-toggle aria-label="Switch to light theme" title="Switch to light theme"
+            class="theme-toggle flex items-center justify-center w-11 h-11 rounded-xl text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition-colors flex-shrink-0">
+            <svg class="icon-sun w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="4" />
+                <path stroke-linecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32 1.41-1.41" />
+            </svg>
+            <svg class="icon-moon w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg>
+        </button>
         {% if user.is_authenticated %}
         <div class="flex items-center gap-3">
             <span class="hidden md:block text-sm text-muted">{{ user.username }}</span>

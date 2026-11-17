@@ -14,6 +14,7 @@ python manage.py makemigrations ; python manage.py migrate
 qa/run_tests.sh                                        # (bash, repo root) everything below on SQLite with fake env; QA_DATABASE_URL=mysql://... runs it on MySQL
 python manage.py test shipments vehicles customers drivers qa.tests   # same thing by hand; needs PYTHONPATH=<repo root> and the fake env from qa/run_tests.sh
 node --test qa/tests/sidecar.test.cjs                  # sidecar behaviour tests (Baileys/Django stubbed; nothing connects to WhatsApp)
+node --test qa/tests/theme.test.cjs                    # light/dark toggle script (static/js/theme.js)
 celery -A FilaTrucking worker -l info                  # needs Redis
 celery -A FilaTrucking beat -l info                    # schedule lives in settings.CELERY_BEAT_SCHEDULE
 python manage.py fetch_whatsapp_groups
@@ -59,5 +60,6 @@ Four Django apps under `FilaTrucking/`, but **responsibilities don't match app n
 - `test_setup.py`, `run_migration.py`, `create_admin.py` and `tmp/` (all inside the Django source root) are throwaway helper scripts, not part of the app.
 - WeasyPrint PDF rendering cannot be exercised on Windows (native libs missing): verify PDFs in the Docker image.
 - Maintenance rows are ordered in Python (`status_group` is computed), after `select_related("vehicle")`.
+- **Light/dark theme (QA-053):** colours are CSS variables defined in `frontend/tailwind.config.js` (default values = the dark theme; `:root[data-theme="light"]` overrides them), so write colours with the existing classes (`text-slate-100`, `bg-surface`, `text-accent`...) and they work in both themes; never hard-code a hex colour in a template, use `rgb(var(--c-slate-700))` etc. in inline CSS. A white sheet that must stay white (the invoice paper) opts out with `data-palette="default"`. Text on a solid coloured button should be `text-white`, not a slate class (slate flips in the light theme). `static/js/theme.js` (loaded in `<head>`) applies the choice saved in `localStorage`; `qa/tools/theme_check.cjs` runs axe contrast + overflow on every main page in both themes.
 - Google Fonts is still loaded from Google; Tailwind classes are compiled into the committed `static/css/app.css` (rebuild it when you add new classes).
 - Not yet done (see `qa/TASKS.md`): MySQL 8.0 → 8.4 upgrade, 2FA for the admin, off-server backup copy, history purge of the public repository.

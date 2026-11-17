@@ -1,0 +1,36 @@
+{
+  "steps": [
+    {
+      "step": "first visit (nothing saved)",
+      "theme": "dark",
+      "bg": "rgb(15, 23, 42)",
+      "label": "Switch to light theme"
+    },
+    {
+      "step": "after one click",
+      "theme": "light",
+      "bg": "rgb(241, 245, 249)",
+      "label": "Switch to dark theme"
+    },
+    {
+      "step": "after reload",
+      "theme": "light",
+      "bg": "rgb(241, 245, 249)"
+    },
+    {
+      "step": "other page",
+      "theme": "light"
+    },
+    {
+      "step": "clicked again",
+      "theme": "dark",
+      "bg": "rgb(15, 23, 42)"
+    },
+    {
+      "step": "tap target",
+      "width": 44,
+      "height": 44
+    }
+  ],
+  "consoleErrors": []
+}

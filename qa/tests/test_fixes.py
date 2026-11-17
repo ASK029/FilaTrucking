@@ -498,7 +498,7 @@ class MobileAndAccessibilityQA032QA033(QABase):
 
     def test_secondary_text_colours_meet_contrast_on_the_dark_theme(self):
         cfg = (ROOT / "frontend" / "tailwind.config.js").read_text(encoding="utf-8")
-        self.assertIn("muted: '#94A3B8'", cfg)
+        self.assertIn("'--c-muted': triplet('#94A3B8')", cfg)  # the dark theme's value; the colour is a theme variable since QA-053
         offenders = []
         for path in (ROOT / "FilaTrucking").rglob("*.html"):
             if "staticfiles" in path.parts or path.name.endswith("_pdf.html"):

@@ -128,24 +128,24 @@
     border: 1px solid transparent;
     border-radius: 0.5rem;
     padding: 0.375rem 0.5rem;
-    color: #e2e8f0;
+    color: rgb(var(--c-slate-200));
     font-size: 0.875rem;
     transition: all 0.15s;
   }
   #line-items-table input:hover, #line-items-table select:hover {
-    background: rgba(51, 65, 85, 0.5);
+    background: rgb(var(--c-slate-700) / 0.5);
   }
   #line-items-table input:focus, #line-items-table select:focus {
     outline: none;
-    background: rgba(51, 65, 85, 0.8);
-    border-color: #f59e0b;
+    background: rgb(var(--c-slate-700) / 0.8);
+    border-color: rgb(var(--c-accent));
   }
   #line-items-table input::placeholder {
-    color: #64748b;
+    color: rgb(var(--c-slate-500));
   }
   #line-items-table input[type="checkbox"] {
     width: auto;
-    accent-color: #f59e0b;
+    accent-color: rgb(var(--c-accent));
   }
   #line-items-table input[type="number"] {
     text-align: right;

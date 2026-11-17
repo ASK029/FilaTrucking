@@ -189,18 +189,18 @@ function settingsPage() {
 /* Enhance Django form widgets */
 input[type="text"], input[type="password"], input[type="email"] {
     width: 100%;
-    background-color: rgba(30, 41, 59, 0.5);
-    border: 1px solid rgba(100, 116, 139, 0.3);
+    background-color: rgb(var(--c-slate-800) / 0.5);
+    border: 1px solid rgb(var(--c-slate-500) / 0.3);
     border-radius: 0.75rem;
     padding: 0.75rem 1rem;
-    color: #f1f5f9;
+    color: rgb(var(--c-slate-100));
     outline: none;
     transition: all 0.2s;
 }
 input:focus {
-    border-color: #F59E0B;
-    background-color: rgba(30, 41, 59, 1);
-    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+    border-color: rgb(var(--c-accent));
+    background-color: rgb(var(--c-slate-800));
+    box-shadow: 0 0 0 2px rgb(var(--c-accent) / 0.25);
 }
 </style>
 {% endblock %}

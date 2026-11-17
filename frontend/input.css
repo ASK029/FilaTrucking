@@ -4,9 +4,18 @@
 
 /* Smooth scrollbar (was an inline <style> in base.html) */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: #0F172A; }
-::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #475569; }
+::-webkit-scrollbar-track { background: rgb(var(--c-surface)); }
+::-webkit-scrollbar-thumb { background: rgb(var(--c-slate-700)); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgb(var(--c-slate-600)); }
+
+/* The active sidebar entry is a blue tint with amber text on the dark theme; on the light theme the amber text needs a
+   paler tint to reach 4.5:1 */
+:root[data-theme="light"] .bg-brand-light\/20.text-accent { background-color: rgb(var(--c-accent) / 0.12); color: rgb(var(--c-accent-dark)); }
+
+/* Theme toggle (QA-053): the sun is shown on the dark theme (click for light), the moon on the light theme */
+.theme-toggle .icon-moon { display: none; }
+:root[data-theme="light"] .theme-toggle .icon-sun { display: none; }
+:root[data-theme="light"] .theme-toggle .icon-moon { display: inline; }
 
 /* ---------------------------------------------------------------------------------------------
    Mobile usability (QA-032)
@@ -46,7 +55,7 @@
     content: attr(data-label);
     flex: none;
     text-align: left;
-    color: #94a3b8;
+    color: rgb(var(--c-muted));
     font-size: 0.7rem;
     font-weight: 600;
     letter-spacing: 0.06em;

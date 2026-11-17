@@ -172,3 +172,13 @@
 - [X] Add a "Company Information" card to the System Settings page (name required, address limited to 300 characters, email validated).
 - [X] Print the company information in the header of the invoice PDF and the on-screen invoice preview (empty optional fields print nothing, text is escaped).
 - [X] Use the company name in the subject and signature of the invoice email.
+
+## Milestone 11: Light Theme (QA-053)
+
+### Theme
+- [X] Make the Tailwind colour families used by the templates (slate, red, amber, yellow, emerald, green, blue, purple) and the `surface` / `muted` / `accent` tokens read CSS variables: the dark values are the original ones, a light set is applied under `data-theme="light"`.
+- [X] Add a light/dark toggle (sun/moon, 44 px tap target) to the top bar; the choice is saved in the browser and applied before the first paint (no flash); the default stays dark.
+- [X] Keep the on-screen invoice paper and the WhatsApp QR code white in both themes.
+- [X] Replace the hard-coded colours (inline CSS on the invoice and settings pages, scrollbar, mobile table labels) with theme variables.
+- [X] Fix buttons whose text colour only worked on the dark theme, and let the detail-page headers wrap on phones.
+- [X] Check every main page in both themes at desktop and phone width: contrast (axe) and horizontal overflow.

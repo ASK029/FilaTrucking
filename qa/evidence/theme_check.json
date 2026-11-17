@@ -1,0 +1,1342 @@
+{
+  "pages": [
+    {
+      "width": 1440,
+      "theme": "light",
+      "page": "dashboard",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "page": "shipments",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "page": "shipment_detail",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "page": "shipment_form",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "page": "invoices",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 3,
+      "overflow": false,
+      "sample": [
+        {
+          "target": "a[href=\"/invoices/2/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #a3aab4, background color: #ffffff, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/invoices/3/\"]",
+          "summary": "Element has insufficient color contrast of 2.32 (foreground color: #a2a9b4, background color: #fcfdfe, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/invoices/4/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #a3aab4, background color: #ffffff, font size: 10.5pt (14px), font weight"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "page": "invoice_detail",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 3,
+      "overflow": false,
+      "sample": [
+        {
+          "target": "h3",
+          "summary": "Element has insufficient color contrast of 1.48 (foreground color: #cbd5e1, background color: #ffffff, font size: 27.0pt (36px), font weight"
+        },
+        {
+          "target": "p:nth-child(1) > .mr-2.tracking-widest.text-\\[10px\\]",
+          "summary": "Element has insufficient color contrast of 2.56 (foreground color: #94a3b8, background color: #ffffff, font size: 7.5pt (10px), font weight:"
+        },
+        {
+          "target": "p:nth-child(2) > .mr-2.tracking-widest.text-\\[10px\\]",
+          "summary": "Element has insufficient color contrast of 2.56 (foreground color: #94a3b8, background color: #ffffff, font size: 7.5pt (10px), font weight:"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "page": "invoice_create",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "page": "customers",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "page": "customer_detail",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "page": "drivers",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "page": "driver_form",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "page": "vehicles",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "page": "vehicle_detail",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 1,
+      "overflow": false,
+      "sample": [
+        {
+          "target": ".opacity-50 > p",
+          "summary": "Element has insufficient color contrast of 2.17 (foreground color: #959fad, background color: #e2e8f0, font size: 10.5pt (14px), font weight"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "page": "vehicle_form",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "page": "expenses",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "page": "maintenance",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "page": "ifta_logs",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "page": "ifta_report",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "page": "monthly",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "page": "yearly",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "page": "settings",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "page": "whatsapp",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "page": "import",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "page": "dashboard",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "page": "shipments",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 25,
+      "overflow": false,
+      "sample": [
+        {
+          "target": "a[href=\"/shipments/55/\"]",
+          "summary": "Element has insufficient color contrast of 2.28 (foreground color: #2a5298, background color: #1a1829, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/shipments/54/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/shipments/1/\"]",
+          "summary": "Element has insufficient color contrast of 2.28 (foreground color: #2a5298, background color: #1a1829, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/shipments/2/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/shipments/3/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/shipments/4/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "page": "shipment_detail",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 3,
+      "overflow": false,
+      "sample": [
+        {
+          "target": ".bg-red-400\\/10",
+          "summary": "Element has insufficient color contrast of 4.18 (foreground color: #ef4444, background color: #262031, font size: 9.0pt (12px), font weight:"
+        },
+        {
+          "target": ".border-brand-light\\/20",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": ".hover\\:underline",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 12.0pt (16px), font weight"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "page": "shipment_form",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "page": "invoices",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 3,
+      "overflow": false,
+      "sample": [
+        {
+          "target": "a[href=\"/invoices/2/\"]",
+          "summary": "Element has insufficient color contrast of 2.51 (foreground color: #59667a, background color: #1e293b, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/invoices/3/\"]",
+          "summary": "Element has insufficient color contrast of 2.56 (foreground color: #586478, background color: #1b2538, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/invoices/4/\"]",
+          "summary": "Element has insufficient color contrast of 2.51 (foreground color: #59667a, background color: #1e293b, font size: 10.5pt (14px), font weight"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "page": "invoice_detail",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 3,
+      "overflow": false,
+      "sample": [
+        {
+          "target": "h3",
+          "summary": "Element has insufficient color contrast of 1.48 (foreground color: #cbd5e1, background color: #ffffff, font size: 27.0pt (36px), font weight"
+        },
+        {
+          "target": "p:nth-child(1) > .mr-2.tracking-widest.text-\\[10px\\]",
+          "summary": "Element has insufficient color contrast of 2.56 (foreground color: #94a3b8, background color: #ffffff, font size: 7.5pt (10px), font weight:"
+        },
+        {
+          "target": "p:nth-child(2) > .mr-2.tracking-widest.text-\\[10px\\]",
+          "summary": "Element has insufficient color contrast of 2.56 (foreground color: #94a3b8, background color: #ffffff, font size: 7.5pt (10px), font weight:"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "page": "invoice_create",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "page": "customers",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 7,
+      "overflow": false,
+      "sample": [
+        {
+          "target": "a[href=\"/customers/3/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/customers/1/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/customers/6/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/customers/5/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/customers/7/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/customers/2/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "page": "customer_detail",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 2,
+      "overflow": false,
+      "sample": [
+        {
+          "target": ".border-brand-light\\/20",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": ".hover\\:underline",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 12.0pt (16px), font weight"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "page": "drivers",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 6,
+      "overflow": false,
+      "sample": [
+        {
+          "target": "a[href=\"/drivers/4/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/drivers/6/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/drivers/1/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/drivers/3/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/drivers/2/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/drivers/5/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "page": "driver_form",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "page": "vehicles",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 13,
+      "overflow": false,
+      "sample": [
+        {
+          "target": "a[href=\"/vehicles/1/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/vehicles/2/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/vehicles/3/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/vehicles/4/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/vehicles/5/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/vehicles/6/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "page": "vehicle_detail",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 4,
+      "overflow": false,
+      "sample": [
+        {
+          "target": ".hover\\:bg-brand-light\\/10",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": ".hover\\:underline",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 12.0pt (16px), font weight"
+        },
+        {
+          "target": ".py-1",
+          "summary": "Element has insufficient color contrast of 1.92 (foreground color: #2a5298, background color: #1e293b, font size: 9.0pt (12px), font weight:"
+        },
+        {
+          "target": ".opacity-50 > p",
+          "summary": "Element has insufficient color contrast of 2.51 (foreground color: #59667a, background color: #1e293b, font size: 10.5pt (14px), font weight"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "page": "vehicle_form",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "page": "expenses",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "page": "maintenance",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "page": "ifta_logs",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 1,
+      "overflow": false,
+      "sample": [
+        {
+          "target": "aside > nav > .space-y-0\\.5 > li[x-data=\"{ open: true }\"] > .mt-1.space-y-1.pl-11 > li:nth",
+          "summary": "Element has insufficient color contrast of 1.92 (foreground color: #2a5298, background color: #1e293b, font size: 10.5pt (14px), font weight"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "page": "ifta_report",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 1,
+      "overflow": false,
+      "sample": [
+        {
+          "target": "aside > nav > .space-y-0\\.5 > li[x-data=\"{ open: true }\"] > .space-y-1.pl-11.pr-2 > li:nth",
+          "summary": "Element has insufficient color contrast of 1.92 (foreground color: #2a5298, background color: #1e293b, font size: 10.5pt (14px), font weight"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "page": "monthly",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 1,
+      "overflow": false,
+      "sample": [
+        {
+          "target": "aside > nav > .space-y-0\\.5 > li[x-data=\"{ open: true }\"] > .space-y-1.pl-11.pr-2 > li:nth",
+          "summary": "Element has insufficient color contrast of 1.92 (foreground color: #2a5298, background color: #1e293b, font size: 10.5pt (14px), font weight"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "page": "yearly",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "page": "settings",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 1,
+      "overflow": false,
+      "sample": [
+        {
+          "target": "aside > nav > .space-y-0\\.5 > li[x-data=\"{ open: true }\"] > .space-y-1.pl-11.pr-2 > li:nth",
+          "summary": "Element has insufficient color contrast of 1.92 (foreground color: #2a5298, background color: #1e293b, font size: 10.5pt (14px), font weight"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "page": "whatsapp",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 1,
+      "overflow": false,
+      "sample": [
+        {
+          "target": "aside > nav > .space-y-0\\.5 > li[x-data=\"{ open: true }\"] > .mt-1.space-y-1.pl-11 > li:nth",
+          "summary": "Element has insufficient color contrast of 1.92 (foreground color: #2a5298, background color: #1e293b, font size: 10.5pt (14px), font weight"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "page": "import",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 375,
+      "theme": "light",
+      "page": "dashboard",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 375,
+      "theme": "light",
+      "page": "shipments",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 375,
+      "theme": "light",
+      "page": "shipment_detail",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 375,
+      "theme": "light",
+      "page": "shipment_form",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 375,
+      "theme": "light",
+      "page": "invoices",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 3,
+      "overflow": false,
+      "sample": [
+        {
+          "target": "a[href=\"/invoices/2/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #a3aab4, background color: #ffffff, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/invoices/3/\"]",
+          "summary": "Element has insufficient color contrast of 2.32 (foreground color: #a2a9b4, background color: #fcfdfe, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/invoices/4/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #a3aab4, background color: #ffffff, font size: 10.5pt (14px), font weight"
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "theme": "light",
+      "page": "invoice_detail",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 3,
+      "overflow": false,
+      "sample": [
+        {
+          "target": "h3",
+          "summary": "Element has insufficient color contrast of 1.48 (foreground color: #cbd5e1, background color: #ffffff, font size: 27.0pt (36px), font weight"
+        },
+        {
+          "target": "p:nth-child(1) > .mr-2.tracking-widest.text-\\[10px\\]",
+          "summary": "Element has insufficient color contrast of 2.56 (foreground color: #94a3b8, background color: #ffffff, font size: 7.5pt (10px), font weight:"
+        },
+        {
+          "target": "p:nth-child(2) > .mr-2.tracking-widest.text-\\[10px\\]",
+          "summary": "Element has insufficient color contrast of 2.56 (foreground color: #94a3b8, background color: #ffffff, font size: 7.5pt (10px), font weight:"
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "theme": "light",
+      "page": "invoice_create",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 375,
+      "theme": "light",
+      "page": "customers",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 375,
+      "theme": "light",
+      "page": "customer_detail",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 375,
+      "theme": "light",
+      "page": "drivers",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 375,
+      "theme": "light",
+      "page": "driver_form",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 375,
+      "theme": "light",
+      "page": "vehicles",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 375,
+      "theme": "light",
+      "page": "vehicle_detail",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 1,
+      "overflow": false,
+      "sample": [
+        {
+          "target": ".opacity-50 > p",
+          "summary": "Element has insufficient color contrast of 2.17 (foreground color: #959fad, background color: #e2e8f0, font size: 10.5pt (14px), font weight"
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "theme": "light",
+      "page": "vehicle_form",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 375,
+      "theme": "light",
+      "page": "expenses",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 375,
+      "theme": "light",
+      "page": "maintenance",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 375,
+      "theme": "light",
+      "page": "ifta_logs",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 375,
+      "theme": "light",
+      "page": "ifta_report",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 375,
+      "theme": "light",
+      "page": "monthly",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 375,
+      "theme": "light",
+      "page": "yearly",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 375,
+      "theme": "light",
+      "page": "settings",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 375,
+      "theme": "light",
+      "page": "whatsapp",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 375,
+      "theme": "light",
+      "page": "import",
+      "status": 200,
+      "dataTheme": "light",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 375,
+      "theme": "dark",
+      "page": "dashboard",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 375,
+      "theme": "dark",
+      "page": "shipments",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 25,
+      "overflow": false,
+      "sample": [
+        {
+          "target": "a[href=\"/shipments/55/\"]",
+          "summary": "Element has insufficient color contrast of 2.28 (foreground color: #2a5298, background color: #1a1829, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/shipments/54/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/shipments/1/\"]",
+          "summary": "Element has insufficient color contrast of 2.28 (foreground color: #2a5298, background color: #1a1829, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/shipments/2/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/shipments/3/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/shipments/4/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "theme": "dark",
+      "page": "shipment_detail",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 3,
+      "overflow": false,
+      "sample": [
+        {
+          "target": ".bg-red-400\\/10",
+          "summary": "Element has insufficient color contrast of 4.18 (foreground color: #ef4444, background color: #262031, font size: 9.0pt (12px), font weight:"
+        },
+        {
+          "target": ".border-brand-light\\/20",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": ".hover\\:underline",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 12.0pt (16px), font weight"
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "theme": "dark",
+      "page": "shipment_form",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 375,
+      "theme": "dark",
+      "page": "invoices",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 3,
+      "overflow": false,
+      "sample": [
+        {
+          "target": "a[href=\"/invoices/2/\"]",
+          "summary": "Element has insufficient color contrast of 2.51 (foreground color: #59667a, background color: #1e293b, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/invoices/3/\"]",
+          "summary": "Element has insufficient color contrast of 2.56 (foreground color: #586478, background color: #1b2538, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/invoices/4/\"]",
+          "summary": "Element has insufficient color contrast of 2.51 (foreground color: #59667a, background color: #1e293b, font size: 10.5pt (14px), font weight"
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "theme": "dark",
+      "page": "invoice_detail",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 3,
+      "overflow": false,
+      "sample": [
+        {
+          "target": "h3",
+          "summary": "Element has insufficient color contrast of 1.48 (foreground color: #cbd5e1, background color: #ffffff, font size: 27.0pt (36px), font weight"
+        },
+        {
+          "target": "p:nth-child(1) > .mr-2.tracking-widest.text-\\[10px\\]",
+          "summary": "Element has insufficient color contrast of 2.56 (foreground color: #94a3b8, background color: #ffffff, font size: 7.5pt (10px), font weight:"
+        },
+        {
+          "target": "p:nth-child(2) > .mr-2.tracking-widest.text-\\[10px\\]",
+          "summary": "Element has insufficient color contrast of 2.56 (foreground color: #94a3b8, background color: #ffffff, font size: 7.5pt (10px), font weight:"
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "theme": "dark",
+      "page": "invoice_create",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 375,
+      "theme": "dark",
+      "page": "customers",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 7,
+      "overflow": false,
+      "sample": [
+        {
+          "target": "a[href=\"/customers/3/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/customers/1/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/customers/6/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/customers/5/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/customers/7/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/customers/2/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "theme": "dark",
+      "page": "customer_detail",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 2,
+      "overflow": false,
+      "sample": [
+        {
+          "target": ".border-brand-light\\/20",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": ".hover\\:underline",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 12.0pt (16px), font weight"
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "theme": "dark",
+      "page": "drivers",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 6,
+      "overflow": false,
+      "sample": [
+        {
+          "target": "a[href=\"/drivers/4/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/drivers/6/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/drivers/1/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/drivers/3/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/drivers/2/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/drivers/5/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "theme": "dark",
+      "page": "driver_form",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 375,
+      "theme": "dark",
+      "page": "vehicles",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 13,
+      "overflow": false,
+      "sample": [
+        {
+          "target": "a[href=\"/vehicles/1/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/vehicles/2/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/vehicles/3/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/vehicles/4/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/vehicles/5/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": "a[href=\"/vehicles/6/\"]",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "theme": "dark",
+      "page": "vehicle_detail",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 4,
+      "overflow": false,
+      "sample": [
+        {
+          "target": ".hover\\:bg-brand-light\\/10",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 10.5pt (14px), font weight"
+        },
+        {
+          "target": ".hover\\:underline",
+          "summary": "Element has insufficient color contrast of 2.34 (foreground color: #2a5298, background color: #0f172a, font size: 12.0pt (16px), font weight"
+        },
+        {
+          "target": ".py-1",
+          "summary": "Element has insufficient color contrast of 1.92 (foreground color: #2a5298, background color: #1e293b, font size: 9.0pt (12px), font weight:"
+        },
+        {
+          "target": ".opacity-50 > p",
+          "summary": "Element has insufficient color contrast of 2.51 (foreground color: #59667a, background color: #1e293b, font size: 10.5pt (14px), font weight"
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "theme": "dark",
+      "page": "vehicle_form",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 375,
+      "theme": "dark",
+      "page": "expenses",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 375,
+      "theme": "dark",
+      "page": "maintenance",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 375,
+      "theme": "dark",
+      "page": "ifta_logs",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 375,
+      "theme": "dark",
+      "page": "ifta_report",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 375,
+      "theme": "dark",
+      "page": "monthly",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 375,
+      "theme": "dark",
+      "page": "yearly",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 375,
+      "theme": "dark",
+      "page": "settings",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 375,
+      "theme": "dark",
+      "page": "whatsapp",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    },
+    {
+      "width": 375,
+      "theme": "dark",
+      "page": "import",
+      "status": 200,
+      "dataTheme": "dark",
+      "contrastViolations": 0,
+      "overflow": false,
+      "sample": []
+    }
+  ],
+  "consoleErrors": []
+}

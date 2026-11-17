@@ -3,7 +3,7 @@
 {% block title %}Vehicle: {{ vehicle.registration_number }} — FilaTrucking{% endblock %}
 
 {% block content %}
-<div class="mb-6 flex justify-between items-start">
+<div class="mb-6 flex flex-wrap justify-between items-start gap-4">
   <div>
     <div class="flex items-center gap-3">
       <h1 class="text-2xl font-bold text-slate-100">{{ vehicle.registration_number }}</h1>
@@ -22,7 +22,7 @@
   </div>
   <div class="flex gap-3">
     <a href="{% url 'vehicle_update' vehicle.pk %}"
-      class="bg-slate-800 text-slate-200 hover:text-white px-4 py-2 border border-slate-600 rounded-xl text-sm font-medium transition">Edit
+      class="bg-slate-800 text-slate-200 hover:text-slate-100 px-4 py-2 border border-slate-600 rounded-xl text-sm font-medium transition">Edit
       Vehicle</a>
     <a href="{% url 'vehicle_list' %}"
       class="bg-surface text-brand-light px-4 py-2 border border-brand-light/20 rounded-xl text-sm font-medium hover:bg-brand-light/10 transition">Back
@@ -127,11 +127,11 @@
 
       <!-- Links -->
       <a href="{% url 'ifta_log_list' %}?vehicle={{ vehicle.pk }}"
-        class="block w-full text-center px-4 py-2.5 bg-slate-800 text-slate-300 hover:text-white border border-slate-600 rounded-xl text-sm font-medium transition mb-2">
+        class="block w-full text-center px-4 py-2.5 bg-slate-800 text-slate-300 hover:text-slate-100 border border-slate-600 rounded-xl text-sm font-medium transition mb-2">
         Manage IFTA Logs
       </a>
       <a href="{% url 'maintenance_list' %}?vehicle={{ vehicle.pk }}"
-        class="block w-full text-center px-4 py-2.5 bg-slate-800 text-slate-300 hover:text-white border border-slate-600 rounded-xl text-sm font-medium transition">
+        class="block w-full text-center px-4 py-2.5 bg-slate-800 text-slate-300 hover:text-slate-100 border border-slate-600 rounded-xl text-sm font-medium transition">
         Manage Maintenance Logs
       </a>
     </div>
