@@ -124,6 +124,8 @@ docker compose -f docker-compose.prod.yml exec django python manage.py check --d
 > Imported customers/drivers get placeholder phone and email (and customers a note "Created by the statement import"): complete or merge them afterwards.
 > Importing 2025 again later is safe: rows already imported are skipped.
 
+QA-051 adds two more migrations (`shipments/0016`: chassis, flag_reason, optional invoice description/location, and a data step that moves the old "Auto-ingested from WhatsApp." notes into `flag_reason`; `vehicles/0015`: vehicle documents). They were tested on SQLite only; take a database backup before running them (section 2).
+
 ## 6. Verify (everything should be "yes")
 
 ```bash

@@ -167,19 +167,8 @@ def invoice_create(request):
         ).order_by("date")
         
         if shipments.exists():
-            initial_data = []
-            for s in shipments:
-                initial_data.append({
-                    "shipment": s,
-                    "date_incurred": s.date,
-                    "description": f"Shipment {s.container}",
-                    "booking_no": s.booking,
-                    "container_no": s.container,
-                    "seal_no": s.seal,
-                    "location": s.location,
-                    "amount": s.amount,
-                })
-            
+            initial_data = [s.invoice_line_defaults() for s in shipments.select_related("customer")]
+
             from django.forms import inlineformset_factory
             DynamicFormSet = inlineformset_factory(
                 Invoice,
@@ -242,7 +231,7 @@ def invoice_add_lines(request, invoice_pk):
             if end_date:
                 q = q.filter(date__lte=end_date)
 
-            shipments = q.order_by("date")
+            shipments = q.select_related("customer").order_by("date")
             existing_shipment_ids = set(
                 invoice.line_items.exclude(shipment__isnull=True).values_list("shipment_id", flat=True)
             )
@@ -250,18 +239,7 @@ def invoice_add_lines(request, invoice_pk):
             for shipment in shipments:
                 if shipment.id in existing_shipment_ids:
                     continue
-                initial_data.append(
-                    {
-                        "shipment": shipment,
-                        "date_incurred": shipment.date,
-                        "description": f"Shipment {shipment.container}",
-                        "booking_no": shipment.booking,
-                        "container_no": shipment.container,
-                        "seal_no": shipment.seal,
-                        "location": shipment.location,
-                        "amount": shipment.amount,
-                    }
-                )
+                initial_data.append(shipment.invoice_line_defaults())
 
             if initial_data:
                 from django.forms import inlineformset_factory
@@ -278,14 +256,14 @@ def invoice_add_lines(request, invoice_pk):
     shipment_data = {
         s.id: {
             "date_incurred": s.date.strftime("%Y-%m-%d"),
-            "description": f"Shipment {s.container}",
+            "description": (s.notes or "").strip()[:255],
             "booking_no": s.booking or "",
             "container_no": s.container or "",
             "seal_no": s.seal or "",
-            "location": s.location or "",
+            "location": s.effective_location,
             "amount": str(s.amount or ""),
         }
-        for s in Shipment.objects.filter(customer=invoice.customer).order_by("-date")
+        for s in Shipment.objects.filter(customer=invoice.customer).select_related("customer").order_by("-date")
     }
 
     return render(

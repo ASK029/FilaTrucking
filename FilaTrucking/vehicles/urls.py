@@ -14,6 +14,11 @@ urlpatterns = [
         views.VehicleDeleteView.as_view(),
         name="vehicle_delete",
     ),
+    path(
+        "documents/<int:pk>/delete/",
+        views.VehicleDocumentDeleteView.as_view(),
+        name="vehicle_document_delete",
+    ),
     path("<int:pk>/sync/", views.sync_vehicle_gomotive, name="sync_vehicle"),
     path("gomotive/", views.gomotive_vehicles_view, name="gomotive_vehicles"),
     # IFTA

@@ -28,7 +28,12 @@ class Shipment(models.Model):
     booking = models.CharField(max_length=50, verbose_name="Booking #")
     container = models.CharField(max_length=50, verbose_name="Container #")
     seal = models.CharField(max_length=50, verbose_name="Seal #")
-    location = models.CharField(max_length=100, verbose_name="Location")
+    chassis = models.CharField(max_length=50, blank=True, verbose_name="Chassis #")
+    # blank = "use the customer's abbreviation" (QA-051); see effective_location
+    location = models.CharField(
+        max_length=100, blank=True, verbose_name="Location",
+        help_text="Leave empty to use the customer's abbreviation.",
+    )
     amount = models.DecimalField(
         max_digits=12, decimal_places=2, null=True, blank=True, verbose_name="Rate ($)"
     )
@@ -39,7 +44,10 @@ class Shipment(models.Model):
         verbose_name="Status",
     )
     is_flagged = models.BooleanField(default=False, verbose_name="Flagged (Issue)")
+    # Notes are what a person wrote about the shipment (for WhatsApp: the description line). They become the invoice
+    # description, so system text must never go here: it goes to flag_reason (QA-051).
     notes = models.TextField(blank=True, verbose_name="Notes")
+    flag_reason = models.TextField(blank=True, verbose_name="Why it is flagged")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -47,6 +55,25 @@ class Shipment(models.Model):
 
     def __str__(self) -> str:
         return f"Shipment #{self.pk} – {self.container} ({self.customer})"
+
+    @property
+    def effective_location(self) -> str:
+        """The shipment's own location, else the customer's abbreviation."""
+        return (self.location or "").strip() or (self.customer.abbreviation if self.customer_id else "")
+
+    def invoice_line_defaults(self) -> dict:
+        """What a new invoice line copies from this shipment. The description is the shipment's notes (empty when there
+        are none) and the location falls back to the customer's abbreviation. One place for all five callers (QA-051)."""
+        return {
+            "shipment": self,
+            "date_incurred": self.date,
+            "description": (self.notes or "").strip()[:255],
+            "booking_no": self.booking,
+            "container_no": self.container,
+            "seal_no": self.seal,
+            "location": self.effective_location,
+            "amount": self.amount,
+        }
 
 
 # ---------------------------------------------------------------------------
@@ -118,11 +145,11 @@ class InvoiceLineItem(models.Model):
         Shipment, on_delete=models.SET_NULL, null=True, blank=True
     )
     date_incurred = models.DateField()
-    description = models.CharField(max_length=255)
+    description = models.CharField(max_length=255, blank=True)  # empty when the shipment has no notes (QA-051)
     booking_no = models.CharField(max_length=50, null=True, blank=True)
     container_no = models.CharField(max_length=50, null=True, blank=True)
     seal_no = models.CharField(max_length=50, null=True, blank=True)
-    location = models.CharField(max_length=255)
+    location = models.CharField(max_length=255, blank=True)  # blank: filled from the shipment / customer abbreviation (QA-051)
     amount = models.DecimalField(max_digits=12, decimal_places=2)
 
     class Meta:

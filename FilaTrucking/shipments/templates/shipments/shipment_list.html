@@ -65,6 +65,7 @@
           <td data-label="Container / Booking" class="px-6 py-4">
             <div class="font-mono text-slate-200">{{ shipment.container }}</div>
             <div class="text-xs font-mono text-slate-400 mt-0.5">{{ shipment.booking }}</div>
+            {% if shipment.chassis %}<div class="text-xs font-mono text-slate-400 mt-0.5">Chassis {{ shipment.chassis }}</div>{% endif %}
           </td>
           <td data-label="Customer / Rate" class="px-6 py-4">
             <div class="text-slate-200">{{ shipment.customer.abbreviation }}</div>

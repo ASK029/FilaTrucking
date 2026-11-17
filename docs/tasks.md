@@ -140,3 +140,28 @@
 ### Sidbar
 - [X] Merge whatsapp setup option with system settings inside the sidebar
 
+## Milestone 9: Vehicle, Shipment & Invoice Refinements (QA-051)
+
+### Vehicles
+- [X] Add a `VehicleDocument` model (named file per truck, same shape as `DriverDocument`, stored under random names, same type/size validators).
+- [X] Add the documents formset (add / replace / remove rows) to the vehicle create and edit form, saved together with the truck in one transaction.
+- [X] Show an "Attached Documents" card on the vehicle detail page, with a delete action (confirmation page).
+- [X] Serve vehicle documents only to logged-in users (existing `/media/` view).
+
+### Shipments
+- [X] Add an optional `chassis` field to the Shipment model; show it on the shipment form, list and detail pages.
+- [X] Make `location` optional on shipments: a blank location defaults to the customer's abbreviation (form, detail page and invoice lines).
+- [X] Add `flag_reason` to shipments so automatic remarks (duplicate container, missing rate, missing customer) no longer pollute `notes`; migrate old "Auto-ingested from WhatsApp." notes into it.
+
+### Invoices
+- [X] Invoice line description comes from the shipment's notes and stays empty when the shipment has none (no more "Shipment <container>").
+- [X] Invoice line location defaults to the customer's abbreviation when the shipment has no location.
+- [X] Build invoice lines from one shared helper (`Shipment.invoice_line_defaults`) for the new-invoice screen, the add-lines screen, the form's blank-field fill and the recurring-invoice task.
+
+### WhatsApp Ingestion
+- [X] New message format: optional note/description line (words only), booking, container, seal, optional chassis (`Klaipeda` / `95938662` / `HAMU3898114` / `179458` / `NAPZ225644`); `#booking`-style tagged lines are accepted in any order; the old positional and `KEY: value` formats keep working.
+- [X] Only booking, container and seal are required; note, chassis, customer, date, rate, driver and truck are optional.
+- [X] Tell shipments from chit-chat: complete messages create a shipment, clear but incomplete attempts get a reply naming the missing fields, everything else (questions, links, lone numbers, pasted paragraphs) is ignored without a reply.
+- [X] A message that names no customer creates the shipment under a placeholder "Unassigned" customer, flagged for review; a named but unknown customer still stops with "Customer not found".
+- [X] Update the help text and the success reply (note, seal, chassis, customer).
+

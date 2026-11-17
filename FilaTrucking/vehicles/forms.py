@@ -1,5 +1,6 @@
 from django import forms
-from .models import Vehicle, IFTAMileage, Maintenance
+from django.forms import inlineformset_factory
+from .models import Vehicle, VehicleDocument, IFTAMileage, Maintenance
 from FilaTrucking.utils import TailwindFormMixin
 
 US_STATES = [
@@ -28,6 +29,24 @@ class VehicleForm(TailwindFormMixin, forms.ModelForm):
             'model', 'year', 'chassis_number',
             'average_mpg', 'status', 'ownership_type', 'image'
         ]
+
+
+class VehicleDocumentForm(TailwindFormMixin, forms.ModelForm):
+    class Meta:
+        model = VehicleDocument
+        fields = ['name', 'document']
+        # a plain file input: the default widget prints the stored path ("Currently: vehicle_documents/<hex>.pdf") and
+        # overflows on a phone; the template shows the current file as a link instead
+        widgets = {'document': forms.FileInput}
+
+
+VehicleDocumentFormSet = inlineformset_factory(
+    Vehicle,
+    VehicleDocument,
+    form=VehicleDocumentForm,
+    can_delete=True,
+    extra=1,
+)
 
 
 class IFTAMilesLogForm(TailwindFormMixin, forms.ModelForm):
