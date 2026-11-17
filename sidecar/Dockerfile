@@ -1,7 +1,7 @@
 # WhatsApp sidecar (Baileys). QA-022 / QA-028: reproducible build, no Chromium, supported base image.
 
 # ---- build stage: needs git because one Baileys dependency (libsignal) is a git URL ----
-FROM node:24-bookworm-slim AS build
+FROM node:26-bookworm-slim AS build
 RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app/sidecar
@@ -11,7 +11,7 @@ RUN git config --global url."https://github.com/".insteadOf "ssh://git@github.co
     && npm ci --omit=dev
 
 # ---- runtime stage ----
-FROM node:24-bookworm-slim
+FROM node:26-bookworm-slim
 ENV NODE_ENV=production
 WORKDIR /app/sidecar
 COPY --from=build /app/sidecar/node_modules ./node_modules
