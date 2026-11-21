@@ -28,7 +28,13 @@ function makeWASocket(opts) {
   const s = {
     opts, ev: new EventEmitter(), sent: [], ended: false, createdAt: Date.now(),
     ws: { close() {} },
-    async sendMessage(jid, content) { if (sendFails) throw new Error('Connection Closed'); s.sent.push({ jid, content, at: Date.now() }); },
+    user: { id: '9715550100:12@s.whatsapp.net', name: 'Dispatcher' }, // the connected account (QA-054)
+    async sendMessage(jid, content) {
+      if (sendFails) throw new Error('Connection Closed');
+      const id = 'BOT-' + (s.sent.length + 1);
+      s.sent.push({ jid, content, at: Date.now(), id });
+      return { key: { remoteJid: jid, fromMe: true, id } };
+    },
     end() { s.ended = true; setImmediate(() => s.ev.emit('connection.update', { connection: 'close', lastDisconnect: { error: { output: { statusCode: 428 } } } })); },
     async groupFetchAllParticipating() { return {}; },
   };
@@ -101,11 +107,21 @@ const groupMsg = (text, id = 'MSG1') => ({
                message: { conversation: text }, messageTimestamp: 1767225600 }],
 });
 
+const ownMsg = (text, id, jid = '120363@g.us') => ({
+  type: 'notify',
+  messages: [{ key: { remoteJid: jid, fromMe: true, id }, message: { conversation: text }, messageTimestamp: 1767225600 }],
+});
+const ingestPosts = () => posts.filter((p) => p.url.includes('/ingest/'));
+
 const CLOSED_SCENARIOS = ['fail_closed'];
 if (!CLOSED_SCENARIOS.includes(scenario)) {
   // most scenarios talk to a group the admin has enabled: provide the sidecar's on-disk copy of that list
   fs.mkdirSync(path.join(work, 'auth_data'), { recursive: true });
   fs.writeFileSync(path.join(work, 'auth_data', '_active_groups.json'), JSON.stringify(['120363@g.us']));
+}
+if (scenario === 'own_cache_only') {
+  // the on-disk copy in the current format, with the option ticked
+  fs.writeFileSync(path.join(work, 'auth_data', '_active_groups.json'), JSON.stringify({ groups: ['120363@g.us'], accept_own_messages: true }));
 }
 if (scenario === 'outbox_restore') {
   djangoPostImpl = async (url, body) => ({ data: { status: 'success', reply_message: 'Recorded ' + body.message_id } });
@@ -359,6 +375,49 @@ if (scenario === 'outbox_restore') {
     s0.ev.emit('messages.upsert', groupMsg('BK1\nCONT1\nSEAL1', 'CACHE-1'));
     await sleep(100);
     out('processed_with_django_down_and_cache_on_disk', posts.filter((p) => p.url.includes('/ingest/')).length);
+  }
+
+  if (scenario === 'own_cache_only') {
+    // restart while Django is down: the option comes back from the disk copy
+    djangoGetImpl = async () => { throw new Error('django is restarting'); };
+    s0.ev.emit('connection.update', { connection: 'open' }); await sleep(150);
+    s0.ev.emit('messages.upsert', ownMsg('BK1\nCONT1\nSEAL1', 'OWN-CACHE'));
+    await sleep(100);
+    out('own_message_processed_from_disk_copy', ingestPosts().length);
+  }
+
+  if (scenario === 'own_messages') {
+    // QA-054: the connected account's own messages are processed only when the website option is ticked
+    const GROUP = '120363@g.us';
+    const answer = (flag, jids = [GROUP]) => async () => ({ data: { accept_own_messages: flag, groups: jids.map((j) => ({ group_jid: j, group_name: j, is_active: true })) } });
+    const refresh = async (impl) => { djangoGetImpl = impl; s0.ev.emit('connection.update', { connection: 'open' }); await sleep(150); };
+    const attempt = async (msg) => { const before = ingestPosts().length; s0.ev.emit('messages.upsert', msg); await sleep(120); return ingestPosts().length - before; };
+    djangoPostImpl = async () => ({ data: { status: 'success', reply_message: 'Shipment recorded!' } });
+    const SHIPMENT = 'Klaipeda\n95938662\nHAMU3898114\n179458\nNAPZ225644';
+
+    out('a_legacy_cache_means_off', await attempt(ownMsg(SHIPMENT, 'O1')));
+    await refresh(answer(false));
+    out('b_option_off', await attempt(ownMsg(SHIPMENT, 'O2')));
+    await refresh(answer(true));
+    out('c_option_on', await attempt(ownMsg(SHIPMENT, 'O3')));
+    const last = ingestPosts().pop();
+    out('c_sender', last.body.sender);
+    out('c_text_lines', last.body.text.split('\n'));
+    out('c_reply_goes_to_the_group', s0.sent.map((m) => [m.jid, m.content.text]));
+    const botId = s0.sent[0].id;
+    out('d_echo_of_the_bot_reply_by_text', await attempt(ownMsg('Shipment recorded!', 'ECHO-1')));
+    out('d_echo_of_the_bot_reply_by_id', await attempt(ownMsg(SHIPMENT, botId)));
+    out('e_group_not_enabled', await attempt(ownMsg(SHIPMENT, 'O4', '555@g.us')));
+    out('e_direct_chat', await attempt(ownMsg(SHIPMENT, 'O5', '13125550101@s.whatsapp.net')));
+    out('f_member_message_still_processed', await attempt(groupMsg(SHIPMENT, 'M1')));
+    out('g_own_chit_chat_is_sent_to_django_and_left_to_the_parser', await attempt(ownMsg('ok thanks boss', 'O6')));
+    await refresh(async () => { throw new Error('django is restarting'); });
+    out('h_django_down_keeps_the_option', await attempt(ownMsg(SHIPMENT, 'O7')));
+    out('i_option_not_a_boolean_means_off', (await refresh(async () => ({ data: { accept_own_messages: 'yes', groups: [{ group_jid: GROUP, group_name: GROUP, is_active: true }] } })), await attempt(ownMsg(SHIPMENT, 'O8'))));
+    await refresh(answer(true));
+    await refresh(answer(false));
+    out('j_switched_off_again', await attempt(ownMsg(SHIPMENT, 'O9')));
+    out('cache_file', JSON.parse(fs.readFileSync(path.join(work, 'auth_data', '_active_groups.json'), 'utf8')));
   }
 
   if (scenario === 'status_dedupe') {

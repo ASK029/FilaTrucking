@@ -308,8 +308,14 @@ class WhatsAppConfig(models.Model):
     )
     last_error = models.TextField(blank=True, verbose_name="Last Error")
     last_error_time = models.DateTimeField(null=True, blank=True)
+    # QA-054: the connected account's own messages are dropped unless this is ticked (opt-in, like the groups).
+    accept_own_messages = models.BooleanField(
+        default=False,
+        verbose_name="Accept shipments sent from the connected account",
+        help_text="If ticked, shipments typed from the phone linked to the bot are processed like a group member's",
+    )
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         verbose_name = "WhatsApp Configuration"
         verbose_name_plural = "WhatsApp Configuration"

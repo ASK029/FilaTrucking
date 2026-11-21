@@ -454,6 +454,8 @@ def whatsapp_groups(request):
         return JsonResponse(UNAUTHORIZED, status=401)
     groups = WhatsAppGroup.objects.all()
     return JsonResponse({
+        # QA-054: the sidecar reads this with the group list (same 30 s refresh)
+        "accept_own_messages": WhatsAppConfig.get_instance().accept_own_messages,
         "groups": [
             {
                 "id": g.id,
@@ -512,6 +514,30 @@ def whatsapp_update_group_status(request, group_id):
         return JsonResponse({"error": "Group not found"}, status=404)
     except json.JSONDecodeError:
         return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+
+@csrf_exempt
+@require_POST
+def whatsapp_update_options(request):
+    """Set WhatsApp options (QA-054): accept_own_messages = also process shipments typed from the connected account."""
+    if not check_auth(request):
+        return JsonResponse(UNAUTHORIZED, status=401)
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+    value = data.get("accept_own_messages") if isinstance(data, dict) else None
+    if not isinstance(value, bool):
+        return JsonResponse({"error": "accept_own_messages must be true or false"}, status=400)
+    config = WhatsAppConfig.get_instance()
+    if config.accept_own_messages != value:
+        config.accept_own_messages = value
+        config.save()
+        WhatsAppLog.objects.create(
+            level=WhatsAppLog.LogLevel.INFO,
+            message="Messages from the connected account are now " + ("accepted" if value else "ignored"),
+        )
+    return JsonResponse({"status": "success", "accept_own_messages": config.accept_own_messages})
 
 
 @csrf_exempt
