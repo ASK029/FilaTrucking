@@ -1,0 +1,41 @@
+{
+  "steps": [
+    {
+      "step": "initial",
+      "present": true,
+      "checked": false,
+      "api": false
+    },
+    {
+      "step": "ticked",
+      "checked": true,
+      "api": true
+    },
+    {
+      "step": "after reload",
+      "checked": true
+    },
+    {
+      "step": "failed save reverts the box",
+      "checked": true,
+      "alerted": true,
+      "api": true
+    },
+    {
+      "step": "unticked",
+      "checked": false,
+      "api": false
+    },
+    {
+      "step": "phone 375 horizontal overflow",
+      "dark": false,
+      "light": false
+    }
+  ],
+  "lastDialog": "Could not save this setting. Please try again.",
+  "expectedErrorsFromTheSimulated500": [
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Error saving the option: Error: HTTP 500\n    at http://127.0.0.1:18085/shipments/settings/whatsapp/:885:35"
+  ],
+  "consoleErrors": []
+}

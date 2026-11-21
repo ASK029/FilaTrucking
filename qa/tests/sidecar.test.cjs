@@ -182,7 +182,36 @@ test('QA-020 the group filter fails closed', () => {
   assert.strictEqual(res.f_direct_chat, 0, '1:1 chats are never dispatch messages');
   assert.strictEqual(res.g_django_unreachable_keeps_last_list, 1, 'a failed refresh must keep the last good list');
   assert.strictEqual(res.h_django_unreachable_still_ignores_others, 0, '...and must not widen it');
-  assert.deepStrictEqual(res.cache_file, ['120363@g.us']);
+  assert.deepStrictEqual(res.cache_file, { groups: ['120363@g.us'], accept_own_messages: false });
+});
+
+test('QA-054 the connected account\'s own messages are processed only when the website option is ticked', () => {
+  const { res } = run('own_messages', { REPLY_GAP_MS: '20' });
+  assert.strictEqual(res.a_legacy_cache_means_off, 0, 'the old cache format (a plain array) means the option is off');
+  assert.strictEqual(res.b_option_off, 0);
+  assert.strictEqual(res.c_option_on, 1);
+  assert.strictEqual(res.c_sender, '9715550100@s.whatsapp.net', 'the account number, without the device suffix, not the group id');
+  assert.deepStrictEqual(res.c_text_lines, ['Klaipeda', '95938662', 'HAMU3898114', '179458', 'NAPZ225644'], 'the text is passed on untouched');
+  assert.deepStrictEqual(res.c_reply_goes_to_the_group, [['120363@g.us', 'Shipment recorded!']]);
+  assert.strictEqual(res.e_group_not_enabled, 0, 'a group the admin did not enable stays ignored');
+  assert.strictEqual(res.e_direct_chat, 0);
+  assert.strictEqual(res.f_member_message_still_processed, 1);
+  assert.strictEqual(res.g_own_chit_chat_is_sent_to_django_and_left_to_the_parser, 1, 'Django decides what is chit-chat');
+  assert.strictEqual(res.h_django_down_keeps_the_option, 1);
+  assert.strictEqual(res.i_option_not_a_boolean_means_off, 0);
+  assert.strictEqual(res.j_switched_off_again, 0);
+  assert.deepStrictEqual(res.cache_file, { groups: ['120363@g.us'], accept_own_messages: false });
+});
+
+test('QA-054 the bot\'s own replies are never fed back to Django (no reply loop)', () => {
+  const { res } = run('own_messages', { REPLY_GAP_MS: '20' });
+  assert.strictEqual(res.d_echo_of_the_bot_reply_by_text, 0);
+  assert.strictEqual(res.d_echo_of_the_bot_reply_by_id, 0);
+});
+
+test('QA-054 a restart while Django is down keeps the option from the disk copy', () => {
+  const { res } = run('own_cache_only');
+  assert.strictEqual(res.own_message_processed_from_disk_copy, 1);
 });
 
 test('QA-020 a restart while Django is down uses the enabled-groups copy on disk', () => {

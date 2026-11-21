@@ -182,3 +182,15 @@
 - [X] Replace the hard-coded colours (inline CSS on the invoice and settings pages, scrollbar, mobile table labels) with theme variables.
 - [X] Fix buttons whose text colour only worked on the dark theme, and let the detail-page headers wrap on phones.
 - [X] Check every main page in both themes at desktop and phone width: contrast (axe) and horizontal overflow.
+
+## Milestone 12: WhatsApp Messages From the Connected Account (QA-054)
+
+### Settings
+- [X] Add the option `WhatsAppConfig.accept_own_messages` (default off) with a migration.
+- [X] Add a checkbox "Also accept shipments typed from the connected WhatsApp account" to the WhatsApp settings page; it saves immediately and goes back if saving fails.
+- [X] Add the API `POST /shipments/api/whatsapp/options/` (login + CSRF, or the sidecar's bearer secret; only a real true/false is accepted; every change is logged) and return the option with the group list the sidecar already polls.
+
+### Sidecar
+- [X] Process the connected account's own messages like a group member's when the option is ticked (only in groups the admin enabled; sender = the account's own number, so a driver with that phone is assigned); off or unknown means off.
+- [X] Never process the bot's own replies again (remembered by text and by message id), so a reply cannot start a loop.
+- [X] Keep the option in the on-disk copy next to the enabled groups, so a restart while Django is down keeps it (the old copy format still loads, as "off").

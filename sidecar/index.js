@@ -47,6 +47,9 @@ let qrTimeouts = 0; // consecutive pairing QRs that nobody scanned
 let groupsPollTimer = null;
 let qrCodeData = null;
 let activeGroupJids = new Set(); // Store active group JIDs from Django
+// QA-054: the checkbox on the website's WhatsApp page. Off (fail closed) until Django says true: the connected
+// account's own messages are then processed like a group member's.
+let acceptOwnMessages = false;
 let connectionStatus = 'disconnected'; // disconnected, connecting, connected, error
 let authStatus = 'not_authenticated'; // not_authenticated, authenticating, authenticated
 let lastError = null;
@@ -355,10 +358,34 @@ async function startBot() {
 // ============================================================================
 
 // sendMessage on a closed socket rejects; an unhandled rejection used to kill the process (QA-015).
+// What the bot itself sent (QA-054). Its replies are fromMe messages too: once the connected account's own messages
+// are accepted, they must never be fed back to Django (answer -> parse -> answer ...). The text is remembered BEFORE
+// sending (an echo can arrive before sendMessage resolves) and the id after; both sets are bounded.
+const SENT_MEMORY = 500;
+const sentTexts = new Set();
+const sentIds = new Set();
+function remember(set, value) {
+    if (!value) return;
+    set.add(value);
+    if (set.size > SENT_MEMORY) set.delete(set.values().next().value);
+}
+function isOwnReply(msg, text) {
+    return sentIds.has(msg.key.id) || sentTexts.has(text);
+}
+// '9715550100:12@s.whatsapp.net' (account id with the device number) -> '9715550100@s.whatsapp.net'
+function ownJid() {
+    const id = sock && sock.user && sock.user.id;
+    if (!id) return null;
+    const [user, domain] = String(id).split('@');
+    return `${user.split(':')[0]}@${domain || 's.whatsapp.net'}`;
+}
+
 async function safeSend(jid, content) {
     try {
         if (!sock) throw new Error('not connected');
-        await sock.sendMessage(jid, content);
+        remember(sentTexts, content && content.text);
+        const sent = await sock.sendMessage(jid, content);
+        remember(sentIds, sent && sent.key && sent.key.id);
         return true;
     } catch (err) {
         addLog('warning', `Could not send a WhatsApp message to ${jid}: ${err.message}`);
@@ -426,10 +453,14 @@ function attachMessageHandlers(socket, isCurrent) {
 }
 
 async function handleIncomingMessage(msg) {
-    if (!msg.message || msg.key.fromMe) return;
+    if (!msg.message) return;
 
     const messageContent = msg.message.conversation || msg.message.extendedTextMessage?.text;
     if (!messageContent) return;
+
+    // The connected account's own messages (QA-054): only when the admin ticked the box, and never the bot's replies.
+    const own = Boolean(msg.key.fromMe);
+    if (own && (!acceptOwnMessages || isOwnReply(msg, messageContent))) return;
 
     // Fail closed (QA-020): only messages from groups the admin explicitly enabled are processed. Until the list
     // has been loaded (from Django, or the last good copy on disk) and whenever it is empty, NOTHING is processed,
@@ -443,10 +474,12 @@ async function handleIncomingMessage(msg) {
         return; // 1:1 chats, broadcasts and status updates are never dispatch messages
     }
 
-    const sender = msg.key.participant || msg.key.remoteJid;
+    // For the account's own messages the participant is not reliable and the fallback would be the group id (which
+    // matches no driver): use the account's own number, so a driver record with that phone is assigned as usual.
+    const sender = (own && ownJid()) || msg.key.participant || msg.key.remoteJid;
 
     // Always send message to Django for processing
-    addLog('info', `Received message from ${sender}: ${messageContent.substring(0, 50)}...`);
+    addLog('info', `Received message from ${sender}${own ? ' (connected account)' : ''}: ${messageContent.substring(0, 50)}...`);
 
     const payload = {
         text: messageContent,
@@ -611,8 +644,11 @@ const ACTIVE_GROUPS_FILE = () => path.join(AUTH_DIR(), '_active_groups.json');
 function loadActiveGroupsCache() {
     try {
         const cached = JSON.parse(fs.readFileSync(ACTIVE_GROUPS_FILE(), 'utf8'));
-        if (Array.isArray(cached)) {
-            activeGroupJids = new Set(cached.filter((j) => typeof j === 'string'));
+        // current format {groups: [...], accept_own_messages: bool}; the old one was a plain array (-> option off)
+        const list = Array.isArray(cached) ? cached : (cached && cached.groups);
+        if (Array.isArray(list)) {
+            activeGroupJids = new Set(list.filter((j) => typeof j === 'string'));
+            acceptOwnMessages = !Array.isArray(cached) && cached.accept_own_messages === true;
             addLog('info', `Loaded ${activeGroupJids.size} enabled group(s) from the local cache`);
         }
     } catch (err) {
@@ -623,7 +659,7 @@ function loadActiveGroupsCache() {
 function saveActiveGroupsCache() {
     try {
         fs.mkdirSync(AUTH_DIR(), { recursive: true });
-        fs.writeFileSync(ACTIVE_GROUPS_FILE(), JSON.stringify([...activeGroupJids]));
+        fs.writeFileSync(ACTIVE_GROUPS_FILE(), JSON.stringify({ groups: [...activeGroupJids], accept_own_messages: acceptOwnMessages }));
     } catch (err) {
         addLog('warning', `Could not save the enabled-groups cache: ${err.message}`);
     }
@@ -648,8 +684,10 @@ async function fetchActiveGroupsFromDjango() {
             if (group.is_active) fresh.add(group.group_jid);
         }
         activeGroupJids = fresh;
+        acceptOwnMessages = response.data.accept_own_messages === true; // anything else = off
         saveActiveGroupsCache();
-        addLog('info', `Active groups: ${activeGroupJids.size} enabled for listening`);
+        addLog('info', `Active groups: ${activeGroupJids.size} enabled for listening` +
+            (acceptOwnMessages ? '; messages from the connected account are accepted' : ''));
     } catch (err) {
         // keep the last known list (never "assume all groups are active", which is what this used to do)
         addLog('warning', `Could not fetch active groups, keeping the last known list (${activeGroupJids.size}): ${err.message}`);

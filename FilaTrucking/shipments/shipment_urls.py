@@ -22,6 +22,7 @@ urlpatterns = [
     path("api/whatsapp/logs/", api.whatsapp_logs, name="api_whatsapp_logs"),
     path("api/whatsapp/groups/", api.whatsapp_groups, name="api_whatsapp_groups"),
     path("api/whatsapp/groups/<int:group_id>/status/", api.whatsapp_update_group_status, name="api_whatsapp_update_group_status"),
+    path("api/whatsapp/options/", api.whatsapp_update_options, name="api_whatsapp_update_options"),
     path("api/whatsapp/sync-groups/", api.whatsapp_sync_groups, name="api_whatsapp_sync_groups"),
     path("api/whatsapp/update-status/", api.whatsapp_update_status, name="api_whatsapp_update_status"),
     path("api/whatsapp/trigger-sync/", api.trigger_sync_groups, name="api_trigger_sync_groups"),

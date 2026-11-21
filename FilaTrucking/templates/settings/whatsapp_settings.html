@@ -172,6 +172,18 @@
                         WhatsApp Groups ({{ total_groups }})
                     </h2>
                     
+                    {# QA-054: also process shipments typed from the connected account itself #}
+                    <label class="flex items-start gap-3 p-3 mb-4 bg-slate-800/40 rounded-lg border border-slate-700/30 cursor-pointer">
+                        <input id="accept-own-messages" aria-label="Also accept shipments typed from the connected WhatsApp account" type="checkbox"
+                            class="mt-1 w-4 h-4 rounded border-2 border-slate-500 text-amber-500 focus:ring-amber-500 focus:ring-offset-0 bg-transparent cursor-pointer flex-shrink-0"
+                            {% if config.accept_own_messages %}checked{% endif %}
+                        />
+                        <span class="min-w-0">
+                            <span class="block text-sm font-medium text-slate-100">Also accept shipments typed from the connected WhatsApp account</span>
+                            <span class="block text-xs text-muted mt-1">Messages you send from the phone linked to the bot are processed like a group member's, in the groups ticked below. The bot's own replies are never processed again. Takes effect within 30 seconds.</span>
+                        </span>
+                    </label>
+
                     {% if groups %}
                         <div class="space-y-2 max-h-80 overflow-y-auto">
                             {% for group in groups %}
@@ -355,6 +367,19 @@ document.querySelectorAll('.toggle-group-checkbox').forEach(checkbox => {
             console.error('Error updating group:', err);
             this.checked = !isActive;
         });
+    });
+});
+
+// Handle the "accept the connected account's own messages" option (QA-054); the box goes back if saving fails
+document.getElementById('accept-own-messages').addEventListener('change', function() {
+    const wanted = this.checked;
+    postJSON('{% url "api_whatsapp_update_options" %}', { accept_own_messages: wanted })
+    .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(data => { this.checked = data.accept_own_messages === true; })
+    .catch(err => {
+        console.error('Error saving the option:', err);
+        this.checked = !wanted;
+        alert('Could not save this setting. Please try again.');
     });
 });
 
